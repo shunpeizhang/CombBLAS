@@ -2091,20 +2091,22 @@ void SpParMat< IT,NT,DER >::ParallelReadMM (const string & filename)
         MPI_Abort(MPI_COMM_WORLD, NOFILE);
     }
     int64_t file_size = st.st_size;
-    MPI_Offset fpos, end_fpos;
+    MPI_Offset fpos, header_off, end_fpos;
     if(commGrid->GetRank() == 0)    // the offset needs to be for this rank
     {
         cout << "File is " << file_size << " bytes" << endl;
         fpos = ftell(f);
+        header_off = fpos;
+        file_size -= fpos;
         fclose(f);
     }
-    else
-    {
-        fpos = myrank * file_size / nprocs;
+    // MPI_Bcast(&header_off, 1, MPI_Offset, 0, commGrid->commWorld);
+    MPI_Bcast(&header_off, 1, MPIType<MPI_Offset>(), 0, commGrid->commWorld);
+    MPI_Bcast(&file_size, 1, MPIType<int64_t>(), 0, commGrid->commWorld);
+    fpos = header_off + myrank * file_size / nprocs;
 
-    }
-    if(myrank != (nprocs-1)) end_fpos = (myrank + 1) * file_size / nprocs;
-    else end_fpos = file_size;
+    if(myrank != (nprocs-1)) end_fpos = header_off + (myrank + 1) * file_size / nprocs;
+    else end_fpos = header_off + file_size;
 
     MPI_File mpi_fh;
     MPI_File_open (commGrid->commWorld, const_cast<char*>(filename.c_str()), MPI_MODE_RDONLY, MPI_INFO_NULL, &mpi_fh);
