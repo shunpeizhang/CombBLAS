@@ -146,13 +146,13 @@ SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UD
 	SpParHelper::AccessNFetch(ARecv2, Aowner, rowwins2, row_group, ARecvSizes2);	// Start prefetching next half
 
 	for(int j=0; j< rowwins1.size(); ++j)	// wait for the first half to complete
-		rowwins1[j].Complete();
+		MPI_Win_complete(rowwins1[j]);
 
 	SpParHelper::AccessNFetch(BRecv1, Bowner, colwins1, col_group, BRecvSizes1);
 	SpParHelper::AccessNFetch(BRecv2, Bowner, colwins2, col_group, BRecvSizes2);	// Start prefetching next half
 
 	for(int j=0; j< colwins1.size(); ++j)
-		colwins1[j].Complete();
+		MPI_Win_complete(colwins1[j]);
 
 	for(int i = 1; i < stages; ++i)
 	{
@@ -180,12 +180,12 @@ SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UD
 
 		delete ARecv1;		// free the memory of the previous first half
 		for(int j=0; j< rowwins2.size(); ++j)	// wait for the previous second half to complete
-			rowwins2[j].Complete();
+			MPI_Win_complete(rowwins2[j]);
 		SpParHelper::Print("Completed A\n");
 
 		delete BRecv1;
 		for(int j=0; j< colwins2.size(); ++j)	// wait for the previous second half to complete
-			colwins2[j].Complete();
+			MPI_Win_complete(colwins2[j]);
 
 #ifdef SPGEMMDEBUG
 		SpParHelper::Print("Completed B\n");
@@ -218,9 +218,9 @@ SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UD
 		delete BRecv2;
 
 		for(int j=0; j< rowwins1.size(); ++j)	// wait for the current first half to complte
-			rowwins1[j].Complete();
+			MPI_Win_complete(rowwins1[j]);
 		for(int j=0; j< colwins1.size(); ++j)
-			colwins1[j].Complete();
+			MPI_Win_complete(colwins1[j]);
 
 #ifdef SPGEMMDEBUG
 		SpParHelper::Print("Completed next\n");
@@ -237,10 +237,10 @@ SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UD
 
 	delete ARecv1;		// free the memory of the previous first half
 	for(int j=0; j< rowwins2.size(); ++j)	// wait for the previous second half to complete
-		rowwins2[j].Complete();
+		MPI_Win_complete(rowwins2[j]);
 	delete BRecv1;
 	for(int j=0; j< colwins2.size(); ++j)	// wait for the previous second half to complete
-		colwins2[j].Complete();
+		MPI_Win_complete(colwins2[j]);
 
 	C_cont = MultiplyReturnTuples<SR>(*ARecv2, *BRecv2, false, true);
 	if(!C_cont->isZero())
