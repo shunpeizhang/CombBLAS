@@ -6,17 +6,17 @@
 /****************************************************************/
 /*
  Copyright (c) 2010-2015, The Regents of the University of California
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -52,12 +52,12 @@ CommGrid::CommGrid(MPI_Comm world, int nrowproc, int ncolproc): grrows(nrowproc)
 
 	myproccol =  (int) (myrank % grcols);
 	myprocrow =  (int) (myrank / grcols);
-		
-	/** 
+
+	/**
 	  * Create row and column communicators (must be collectively called)
 	  * C syntax: int MPI_Comm_split(MPI_Comm comm, int color, int key, MPI_Comm *newcomm)
-	  * C++ syntax: MPI::Intercomm MPI::Intercomm::Split(int color, int key) consts  
-	  * Semantics: Processes with the same color are in the same new communicator 
+	  * C++ syntax: MPI::Intercomm MPI::Intercomm::Split(int color, int key) consts
+	  * Semantics: Processes with the same color are in the same new communicator
 	  */
 	MPI_Comm_split(commWorld,myprocrow, myrank,&rowWorld);
 	MPI_Comm_split(commWorld,myproccol, myrank,&colWorld);
@@ -72,7 +72,7 @@ CommGrid::CommGrid(MPI_Comm world, int nrowproc, int ncolproc): grrows(nrowproc)
 
 void CommGrid::CreateDiagWorld()
 {
-	if(grrows != grcols)	
+	if(grrows != grcols)
 	{
 		cout << "The grid is not square... !" << endl;
 		cout << "Returning diagworld to everyone instead of the diagonal" << endl;
@@ -91,7 +91,7 @@ void CommGrid::CreateDiagWorld()
 	MPI_Group_free(&group);
 	delete [] process_ranks;
 
-	// The Create() function returns MPI_COMM_NULL to processes that are NOT in group	
+	// The Create() function returns MPI_COMM_NULL to processes that are NOT in group
 	MPI_Comm_create(commWorld,diag_group,&diagWorld);
 	MPI_Group_free(&diag_group);
 }
@@ -99,18 +99,18 @@ void CommGrid::CreateDiagWorld()
 bool CommGrid::OnSameProcCol( int rhsrank)
 {
 	return ( myproccol == ((int) (rhsrank % grcols)) );
-} 
+}
 
 bool CommGrid::OnSameProcRow( int rhsrank)
 {
 	return ( myprocrow == ((int) (rhsrank / grcols)) );
-} 
+}
 
 //! Return rank in the column world
 int CommGrid::GetRankInProcCol( int wholerank)
 {
 	return ((int) (wholerank / grcols));
-} 
+}
 
 //! Return rank in the row world
 int CommGrid::GetRankInProcRow( int wholerank)
@@ -118,14 +118,14 @@ int CommGrid::GetRankInProcRow( int wholerank)
 	return ((int) (wholerank % grcols));
 }
 
-//! Get the rank of the diagonal processor in that particular row 
-//! In the ith processor row, the diagonal processor is the ith processor within that row 
+//! Get the rank of the diagonal processor in that particular row
+//! In the ith processor row, the diagonal processor is the ith processor within that row
 int CommGrid::GetDiagOfProcRow( )
 {
 	return myprocrow;
 }
 
-//! Get the rank of the diagonal processor in that particular col 
+//! Get the rank of the diagonal processor in that particular col
 //! In the ith processor col, the diagonal processor is the ith processor within that col
 int CommGrid::GetDiagOfProcCol( )
 {
@@ -143,10 +143,10 @@ bool CommGrid::operator== (const CommGrid & rhs) const
     		return false;
 	}
 	return ( (grrows == rhs.grrows) && (grcols == rhs.grcols) && (myprocrow == rhs.myprocrow) && (myproccol == rhs.myproccol));
-}	
+}
 
 
-void CommGrid::OpenDebugFile(string prefix, ofstream & output) const 
+void CommGrid::OpenDebugFile(string prefix, ofstream & output) const
 {
 	stringstream ss;
 	string rank;
@@ -169,7 +169,7 @@ shared_ptr<CommGrid> ProductGrid(CommGrid * gridA, CommGrid * gridB, int & inner
 	innerdim = gridA->grcols;
 	Aoffset = (gridA->myprocrow + gridA->myproccol) % gridA->grcols;	// get sequences that avoids contention
 	Boffset = (gridB->myprocrow + gridB->myproccol) % gridB->grrows;
-		
+
 	//MPI_Comm world = MPI_COMM_WORLD;
 	//return shared_ptr<CommGrid>( new CommGrid(world, gridA->grrows, gridB->grcols) );
     return shared_ptr<CommGrid>( new CommGrid(*gridA) );

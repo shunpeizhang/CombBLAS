@@ -6,17 +6,17 @@
 /****************************************************************/
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -36,11 +36,11 @@
 #include <stdexcept>
 using namespace std;
 
-/** 
+/**
  * Generalized sparse matrix indexing (ri/ci are 0-based indexed)
  * Both the storage and the actual values in SpParVec should be IT
  * The index vectors are distributed on diagonal processors
- * We can use this function to apply a permutation like A(p,q) 
+ * We can use this function to apply a permutation like A(p,q)
  * Sequential indexing subroutine (via multiplication) is general enough.
  */
 template <class IT, class NT, class DER>
@@ -48,7 +48,7 @@ SpParMat<IT,NT,DER> SpParMat<IT,NT,DER>::operator() (const SpParVec<IT,IT> & ri,
 {
 	// We create two boolean matrices P and Q
 	// Dimensions:  P is size(ri) x m
-	//		Q is n x size(ci) 
+	//		Q is n x size(ci)
 
 	IT colneighs = commGrid->GetGridRows();	// number of neighbors along this processor column (including oneself)
 	IT rowneighs = commGrid->GetGridCols();	// number of neighbors along this processor row (including oneself)
@@ -56,10 +56,10 @@ SpParMat<IT,NT,DER> SpParMat<IT,NT,DER>::operator() (const SpParVec<IT,IT> & ri,
 	IT totaln = getncol();
 	IT m_perproc = totalm / rowneighs;	// these are CORRECT, as P's column dimension is m
 	IT n_perproc = totaln / colneighs;	// and Q's row dimension is n
-	IT p_nnz, q_nnz, rilen, cilen; 
+	IT p_nnz, q_nnz, rilen, cilen;
 	IT * pcnts;
 	IT * qcnts;
-	
+
 	IT diaginrow = commGrid->GetDiagOfProcRow();
 	IT diagincol = commGrid->GetDiagOfProcCol();
 
@@ -78,7 +78,7 @@ SpParMat<IT,NT,DER> SpParMat<IT,NT,DER>::operator() (const SpParVec<IT,IT> & ri,
 
 	if(ri.diagonal)		// only the diagonal processors hold vectors
 	{
-		// broadcast the size 
+		// broadcast the size
 		rilen = ri.ind.size();
 		cilen = ci.ind.size();
 		MPI_Bcast(&rilen, 1, MPIType<IT>(), diaginrow, commGrid->rowWorld);
@@ -91,7 +91,7 @@ SpParMat<IT,NT,DER> SpParMat<IT,NT,DER>::operator() (const SpParVec<IT,IT> & ri,
 
 		IT locvecr = ri.ind.size();	// nnz in local vector
 		for(IT i=0; i < locvecr; ++i)
-		{	
+		{
 			// numerical values (permutation indices) are 0-based
 			IT rowrec = std::min(ri.num[i] / m_perproc, rowneighs-1);	// recipient processor along the column
 
@@ -105,9 +105,9 @@ SpParMat<IT,NT,DER> SpParMat<IT,NT,DER>::operator() (const SpParVec<IT,IT> & ri,
 			pcnts[i] = rowdata_rowid[i].size();
 
 		// Now, do it for ci
-		IT locvecc = ci.ind.size();	
+		IT locvecc = ci.ind.size();
 		for(IT i=0; i < locvecc; ++i)
-		{	
+		{
 			// numerical values (permutation indices) are 0-based
 			IT colrec = std::min(ci.num[i] / n_perproc, colneighs-1);	// recipient processor along the column
 
@@ -127,39 +127,39 @@ SpParMat<IT,NT,DER> SpParMat<IT,NT,DER>::operator() (const SpParVec<IT,IT> & ri,
 
 		for(IT i=0; i<rowneighs; ++i)
 		{
-			if(i != diaginrow)	// destination is not me	
+			if(i != diaginrow)	// destination is not me
 			{
-				MPI_Send(SpHelper::p2a(rowdata_rowid[i]), pcnts[i], MPIType<IT>(), i, RFROWIDS, commGrid->rowWorld); 
+				MPI_Send(SpHelper::p2a(rowdata_rowid[i]), pcnts[i], MPIType<IT>(), i, RFROWIDS, commGrid->rowWorld);
 				MPI_Send(SpHelper::p2a(rowdata_colid[i]), pcnts[i], MPIType<IT>(), i, RFCOLIDS, commGrid->rowWorld);
 			}
 		}
 
 		for(IT i=0; i<colneighs; ++i)
 		{
-			if(i != diagincol)	// destination is not me	
+			if(i != diagincol)	// destination is not me
 			{
-				MPI_Send(SpHelper::p2a(coldata_rowid[i]), qcnts[i], MPIType<IT>(), i, RFROWIDS, commGrid->colWorld); 
-				MPI_Send(SpHelper::p2a(coldata_colid[i]), qcnts[i], MPIType<IT>(), i, RFCOLIDS, commGrid->colWorld); 
+				MPI_Send(SpHelper::p2a(coldata_rowid[i]), qcnts[i], MPIType<IT>(), i, RFROWIDS, commGrid->colWorld);
+				MPI_Send(SpHelper::p2a(coldata_colid[i]), qcnts[i], MPIType<IT>(), i, RFCOLIDS, commGrid->colWorld);
 			}
 		}
 		DeleteAll(pcnts, qcnts);
 
-		tuple<IT,IT,bool> * p_tuples = new tuple<IT,IT,bool>[p_nnz]; 
+		tuple<IT,IT,bool> * p_tuples = new tuple<IT,IT,bool>[p_nnz];
 		for(IT i=0; i< p_nnz; ++i)
 		{
 			p_tuples[i] = make_tuple(rowdata_rowid[diaginrow][i], rowdata_colid[diaginrow][i], 1);
 		}
 
-		tuple<IT,IT,bool> * q_tuples = new tuple<IT,IT,bool>[q_nnz]; 
+		tuple<IT,IT,bool> * q_tuples = new tuple<IT,IT,bool>[q_nnz];
 		for(IT i=0; i< q_nnz; ++i)
 		{
 			q_tuples[i] = make_tuple(coldata_rowid[diagincol][i], coldata_colid[diagincol][i], 1);
 		}
 
-		PSeq = new DER_IT(); 
+		PSeq = new DER_IT();
 		PSeq->Create( p_nnz, rilen, trlocalrows, p_tuples);		// deletion of tuples[] is handled by SpMat::Create
 
-		QSeq = new DER_IT();  
+		QSeq = new DER_IT();
 		QSeq->Create( q_nnz, trlocalcols, cilen, q_tuples);		// deletion of tuples[] is handled by SpMat::Create
 
 	}
@@ -171,40 +171,40 @@ SpParMat<IT,NT,DER> SpParMat<IT,NT,DER>::operator() (const SpParVec<IT,IT> & ri,
 		// receive the receive counts ...
 		MPI_Scatter(pcnts, 1, MPIType<IT>(), &p_nnz, 1, MPIType<IT>(), diaginrow, commGrid->rowWorld);
 		MPI_Scatter(qcnts, 1, MPIType<IT>(), &q_nnz, 1, MPIType<IT>(), diagincol, commGrid->colWorld);
-		
-		// create space for incoming data ... 
+
+		// create space for incoming data ...
 		IT * p_rows = new IT[p_nnz];
 		IT * p_cols = new IT[p_nnz];
 		IT * q_rows = new IT[q_nnz];
 		IT * q_cols = new IT[q_nnz];
-		
-		// receive actual data ... 
-		MPI_Recv(p_rows, p_nnz, MPIType<IT>(), diaginrow, RFROWIDS, commGrid->rowWorld);	
-		MPI_Recv(p_cols, p_nnz, MPIType<IT>(), diaginrow, RFCOLIDS, commGrid->rowWorld);	
-	
-		MPI_Recv(q_rows, q_nnz, MPIType<IT>(), diagincol, RFROWIDS, commGrid->colWorld);	
-		MPI_Recv(q_cols, q_nnz, MPIType<IT>(), diagincol, RFCOLIDS, commGrid->colWorld);	
 
-		tuple<IT,IT,bool> * p_tuples = new tuple<IT,IT,bool>[p_nnz]; 
+		// receive actual data ...
+		MPI_Recv(p_rows, p_nnz, MPIType<IT>(), diaginrow, RFROWIDS, commGrid->rowWorld);
+		MPI_Recv(p_cols, p_nnz, MPIType<IT>(), diaginrow, RFCOLIDS, commGrid->rowWorld);
+
+		MPI_Recv(q_rows, q_nnz, MPIType<IT>(), diagincol, RFROWIDS, commGrid->colWorld);
+		MPI_Recv(q_cols, q_nnz, MPIType<IT>(), diagincol, RFCOLIDS, commGrid->colWorld);
+
+		tuple<IT,IT,bool> * p_tuples = new tuple<IT,IT,bool>[p_nnz];
 		for(IT i=0; i< p_nnz; ++i)
 		{
 			p_tuples[i] = make_tuple(p_rows[i], p_cols[i], 1);
 		}
 
-		tuple<IT,IT,bool> * q_tuples = new tuple<IT,IT,bool>[q_nnz]; 
+		tuple<IT,IT,bool> * q_tuples = new tuple<IT,IT,bool>[q_nnz];
 		for(IT i=0; i< q_nnz; ++i)
 		{
 			q_tuples[i] = make_tuple(q_rows[i], q_cols[i], 1);
 		}
 		DeleteAll(p_rows, p_cols, q_rows, q_cols);
 
-		PSeq = new DER_IT(); 
+		PSeq = new DER_IT();
 		PSeq->Create( p_nnz, rilen, trlocalrows, p_tuples);		// deletion of tuples[] is handled by SpMat::Create
 
-		QSeq = new DER_IT();  
+		QSeq = new DER_IT();
 		QSeq->Create( q_nnz, trlocalcols, cilen, q_tuples);		// deletion of tuples[] is handled by SpMat::Create
 	}
-	
+
 	// Distributed matrix generation (collective call)
 	SpParMat<IT,bool,DER_IT> P (PSeq, commGrid);
 	SpParMat<IT,bool,DER_IT> Q (QSeq, commGrid);

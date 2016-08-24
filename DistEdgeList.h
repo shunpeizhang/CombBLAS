@@ -6,17 +6,17 @@
 /****************************************************************/
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -52,7 +52,7 @@
 #include "Operations.h"
 
 
-/** 
+/**
  * From Graph 500 reference implementation v2.1.1
 **/
 typedef struct packed_edge {
@@ -79,7 +79,7 @@ static inline void write_edge(packed_edge* p, int64_t v0, int64_t v1) {
 template <typename IT>
 class DistEdgeList
 {
-public:	
+public:
 	// Constructors
 	DistEdgeList ();
     DistEdgeList(MPI_Comm & myWorld);
@@ -90,28 +90,28 @@ public:
 	void Dump32bit(string filename);
 	void GenGraph500Data(double initiator[4], int log_numverts, int edgefactor, bool scramble =false, bool packed=false);
 	void CleanupEmpties();
-	
+
 	int64_t getGlobalV() const { return globalV; }
 	IT getNumLocalEdges() const { return nedges; }
     IT* getEdges() const {return edges;}
     packed_edge * getPackedEdges() const { return pedges; }
     shared_ptr<CommGrid> commGrid;
-	
+
 private:
-	
+
 	IT* edges; // edge list composed of pairs of edge endpoints.
 	           // Edge i goes from edges[2*i+0] to edges[2*i+1]
 	packed_edge * pedges;
-	           
+
 	IT nedges; 	// number of local edges
 	IT memedges; 	// number of edges for which there is space. nedges <= memedges
 	int64_t globalV;
-	
+
 	void SetMemSize(IT ne);
-	
+
 	template<typename IU>
 	friend void PermEdges(DistEdgeList<IU> & DEL);
-	
+
 	template <typename IU>
 	friend void RenameVertices(DistEdgeList<IU> & DEL);
 

@@ -6,17 +6,17 @@
 /****************************************************************/
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -53,7 +53,7 @@ SpTuples<IT,NT>::SpTuples (int64_t size, IT nRow, IT nCol, tuple<IT, IT, NT> * m
     {
         SortColBased();
     }
-    
+
 }
 
 /**
@@ -61,8 +61,8 @@ SpTuples<IT,NT>::SpTuples (int64_t size, IT nRow, IT nCol, tuple<IT, IT, NT> * m
   * @param[in,out] edges: edge list that might contain duplicate edges. freed upon return
   * Semantics differ depending on the object created:
   * NT=bool: duplicates are ignored
-  * NT='countable' (such as short,int): duplicated as summed to keep count 	 
- **/  
+  * NT='countable' (such as short,int): duplicated as summed to keep count
+ **/
 template <class IT, class NT>
 SpTuples<IT,NT>::SpTuples (int64_t maxnnz, IT nRow, IT nCol, vector<IT> & edges, bool removeloops):m(nRow), n(nCol)
 {
@@ -83,13 +83,13 @@ SpTuples<IT,NT>::SpTuples (int64_t maxnnz, IT nRow, IT nCol, vector<IT> & edges,
 
 	int64_t cnz = 0;
 	int64_t dup = 0;  int64_t self = 0;
-	nnz = 0; 
+	nnz = 0;
 	while(cnz < maxnnz)
 	{
 		int64_t j=cnz+1;
-		while(j < maxnnz && rowindex(cnz) == rowindex(j) && colindex(cnz) == colindex(j)) 
+		while(j < maxnnz && rowindex(cnz) == rowindex(j) && colindex(cnz) == colindex(j))
 		{
-			numvalue(cnz) +=  numvalue(j);	
+			numvalue(cnz) +=  numvalue(j);
 			numvalue(j++) = 0;	// mark for deletion
 			++dup;
 		}
@@ -120,9 +120,9 @@ SpTuples<IT,NT>::SpTuples (int64_t maxnnz, IT nRow, IT nCol, vector<IT> & edges,
 
 /**
   * Generate a SpTuples object from StackEntry array, then delete that array
-  * @param[in] multstack {value-key pairs where keys are pair<col_ind, row_ind> sorted lexicographically} 
+  * @param[in] multstack {value-key pairs where keys are pair<col_ind, row_ind> sorted lexicographically}
   * \remark Since input is column sorted, the tuples are automatically generated in that way too
- **/  
+ **/
 template <class IT, class NT>
 SpTuples<IT,NT>::SpTuples (int64_t size, IT nRow, IT nCol, StackEntry<NT, pair<IT,IT> > * & multstack)
 :m(nRow), n(nCol), nnz(size)
@@ -153,7 +153,7 @@ SpTuples<IT,NT>::~SpTuples()
 
 /**
   * Hint1: copy constructor (constructs a new object. i.e. this is NEVER called on an existing object)
-  * Hint2: Base's default constructor is called under the covers 
+  * Hint2: Base's default constructor is called under the covers
   *	  Normally Base's copy constructor should be invoked but it doesn't matter here as Base has no data members
   */
 template <class IT,class NT>
@@ -166,7 +166,7 @@ SpTuples<IT,NT>::SpTuples(const SpTuples<IT,NT> & rhs): m(rhs.m), n(rhs.n), nnz(
 	}
 }
 
-//! Constructor for converting SpDCCols matrix -> SpTuples 
+//! Constructor for converting SpDCCols matrix -> SpTuples
 template <class IT,class NT>
 SpTuples<IT,NT>::SpTuples (const SpDCCols<IT,NT> & rhs):  m(rhs.m), n(rhs.n), nnz(rhs.nnz)
 {
@@ -192,7 +192,7 @@ inline void SpTuples<IT,NT>::FillTuples (Dcsc<IT,NT> * mydcsc)
 		}
 	}
 }
-	
+
 
 // Hint1: The assignment operator (operates on an existing object)
 // Hint2: The assignment operator is the only operator that is not inherited.
@@ -235,7 +235,7 @@ void SpTuples<IT,NT>::RemoveDuplicates(BINFUNC BinOp)
 	{
 		vector< tuple<IT, IT, NT> > summed;
 		summed.push_back(tuples[0]);
-	
+
 		for(IT i=1; i< nnz; ++i)
         	{
                 if((joker::get<0>(summed.back()) == joker::get<0>(tuples[i])) && (joker::get<1>(summed.back()) == joker::get<1>(tuples[i])))
@@ -245,7 +245,7 @@ void SpTuples<IT,NT>::RemoveDuplicates(BINFUNC BinOp)
 			else
 			{
 				summed.push_back(tuples[i]);
-				
+
 			}
                 }
 		delete [] tuples;
@@ -267,10 +267,10 @@ ifstream& SpTuples<IT,NT>::getstream (ifstream& infile)
 		while ( (!infile.eof()) && cnz < nnz)
 		{
 			infile >> rowindex(cnz) >> colindex(cnz) >>  numvalue(cnz);	// row-col-value
-			
+
 			rowindex(cnz) --;
 			colindex(cnz) --;
-			
+
 			if((rowindex(cnz) > m) || (colindex(cnz)  > n))
 			{
 				cerr << "supplied matrix indices are beyond specified boundaries, aborting..." << endl;
@@ -328,11 +328,11 @@ void SpTuples<IT,NT>::PrintInfo()
 		for(IT i=0; i< m; ++i)
 			for(IT j=0; j<n; ++j)
 				A[i][j] = 0.0;
-		
+
 		for(IT i=0; i< nnz; ++i)
 		{
-			A[rowindex(i)][colindex(i)] = numvalue(i);			
-		} 
+			A[rowindex(i)][colindex(i)] = numvalue(i);
+		}
 		for(IT i=0; i< m; ++i)
 		{
                         for(IT j=0; j<n; ++j)

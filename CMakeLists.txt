@@ -28,8 +28,8 @@ else (NOT C14)
 	endif (CMAKE_COMPILER_IS_GNUCXX)
 endif (NOT C14)
 
-ADD_LIBRARY( CommGridlib CommGrid.cpp  )
-ADD_LIBRARY( MPITypelib MPIType.cpp )
+ADD_LIBRARY( CommGridlib CommGrid.cpp mmio.c )
+ADD_LIBRARY( MPITypelib MPIType.cpp MPIOp.cpp )
 ADD_LIBRARY( MemoryPoollib MemoryPool.cpp )
 ADD_LIBRARY( Hashlib hash.cpp )
 

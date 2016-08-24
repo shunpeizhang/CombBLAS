@@ -6,17 +6,17 @@
 /****************************************************************/
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -39,12 +39,12 @@ struct HeaderInfo
 	uint64_t version;
 	uint64_t objsize;
 	uint64_t format;	// 0: binary, 1: ascii
-	
+
 	uint64_t m;
 	uint64_t n;
 	uint64_t nnz;
 };
-	
+
 // cout's are OK because ParseHeader is run by a single processor only
 inline HeaderInfo ParseHeader(const string & inputname, FILE * & f, int & seeklength)
 {
@@ -69,7 +69,7 @@ inline HeaderInfo ParseHeader(const string & inputname, FILE * & f, int & seekle
 		hinfo.fileexists = true;
 		return hinfo;
 	}
-	else 
+	else
 	{
 		hinfo.fileexists = true;
 		hinfo.headerexists = true;
@@ -79,7 +79,7 @@ inline HeaderInfo ParseHeader(const string & inputname, FILE * & f, int & seekle
 	results[0] = fread(&(hinfo.version), sizeof(hinfo.version), 1, f);
 	results[1] = fread(&(hinfo.objsize), sizeof(hinfo.objsize), 1, f);
 	results[2] = fread(&(hinfo.format), sizeof(hinfo.format), 1, f);
-	
+
 	results[3] = fread(&(hinfo.m), sizeof(hinfo.m), 1, f);
 	results[4] = fread(&(hinfo.n), sizeof(hinfo.n), 1, f);
 	results[5] = fread(&(hinfo.nnz), sizeof(hinfo.nnz), 1, f);
@@ -87,7 +87,7 @@ inline HeaderInfo ParseHeader(const string & inputname, FILE * & f, int & seekle
 	{
 		cout << "The required 6 fields (version, objsize, format, m,n,nnz) are not read" << endl;
 		cout << "Only " << accumulate(results,results+6,0) << " fields are read" << endl;
-	} 
+	}
 	else
 	{
 	#ifdef DEBUG
@@ -99,6 +99,6 @@ inline HeaderInfo ParseHeader(const string & inputname, FILE * & f, int & seekle
 	seeklength = 4 + 6 * sizeof(uint64_t);
 	return hinfo;
 }
-				  
-#endif 
+
+#endif
 

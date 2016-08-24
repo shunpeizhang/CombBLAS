@@ -6,17 +6,17 @@
 /****************************************************************/
 /*
  Copyright (c) 2010-2015, The Regents of the University of California
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -57,28 +57,28 @@
 /**
   * Fundamental 2D distributed sparse matrix class
   * The index type IT is encapsulated by the class in a way that it is only
-  * guarantee that the implementation will ensure the requested semantics. 
-  * For instance, if IT=int64 then the implementation can still use 32 bit 
-  * local indices but it should return correct 64-bit numbers in its functions. 
+  * guarantee that the implementation will ensure the requested semantics.
+  * For instance, if IT=int64 then the implementation can still use 32 bit
+  * local indices but it should return correct 64-bit numbers in its functions.
   * In other words, DER can be SpDCCols<int32_t, double> while IT=int64_t
   */
 template <class IT, class NT, class DER>
 class SpParMat
 {
-public:	
+public:
 	typedef typename DER::LocalIT LocalIT;
 	typedef typename DER::LocalNT LocalNT;
 	typedef IT GlobalIT;
 	typedef NT GlobalNT;
-	
+
 	// Constructors
 	SpParMat ();
     	SpParMat (MPI_Comm world); 	// ABAB: there is risk that any integer would call this constructor due to MPICH representation
 	SpParMat (shared_ptr<CommGrid> grid);
 	SpParMat (DER * myseq, shared_ptr<CommGrid> grid);
-		
+
 	SpParMat (ifstream & input, MPI_Comm & world);
-	SpParMat (DER * myseq, MPI_Comm & world);	
+	SpParMat (DER * myseq, MPI_Comm & world);
 
 	template <class DELIT>
 	SpParMat (const DistEdgeList< DELIT > & rhs, bool removeloops = true);	// conversion from distributed edge list
@@ -91,7 +91,7 @@ public:
 	~SpParMat ();
 
 	template <typename SR>
-	void Square (); 
+	void Square ();
 
 	float LoadImbalance() const;
 	void Transpose();
@@ -104,52 +104,52 @@ public:
 	template <typename _BinaryOperation>
 	void DimApply(Dim dim, const FullyDistVec<IT, NT>& v, _BinaryOperation __binary_op);
 
-	template <typename _BinaryOperation, typename _UnaryOperation >	
+	template <typename _BinaryOperation, typename _UnaryOperation >
 	DenseParVec<IT,NT> Reduce(Dim dim, _BinaryOperation __binary_op, NT id, _UnaryOperation __unary_op) const;  // deprecated?
 
-	template <typename _BinaryOperation>	
+	template <typename _BinaryOperation>
 	DenseParVec<IT,NT> Reduce(Dim dim, _BinaryOperation __binary_op, NT id) const;  // deprecated?
 
-	template <typename VT, typename _BinaryOperation, typename _UnaryOperation >	
+	template <typename VT, typename _BinaryOperation, typename _UnaryOperation >
 	void Reduce(DenseParVec<IT,VT> & rvec, Dim dim, _BinaryOperation __binary_op, VT id, _UnaryOperation __unary_op) const; // deprecated?
 
-	template <typename VT, typename _BinaryOperation>	
+	template <typename VT, typename _BinaryOperation>
 	void Reduce(DenseParVec<IT,VT> & rvec, Dim dim, _BinaryOperation __binary_op, VT id) const; // deprecated?
 
     template <typename VT, typename GIT, typename _BinaryOperation, typename _UnaryOperation >
 	void Reduce(FullyDistVec<GIT,VT> & rvec, Dim dim, _BinaryOperation __binary_op, VT id, _UnaryOperation __unary_op, MPI_Op mympiop) const;
-    
-	template <typename VT, typename GIT, typename _BinaryOperation, typename _UnaryOperation >	
+
+	template <typename VT, typename GIT, typename _BinaryOperation, typename _UnaryOperation >
 	void Reduce(FullyDistVec<GIT,VT> & rvec, Dim dim, _BinaryOperation __binary_op, VT id, _UnaryOperation __unary_op) const;
 
-	template <typename VT, typename GIT, typename _BinaryOperation>	
+	template <typename VT, typename GIT, typename _BinaryOperation>
 	void Reduce(FullyDistVec<GIT,VT> & rvec, Dim dim, _BinaryOperation __binary_op, VT id) const;
-    
+
     template <typename VT, typename GIT, typename _BinaryOperation>
 	void Reduce(FullyDistVec<GIT,VT> & rvec, Dim dim, _BinaryOperation __binary_op, VT id, MPI_Op mympiop) const;
 
-    
+
     template <typename VT, typename GIT, typename _BinaryOperation>
     void MaskedReduce(FullyDistVec<GIT,VT> & rvec, FullyDistSpVec<GIT,VT> & mask, Dim dim, _BinaryOperation __binary_op, VT id, bool exclude=false) const;
     template <typename VT, typename GIT, typename _BinaryOperation, typename _UnaryOperation >
     void MaskedReduce(FullyDistVec<GIT,VT> & rvec, FullyDistSpVec<GIT,VT> & mask, Dim dim, _BinaryOperation __binary_op, VT id, _UnaryOperation __unary_op, bool exclude=false) const;
-    
+
 	template <typename _UnaryOperation>
 	void Apply(_UnaryOperation __unary_op)
 	{
-		spSeq->Apply(__unary_op);	
+		spSeq->Apply(__unary_op);
 	}
 
 	IT RemoveLoops();	// returns the number of loops removed
-	
+
 	template <typename LIT, typename OT>
 	void OptimizeForGraph500(OptBuf<LIT,OT> & optbuf);
-	void ActivateThreading(int numsplits);	//<! As of version 1.2, only works with boolean matrices 
+	void ActivateThreading(int numsplits);	//<! As of version 1.2, only works with boolean matrices
 
 	template <typename _UnaryOperation>
 	SpParMat<IT,NT,DER> PruneI(_UnaryOperation __unary_op, bool inPlace = true) //<! Prune any nonzero entries based on both row/column indices and value
 	{
-		IT grow=0, gcol=0; 
+		IT grow=0, gcol=0;
 		GetPlaceInGlobalGrid(grow, gcol);
 		if (inPlace)
 		{
@@ -194,14 +194,14 @@ public:
 	//! General indexing with serial semantics
 	template <typename SelectFirstSR, typename SelectSecondSR>
 	SpParMat<IT,NT,DER> SubsRef_SR (const FullyDistVec<IT,IT> & ri, const FullyDistVec<IT,IT> & ci, bool inplace=false);
-	
+
 	SpParMat<IT,NT,DER> operator() (const FullyDistVec<IT,IT> & ri, const FullyDistVec<IT,IT> & ci, bool inplace=false)
 	{
 		return SubsRef_SR<BoolCopy1stSRing<NT>, BoolCopy2ndSRing<NT> >(ri, ci, inplace);
 	}
 	void Prune(const FullyDistVec<IT,IT> & ri, const FullyDistVec<IT,IT> & ci);	//!< prune all entries whose row indices are in ri and column indices are in ci
 	void SpAsgn(const FullyDistVec<IT,IT> & ri, const FullyDistVec<IT,IT> & ci, SpParMat<IT,NT,DER> & B);
-	
+
 	SpParMat<IT,NT,DER> operator() (const SpParVec<IT,IT> & ri, const SpParVec<IT,IT> & ci) const;
 
 	bool operator== (const SpParMat<IT,NT,DER> & rhs) const;
@@ -210,7 +210,7 @@ public:
 	{
 	public:
 		NT getNoNum(IT row, IT col) { return static_cast<NT>(1); }
-		void binaryfill(FILE * rFile, IT & row, IT & col, NT & val) 
+		void binaryfill(FILE * rFile, IT & row, IT & col, NT & val)
 		{
 			if (fread(&row, sizeof(IT), 1,rFile) != 1)
 				cout << "binaryfill(): error reading row index" << endl;
@@ -218,10 +218,10 @@ public:
 				cout << "binaryfill(): error reading col index" << endl;
 			if (fread(&val, sizeof(NT), 1,rFile) != 1)
 				cout << "binaryfill(): error reading value" << endl;
-			return; 
+			return;
 		}
 		size_t entrylength() { return 2*sizeof(IT)+sizeof(NT); }
-		
+
 		template <typename c, typename t>
 		NT read(std::basic_istream<c,t>& is, IT row, IT col)
 		{
@@ -229,89 +229,89 @@ public:
 			is >> v;
 			return v;
 		}
-	
+
 		template <typename c, typename t>
 		void save(std::basic_ostream<c,t>& os, const NT& v, IT row, IT col)
 		{
 			os << v;
 		}
 	};
-	
+
     void ParallelReadMM (const string & filename);
 	template <class HANDLER>
 	void ReadDistribute (const string & filename, int master, bool nonum, HANDLER handler, bool transpose = false, bool pario = false);
-	void ReadDistribute (const string & filename, int master, bool nonum=false, bool pario = false) 
-	{ 
-		ReadDistribute(filename, master, nonum, ScalarReadSaveHandler(), false, pario); 
+	void ReadDistribute (const string & filename, int master, bool nonum=false, bool pario = false)
+	{
+		ReadDistribute(filename, master, nonum, ScalarReadSaveHandler(), false, pario);
 	}
 
 	template <class HANDLER>
 	void SaveGathered(string filename, HANDLER handler, bool transpose = false) const;
 	void SaveGathered(string filename) const { SaveGathered(filename, ScalarReadSaveHandler(), false); }
-	
+
 	ofstream& put(ofstream& outfile) const;
 	void PrintForPatoh(string filename) const;
 
-	shared_ptr<CommGrid> getcommgrid() const { return commGrid; } 	
+	shared_ptr<CommGrid> getcommgrid() const { return commGrid; }
 	typename DER::LocalIT getlocalrows() const { return spSeq->getnrow(); }
-	typename DER::LocalIT getlocalcols() const { return spSeq->getncol();} 
+	typename DER::LocalIT getlocalcols() const { return spSeq->getncol();}
 	typename DER::LocalIT getlocalnnz() const { return spSeq->getnnz(); }
 	DER & seq() { return (*spSeq); }
 	DER * seqptr() { return spSeq; }
 
 	//! Friend declarations
-	template <typename SR, typename NUO, typename UDERO, typename IU, typename NU1, typename NU2, typename UDER1, typename UDER2> 
-	friend SpParMat<IU, NUO, UDERO> 
+	template <typename SR, typename NUO, typename UDERO, typename IU, typename NU1, typename NU2, typename UDER1, typename UDER2>
+	friend SpParMat<IU, NUO, UDERO>
 	Mult_AnXBn_DoubleBuff (SpParMat<IU,NU1,UDER1> & A, SpParMat<IU,NU2,UDER2> & B, bool clearA, bool clearB);
 
-	template <typename SR, typename NUO, typename UDERO, typename IU, typename NU1, typename NU2, typename UDER1, typename UDER2> 
-	friend SpParMat<IU,NUO,UDERO> 
+	template <typename SR, typename NUO, typename UDERO, typename IU, typename NU1, typename NU2, typename UDER1, typename UDER2>
+	friend SpParMat<IU,NUO,UDERO>
 	Mult_AnXBn_Synch (SpParMat<IU,NU1,UDER1> & A, SpParMat<IU,NU2,UDER2> & B, bool clearA, bool clearB);
 
-	template <typename SR, typename IU, typename NU1, typename NU2, typename UDER1, typename UDER2> 
-	friend SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UDER1,UDER2>::T_promote> 
+	template <typename SR, typename IU, typename NU1, typename NU2, typename UDER1, typename UDER2>
+	friend SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UDER1,UDER2>::T_promote>
 	Mult_AnXBn_ActiveTarget (const SpParMat<IU,NU1,UDER1> & A, const SpParMat<IU,NU2,UDER2> & B );
 
-	template <typename SR, typename IU, typename NU1, typename NU2, typename UDER1, typename UDER2> 
-	friend SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UDER1,UDER2>::T_promote> 
+	template <typename SR, typename IU, typename NU1, typename NU2, typename UDER1, typename UDER2>
+	friend SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UDER1,UDER2>::T_promote>
 	Mult_AnXBn_PassiveTarget (const SpParMat<IU,NU1,UDER1> & A, const SpParMat<IU,NU2,UDER2> & B );
 
-	template <typename SR, typename IU, typename NU1, typename NU2, typename UDER1, typename UDER2> 
-	friend SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UDER1,UDER2>::T_promote> 
+	template <typename SR, typename IU, typename NU1, typename NU2, typename UDER1, typename UDER2>
+	friend SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UDER1,UDER2>::T_promote>
 	Mult_AnXBn_Fence (const SpParMat<IU,NU1,UDER1> & A, const SpParMat<IU,NU2,UDER2> & B );
 
-	template <typename SR, typename IU, typename NUM, typename NUV, typename UDER> 
-	friend DenseParVec<IU,typename promote_trait<NUM,NUV>::T_promote> 
+	template <typename SR, typename IU, typename NUM, typename NUV, typename UDER>
+	friend DenseParVec<IU,typename promote_trait<NUM,NUV>::T_promote>
 	SpMV (const SpParMat<IU,NUM,UDER> & A, const DenseParVec<IU,NUV> & x );
 
-	template <typename SR, typename IU, typename NUM, typename NUV, typename UDER> 
-	friend FullyDistSpVec<IU,typename promote_trait<NUM,NUV>::T_promote>  
+	template <typename SR, typename IU, typename NUM, typename NUV, typename UDER>
+	friend FullyDistSpVec<IU,typename promote_trait<NUM,NUV>::T_promote>
 	SpMV (const SpParMat<IU,NUM,UDER> & A, const FullyDistSpVec<IU,NUV> & x );
 
-	template <typename SR, typename IU, typename NUM, typename NUV, typename UDER> 
-	friend FullyDistVec<IU,typename promote_trait<NUM,NUV>::T_promote>  
+	template <typename SR, typename IU, typename NUM, typename NUV, typename UDER>
+	friend FullyDistVec<IU,typename promote_trait<NUM,NUV>::T_promote>
 	SpMV (const SpParMat<IU,NUM,UDER> & A, const FullyDistVec<IU,NUV> & x );
 
-	template <typename SR, typename IU, typename NUM, typename UDER> 
-	friend FullyDistSpVec<IU,typename promote_trait<NUM,IU>::T_promote>  
+	template <typename SR, typename IU, typename NUM, typename UDER>
+	friend FullyDistSpVec<IU,typename promote_trait<NUM,IU>::T_promote>
 	SpMV (const SpParMat<IU,NUM,UDER> & A, const FullyDistSpVec<IU,IU> & x, bool indexisvalue);
 
 	// output type is part of the signature
 	template <typename SR, typename IVT, typename OVT, typename IU, typename NUM, typename UDER>
 	friend void SpMV (const SpParMat<IU,NUM,UDER> & A, const FullyDistSpVec<IU,IVT> & x, FullyDistSpVec<IU,OVT> & y, bool indexisvalue);
-	
+
 	template <typename SR, typename IVT, typename OVT, typename IU, typename NUM, typename UDER>
 	friend void SpMV (const SpParMat<IU,NUM,UDER> & A, const FullyDistSpVec<IU,IVT> & x, FullyDistSpVec<IU,OVT> & y,bool indexisvalue, OptBuf<int32_t, OVT > & optbuf);
 
-	template <typename IU, typename NU1, typename NU2, typename UDER1, typename UDER2> 
-	friend SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UDER1,UDER2>::T_promote> 
+	template <typename IU, typename NU1, typename NU2, typename UDER1, typename UDER2>
+	friend SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UDER1,UDER2>::T_promote>
 	EWiseMult (const SpParMat<IU,NU1,UDER1> & A, const SpParMat<IU,NU2,UDER2> & B , bool exclude);
 
-	template <typename RETT, typename RETDER, typename IU, typename NU1, typename NU2, typename UDERA, typename UDERB, typename _BinaryOperation> 
+	template <typename RETT, typename RETDER, typename IU, typename NU1, typename NU2, typename UDERA, typename UDERB, typename _BinaryOperation>
 	friend SpParMat<IU,RETT,RETDER>
 	EWiseApply (const SpParMat<IU,NU1,UDERA> & A, const SpParMat<IU,NU2,UDERB> & B, _BinaryOperation __binary_op, bool notB, const NU2& defaultBVal);
 
-	template <typename RETT, typename RETDER, typename IU, typename NU1, typename NU2, typename UDERA, typename UDERB, typename _BinaryOperation, typename _BinaryPredicate> 
+	template <typename RETT, typename RETDER, typename IU, typename NU1, typename NU2, typename UDERA, typename UDERB, typename _BinaryOperation, typename _BinaryPredicate>
 	friend SpParMat<IU,RETT,RETDER>
 	EWiseApply (const SpParMat<IU,NU1,UDERA> & A, const SpParMat<IU,NU2,UDERB> & B, _BinaryOperation __binary_op, _BinaryPredicate do_op, bool allowANulls, bool allowBNulls, const NU1& ANullVal, const NU2& BNullVal, const bool allowIntersect, const bool useExtendedBinOp);
 
@@ -325,39 +325,39 @@ public:
 private:
 	void SparseCommon(vector< vector < tuple<IT,IT,NT> > > & data, IT locsize, IT total_m, IT total_n, bool SumDuplicates = false);
 	int Owner(IT total_m, IT total_n, IT grow, IT gcol, IT & lrow, IT & lcol) const;
-	
+
 	void GetPlaceInGlobalGrid(IT& rowOffset, IT& colOffset) const;
-	
+
 	void HorizontalSend(IT * & rows, IT * & cols, NT * & vals, IT * & temprows, IT * & tempcols, NT * & tempvals, vector < tuple <IT,IT,NT> > & localtuples,
 						int * rcurptrs, int * rdispls, IT buffperrowneigh, int rowneighs, int recvcount, IT m_perproc, IT n_perproc, int rankinrow);
-	
+
         template <class HANDLER>
-	void ReadAllMine(FILE * binfile, IT * & rows, IT * & cols, NT * & vals, vector< tuple<IT,IT,NT> > & localtuples, int * rcurptrs, int * ccurptrs, int * rdispls, int * cdispls, 
+	void ReadAllMine(FILE * binfile, IT * & rows, IT * & cols, NT * & vals, vector< tuple<IT,IT,NT> > & localtuples, int * rcurptrs, int * ccurptrs, int * rdispls, int * cdispls,
 			IT m_perproc, IT n_perproc, int rowneighs, int colneighs, IT buffperrowneigh, IT buffpercolneigh, IT entriestoread, HANDLER handler, int rankinrow, bool transpose);
 
-	void VerticalSend(IT * & rows, IT * & cols, NT * & vals, vector< tuple<IT,IT,NT> > & localtuples, int * rcurptrs, int * ccurptrs, int * rdispls, int * cdispls, 
+	void VerticalSend(IT * & rows, IT * & cols, NT * & vals, vector< tuple<IT,IT,NT> > & localtuples, int * rcurptrs, int * ccurptrs, int * rdispls, int * cdispls,
 				IT m_perproc, IT n_perproc, int rowneighs, int colneighs, IT buffperrowneigh, IT buffpercolneigh, int rankinrow);
-	
+
 	void AllocateSetBuffers(IT * & rows, IT * & cols, NT * & vals,  int * & rcurptrs, int * & ccurptrs, int rowneighs, int colneighs, IT buffpercolneigh);
 	void BcastEssentials(MPI_Comm & world, IT & total_m, IT & total_n, IT & total_nnz, int master);
-	
-	shared_ptr<CommGrid> commGrid; 
+
+	shared_ptr<CommGrid> commGrid;
 	DER * spSeq;
-	
+
 	template <class IU, class NU>
 	friend class DenseParMat;
 
-	template <typename IU, typename NU, typename UDER> 	
-	friend ofstream& operator<< (ofstream& outfile, const SpParMat<IU,NU,UDER> & s);	
+	template <typename IU, typename NU, typename UDER>
+	friend ofstream& operator<< (ofstream& outfile, const SpParMat<IU,NU,UDER> & s);
 };
 
-template <typename SR, typename NUO, typename UDERO, typename IU, typename NU1, typename NU2, typename UDER1, typename UDER2> 
+template <typename SR, typename NUO, typename UDERO, typename IU, typename NU1, typename NU2, typename UDER1, typename UDER2>
 void PSpGEMM(SpParMat<IU,NU1,UDER1> & A, SpParMat<IU,NU2,UDER2> & B, SpParMat<IU,NUO,UDERO> & out, bool clearA = false, bool clearB = false)
 {
 	out = Mult_AnXBn_Synch<SR, NUO, UDERO> (A, B, clearA, clearB );
 }
 
-template <typename SR, typename IU, typename NU1, typename NU2, typename UDER1, typename UDER2> 
+template <typename SR, typename IU, typename NU1, typename NU2, typename UDER1, typename UDER2>
 SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UDER2,UDER2>::T_promote>
 	PSpGEMM	(SpParMat<IU,NU1,UDER1> & A, SpParMat<IU,NU2,UDER2> & B, bool clearA = false, bool clearB = false)
 {

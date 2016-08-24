@@ -6,17 +6,17 @@
 /****************************************************************/
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -42,14 +42,14 @@ struct SpImplNoSR;
 
 //! Version without the Semiring (for BFS)
 template <class IT, class NUM, class VT>
-void SpMXSpV(const Dcsc<IT,NUM> & Adcsc, int32_t mA, const int32_t * indx, const VT * numx, int32_t veclen,  
+void SpMXSpV(const Dcsc<IT,NUM> & Adcsc, int32_t mA, const int32_t * indx, const VT * numx, int32_t veclen,
 			 int32_t * indy, VT * numy, int * cnts, int * dspls, int p_c, BitMap * isthere)
 {
 	SpImplNoSR<IT,NUM,VT>::SpMXSpV(Adcsc, mA, indx, numx, veclen, indy, numy, cnts, dspls,p_c, isthere);	// don't touch this
 };
 
 template <class IT, class NUM, class VT>
-void SpMXSpV_ForThreading(const Dcsc<IT,NUM> & Adcsc, int32_t mA, const int32_t * indx, const VT * numx, int32_t veclen,  
+void SpMXSpV_ForThreading(const Dcsc<IT,NUM> & Adcsc, int32_t mA, const int32_t * indx, const VT * numx, int32_t veclen,
 		vector<int32_t> & indy, vector< VT > & numy, int32_t offset)
 {
 	SpImplNoSR<IT,NUM,VT>::SpMXSpV_ForThreading(Adcsc, mA, indx, numx, veclen, indy, numy, offset);	// don't touch this
@@ -60,13 +60,13 @@ void SpMXSpV_ForThreading(const Dcsc<IT,NUM> & Adcsc, int32_t mA, const int32_t 
 template <class IT, class NUM, class VT>
 struct SpImplNoSR
 {
-	static void SpMXSpV(const Dcsc<IT,NUM> & Adcsc, int32_t mA, const int32_t * indx, const VT * numx, int32_t veclen,  
+	static void SpMXSpV(const Dcsc<IT,NUM> & Adcsc, int32_t mA, const int32_t * indx, const VT * numx, int32_t veclen,
 						int32_t * indy, VT * numy, int * cnts, int * dspls, int p_c, BitMap * isthere)
 	{
 		cout << "SpMXSpV (without a semiring) is only reserved for boolean matrices" << endl;
 	};
 
-	static void SpMXSpV_ForThreading(const Dcsc<IT,NUM> & Adcsc, int32_t mA, const int32_t * indx, const VT * numx, int32_t veclen,  
+	static void SpMXSpV_ForThreading(const Dcsc<IT,NUM> & Adcsc, int32_t mA, const int32_t * indx, const VT * numx, int32_t veclen,
 			vector<int32_t> & indy, vector<VT> & numy, int32_t offset)
 	{
 		cout << "SpMXSpV (without a semiring) is only reserved for boolean matrices" << endl;
@@ -79,10 +79,10 @@ struct SpImplNoSR
 template <class IT, class VT>
 struct SpImplNoSR<IT,bool, VT>	// specialization
 {
-	static void SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA, const int32_t * indx, const VT * numx, int32_t veclen,  
+	static void SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA, const int32_t * indx, const VT * numx, int32_t veclen,
 						int32_t * indy, VT * numy, int * cnts, int * dspls, int p_c, BitMap * isthere);
 
-	static void SpMXSpV_ForThreading(const Dcsc<IT,bool> & Adcsc, int32_t mA, const int32_t * indx, const VT * numx, int32_t veclen,  
+	static void SpMXSpV_ForThreading(const Dcsc<IT,bool> & Adcsc, int32_t mA, const int32_t * indx, const VT * numx, int32_t veclen,
 			vector<int32_t> & indy, vector<VT> & numy, int32_t offset);
 };
 
@@ -97,11 +97,11 @@ struct SpImplNoSR<IT,bool, VT>	// specialization
  * Also allows the vector's indices to be different than matrix's (for transition only) \TODO: Disable?
  **/
 template <typename IT, typename VT>
-void SpImplNoSR<IT,bool,VT>::SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA, const int32_t * indx, const VT * numx, int32_t veclen,  
+void SpImplNoSR<IT,bool,VT>::SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA, const int32_t * indx, const VT * numx, int32_t veclen,
 										   int32_t * indy, VT * numy, int * cnts, int * dspls, int p_c, BitMap * isthere)
-{   
-	typedef pair<uint32_t,VT>  UPAIR; 
-	int32_t perproc = mA / p_c;	
+{
+	typedef pair<uint32_t,VT>  UPAIR;
+	int32_t perproc = mA / p_c;
 	int32_t k = 0; 	// index to indx vector
 	IT i = 0; 	// index to columns of matrix
 #ifndef INTEGERSORT
@@ -117,7 +117,7 @@ void SpImplNoSR<IT,bool,VT>::SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA, co
 				int32_t rowid = (int32_t) Adcsc.ir[j];
 				if(!isthere->get_bit(rowid))
 				{
-					int32_t owner = min(rowid / perproc, static_cast<int32_t>(p_c-1)); 			
+					int32_t owner = min(rowid / perproc, static_cast<int32_t>(p_c-1));
 					nzinds_vals[owner].push_back( UPAIR(rowid, numx[k]) );
 					isthere->set_bit(rowid);
 				}	// skip existing entries
@@ -133,7 +133,7 @@ void SpImplNoSR<IT,bool,VT>::SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA, co
 		for(int i=0; i< cnts[p]; ++i)
 		{
 			indy[dspls[p]+i] = nzinds_vals[p][i].first - offset;	// convert to local offset
-			numy[dspls[p]+i] = nzinds_vals[p][i].second; 	
+			numy[dspls[p]+i] = nzinds_vals[p][i].second;
 		}
 	}
 #else
@@ -155,7 +155,7 @@ void SpImplNoSR<IT,bool,VT>::SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA, co
 				int32_t rowid = (int32_t) Adcsc.ir[j];
 				if(!tempisthere->get_bit(rowid))
 				{
-					int32_t owner = min(rowid / perproc, static_cast<int32_t>(p_c-1)); 			
+					int32_t owner = min(rowid / perproc, static_cast<int32_t>(p_c-1));
 					++counts[owner];
 					tempisthere->set_bit(rowid);
 				}
@@ -166,7 +166,7 @@ void SpImplNoSR<IT,bool,VT>::SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA, co
 	delete tempisthere;
 	for(int p=0; p< p_c; ++p)
 		nzinds_vals[p] = (UPAIR*) malloc(sizeof(UPAIR) * counts[p]);
-	
+
 	fill(counts.begin(), counts.end(), 0);	// reset counts
 	int fsize = matfingers.size();
 	for(int i=0; i< fsize; ++i)
@@ -177,7 +177,7 @@ void SpImplNoSR<IT,bool,VT>::SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA, co
 			int32_t rowid = (int32_t) Adcsc.ir[j];
 			if(!isthere->get_bit(rowid))
 			{
-				int32_t owner = min(rowid / perproc, static_cast<int32_t>(p_c-1)); 			
+				int32_t owner = min(rowid / perproc, static_cast<int32_t>(p_c-1));
 				nzinds_vals[owner][counts[owner]++] =  UPAIR(rowid, numx[vecfingers[i]]) ;
 				isthere->set_bit(rowid);
 			}
@@ -193,7 +193,7 @@ void SpImplNoSR<IT,bool,VT>::SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA, co
 		for(int i=oldcnt; i< cnts[p]; ++i)
 		{
 			indy[dspls[p]+i] = nzinds_vals[p][i-oldcnt].first - offset;	// convert to local offset
-			numy[dspls[p]+i] = nzinds_vals[p][i-oldcnt].second; 	
+			numy[dspls[p]+i] = nzinds_vals[p][i-oldcnt].second;
 		}
 		free(nzinds_vals[p]);
 	}
@@ -201,15 +201,15 @@ void SpImplNoSR<IT,bool,VT>::SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA, co
 }
 
 
-// BFS only version without any semiring parameters 
+// BFS only version without any semiring parameters
 template <typename IT, typename VT>
-void SpImplNoSR<IT,bool,VT>::SpMXSpV_ForThreading(const Dcsc<IT,bool> & Adcsc, int32_t mA, const int32_t * indx, const VT * numx, int32_t veclen,  
+void SpImplNoSR<IT,bool,VT>::SpMXSpV_ForThreading(const Dcsc<IT,bool> & Adcsc, int32_t mA, const int32_t * indx, const VT * numx, int32_t veclen,
 			vector<int32_t> & indy, vector<VT> & numy, int32_t offset)
-{   
+{
 	VT * localy = new VT[mA];
 	bool * isthere = new bool[mA];
 	fill(isthere, isthere+mA, false);
-	vector<int32_t> nzinds;	// nonzero indices		
+	vector<int32_t> nzinds;	// nonzero indices
 
 	// The following piece of code is not general, but it's more memory efficient than FillColInds
 	int32_t k = 0; 	// index to indx vector
@@ -243,7 +243,7 @@ void SpImplNoSR<IT,bool,VT>::SpMXSpV_ForThreading(const Dcsc<IT,bool> & Adcsc, i
 	for(int i=0; i< nnzy; ++i)
 	{
 		indy[i] = nzinds[i] + offset;	// return column-global index and let gespmv determine the receiver's local index
-		numy[i] = localy[nzinds[i]]; 	
+		numy[i] = localy[nzinds[i]];
 	}
 	delete [] localy;
 	delete [] isthere;

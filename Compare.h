@@ -6,17 +6,17 @@
 /****************************************************************/
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -41,13 +41,13 @@ struct ErrorTolerantEqual:
 		ErrorTolerantEqual(const T & myepsilon):epsilon(myepsilon) {};
 		inline bool operator() (const T & a, const T & b) const
 		{
-			// According to the IEEE 754 standard, negative zero and positive zero should 
-			// compare as equal with the usual (numerical) comparison operators, like the == operators of C++ 
-	
+			// According to the IEEE 754 standard, negative zero and positive zero should
+			// compare as equal with the usual (numerical) comparison operators, like the == operators of C++
+
 			if(a == b)	// covers the "division by zero" case as well: max(a,b) can't be zero if it fails
 				return true;	// covered the integral numbers case
-			
-			return ( std::abs(a - b) < epsilon || (std::abs(a - b) / max(std::abs(a), std::abs(b))) < epsilon ) ; 
+
+			return ( std::abs(a - b) < epsilon || (std::abs(a - b) / max(std::abs(a), std::abs(b))) < epsilon ) ;
 		}
 		T epsilon;
 	};
@@ -61,7 +61,7 @@ struct absdiff : binary_function<T, T, T>
                 return abs( arg1 - arg2 );
         }
 };
-	
+
 
 template<class IT, class NT>
 struct TupleEqual:
@@ -70,7 +70,7 @@ struct TupleEqual:
 		inline bool operator()(const tuple<IT, IT, NT> & lhs, const tuple<IT, IT, NT> & rhs) const
 		{
 			return ( (get<0>(lhs) == get<0>(rhs)) && (get<1>(lhs) == get<1>(rhs)) );
-		} 
+		}
 	};
 
 

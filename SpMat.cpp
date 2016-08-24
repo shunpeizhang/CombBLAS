@@ -6,17 +6,17 @@
 /****************************************************************/
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -55,7 +55,7 @@ bool SpMat<IT, NT, DER>::operator== (const SpMat<IT, NT, DER> & rhs) const
 }
 
 template <class IT, class NT, class DER>
-void SpMat<IT, NT, DER>::Split( SpMat< IT,NT,DER > & partA, SpMat< IT,NT,DER > & partB) 
+void SpMat<IT, NT, DER>::Split( SpMat< IT,NT,DER > & partA, SpMat< IT,NT,DER > & partB)
 {
 	static_cast< DER* >(this)->Split(static_cast< DER & >(partA), static_cast< DER & >(partB));
 }
@@ -69,11 +69,11 @@ void SpMat<IT, NT, DER>::Merge( SpMat< IT,NT,DER > & partA, SpMat< IT,NT,DER > &
 
 template <class IT, class NT, class DER>
 template <typename SR>
-void SpMat<IT, NT, DER>::SpGEMM(SpMat<IT, NT, DER> & A, 
+void SpMat<IT, NT, DER>::SpGEMM(SpMat<IT, NT, DER> & A,
 			SpMat<IT, NT, DER> & B, bool isAT, bool isBT)
 {
 	IT A_m, A_n, B_m, B_n;
- 
+
 	if(isAT)
 	{
 		A_m = A.getncol();
@@ -94,8 +94,8 @@ void SpMat<IT, NT, DER>::SpGEMM(SpMat<IT, NT, DER> & A,
 		B_m = B.getnrow();
 		B_n = B.getncol();
 	}
-		
-        if(getnrow() == A_m && getncol() == B_n)                
+
+        if(getnrow() == A_m && getncol() == B_n)
         {
                	if(A_n == B_m)
                	{
@@ -114,7 +114,7 @@ void SpMat<IT, NT, DER>::SpGEMM(SpMat<IT, NT, DER> & A,
 			else
 			{
 				static_cast< DER* >(this)->template PlusEq_AnXBn< SR >(static_cast< DER & >(A), static_cast< DER & >(B));
-			}				
+			}
 		}
                 else
                 {
@@ -130,14 +130,14 @@ void SpMat<IT, NT, DER>::SpGEMM(SpMat<IT, NT, DER> & A,
 
 template<typename SR, typename NUO, typename IU, typename NU1, typename NU2, typename DER1, typename DER2>
 SpTuples<IU, NUO> * MultiplyReturnTuples
-					(const SpMat<IU, NU1, DER1> & A, 
-					 const SpMat<IU, NU2, DER2> & B, 
+					(const SpMat<IU, NU1, DER1> & A,
+					 const SpMat<IU, NU2, DER2> & B,
 					 bool isAT, bool isBT,
 					bool clearA = false, bool clearB = false)
 
 {
 	IU A_m, A_n, B_m, B_n;
- 
+
 	if(isAT)
 	{
 		A_m = A.getncol();
@@ -158,7 +158,7 @@ SpTuples<IU, NUO> * MultiplyReturnTuples
 		B_m = B.getnrow();
 		B_n = B.getncol();
 	}
-		
+
         if(A_n == B_m)
 	{
 		if(isAT && isBT)
@@ -176,7 +176,7 @@ SpTuples<IU, NUO> * MultiplyReturnTuples
 		else
 		{
 			return Tuples_AnXBn<SR, NUO>(static_cast< const DER1 & >(A), static_cast< const DER2 & >(B), clearA, clearB);
-		}				
+		}
 	}
 	else
 	{

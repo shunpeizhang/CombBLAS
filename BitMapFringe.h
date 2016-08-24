@@ -7,17 +7,17 @@
 /****************************************************************/
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -39,8 +39,8 @@ template <class IT, class VT>
 class BitMapFringe {
  public:
   BitMapFringe(shared_ptr<CommGrid> grid, FullyDistSpVec<IT,VT> & x) {
-    cg.reset(new CommGrid(*grid));   
-    
+    cg.reset(new CommGrid(*grid));
+
 	MPI_Comm World = x.getcommgrid()->GetWorld();
 	MPI_Comm ColWorld = x.getcommgrid()->GetColWorld();
 	MPI_Status status;
@@ -49,15 +49,15 @@ class BitMapFringe {
     long num_local_send = x.MyLocLength(), num_local_recv;
     diagneigh = cg->GetComplementRank();
 	MPI_Sendrecv(&num_local_send, 1, MPI_LONG, diagneigh, TROST,
-				 &num_local_recv, 1, MPI_LONG, diagneigh, TROST, World, &status); 
+				 &num_local_recv, 1, MPI_LONG, diagneigh, TROST, World, &status);
 
     // Calculate new local displacements
 	MPI_Comm_size(ColWorld, &colneighs);
 	MPI_Comm_rank(ColWorld, &colrank);
-	  
+
   	int counts[colneighs];
   	counts[colrank] = num_local_recv;
-	MPI_Allgather(MPI_IN_PLACE, 1, MPI_INT, counts, 1, MPI_INT, ColWorld);	
+	MPI_Allgather(MPI_IN_PLACE, 1, MPI_INT, counts, 1, MPI_INT, ColWorld);
 
 	int dpls[colneighs];
     dpls[0] = 0;
@@ -78,9 +78,9 @@ class BitMapFringe {
 
     // Compute subword displacements and transpose exchange details
     trans_subword_disp = dpls[colrank] % 64;
-	MPI_Sendrecv(&trans_subword_disp, 1, MPIType<int32_t>(), diagneigh, TROST, 
-				 &local_subword_disp, 1, MPIType<int32_t>(), diagneigh, TROST, World, &status); 
-	  
+	MPI_Sendrecv(&trans_subword_disp, 1, MPIType<int32_t>(), diagneigh, TROST,
+				 &local_subword_disp, 1, MPIType<int32_t>(), diagneigh, TROST, World, &status);
+
     trans_words_send = (num_local_send + local_subword_disp + 63)>>6;
     trans_words_recv = (num_local_recv + trans_subword_disp + 63)>>6;
 
@@ -129,21 +129,21 @@ class BitMapFringe {
   }
 
 
-  BitMap* TransposeGather() 
+  BitMap* TransposeGather()
   {
 	MPI_Comm World = cg->GetWorld();
 	MPI_Comm ColWorld = cg->GetColWorld();
 	MPI_Status status;
 
     // Transpose bitmaps
-	MPI_Sendrecv(local_bm->data(), trans_words_send, MPIType<uint64_t>(), diagneigh, TROST, 
-				 trans_bm->data(), trans_words_recv, MPIType<uint64_t>(), diagneigh, TROST, World, &status); 
-	  
+	MPI_Sendrecv(local_bm->data(), trans_words_send, MPIType<uint64_t>(), diagneigh, TROST,
+				 trans_bm->data(), trans_words_recv, MPIType<uint64_t>(), diagneigh, TROST, World, &status);
+
     // Gather all but first words
 #ifdef BOTTOMUPTIME
     double t1 = MPI_Wtime();
 #endif
-	MPI_Allgatherv(trans_bm->data()+1, send_counts[colrank], MPIType<uint64_t>(), gather_bm->data(), send_counts, word_dpls, MPIType<uint64_t>(), ColWorld);	
+	MPI_Allgatherv(trans_bm->data()+1, send_counts[colrank], MPIType<uint64_t>(), gather_bm->data(), send_counts, word_dpls, MPIType<uint64_t>(), ColWorld);
 #ifdef BOTTOMUPTIME
     double t2 = MPI_Wtime();
     bottomup_allgather += (t2-t1);
@@ -166,10 +166,10 @@ class BitMapFringe {
   void UpdateSpVec(FullyDistSpVec<IT,VT> & x) {
     IT *updates = new IT[local_num_set];
     IT bm_index=local_subword_disp, up_index=0;
-	  
+
     if (local_bm->get_bit(bm_index))	// if the first valid bit is 1
       updates[up_index++] = bm_index - local_subword_disp;	// ABAB: local_subword_disp is NOT subtracted (as local_subword_disp is equal to bm_index)
-	  
+
     bm_index = local_bm->get_next_bit(bm_index);
     while(bm_index != -1) {
       updates[up_index++] = bm_index - local_subword_disp;	// ABAB: local_subword_disp is subtracted

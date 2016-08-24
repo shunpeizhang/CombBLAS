@@ -6,17 +6,17 @@
 /****************************************************************/
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -93,7 +93,7 @@ public:
 
 /**
   * C++ type to MPIType conversion is done through functions returning the mpi types
-  * The templated function is explicitly instantiated for every C++ type 
+  * The templated function is explicitly instantiated for every C++ type
   * that has a correspoinding MPI type. For all others, a data type is created
   * assuming it's some sort of struct. Each created data type is committed only once
   **/
@@ -101,13 +101,13 @@ public:
 extern MPIDataTypeCache mpidtc;	// global variable
 // Global variables have program scope, which means they can be accessed everywhere in the program, and they are only destroyed when the program ends.
 
-template <typename T> 
+template <typename T>
 MPI_Datatype MPIType ( void )
 {
 	std::type_info const* t = &typeid(T);
 	MPI_Datatype datatype = mpidtc.get(t);
 
-	if (datatype == MPI_DATATYPE_NULL) 
+	if (datatype == MPI_DATATYPE_NULL)
 	{
 		MPI_Type_contiguous(sizeof(T), MPI_CHAR, &datatype );
 		MPI_Type_commit(&datatype);

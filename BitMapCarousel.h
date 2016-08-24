@@ -7,17 +7,17 @@
 /****************************************************************/
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -40,7 +40,7 @@ template <class IT, class NT>
 class BitMapCarousel {
  public:
   BitMapCarousel(shared_ptr<CommGrid> grid, IT glen, int local_subword_disp) {
-    commGrid.reset(new CommGrid(*grid));   
+    commGrid.reset(new CommGrid(*grid));
     rotation_index = 0;
     global_size = glen;
     my_procrow = commGrid->GetRankInProcCol();
@@ -54,11 +54,11 @@ class BitMapCarousel {
     recv_buff = new BitMap(biggest_size);
     old_bm = new BitMap(biggest_size);
     sub_disps = new int[proccols];
-    sub_disps[my_proccol] = local_subword_disp;	  
+    sub_disps[my_proccol] = local_subword_disp;
 	MPI_Allgather(MPI_IN_PLACE, 1, MPI_INT, sub_disps, 1, MPI_INT, commGrid->GetRowWorld());
     curr_subword_disp = local_subword_disp;
   }
-  
+
   ~BitMapCarousel() {
     delete bm;
     delete recv_buff;
@@ -112,7 +112,7 @@ class BitMapCarousel {
   	if(my_procrow == procrows-1)
   		n_thisrow = global_size - (n_perprocrow*(procrows-1));
   	else
-  		n_thisrow = n_perprocrow;	
+  		n_thisrow = n_perprocrow;
   	IT n_perproc = n_thisrow / proccols;
   	return ((n_perprocrow * my_procrow)+(n_perproc*my_proccol));
   }

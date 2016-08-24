@@ -6,17 +6,17 @@
 /****************************************************************/
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -39,7 +39,7 @@
 
 
 // Forward declaration (required since a friend function returns a SpTuples object)
-template <class IU, class NU>	
+template <class IU, class NU>
 class SpTuples;
 
 
@@ -64,18 +64,18 @@ public:
 	void Create(IT size, IT nRow, IT nCol, tuple<IT, IT, NT> * mytuples)
 	{
 		static_cast<DER*>(this)->CreateImpl(size, nRow, nCol, mytuples);
-	}	
-	
+	}
+
 	SpMat< IT,NT,DER >  operator() (const vector<IT> & ri, const vector<IT> & ci) const;
-	
+
 	template <typename SR>
 	void SpGEMM( SpMat< IT,NT,DER > & A, SpMat< IT,NT,DER > & B, bool isAT, bool isBT);
 
 	// ABAB: A semiring elementwise operation with automatic type promotion is required for completeness (should cover +/- and .* ?)
 	// ABAB: A neat version of ConvertNumericType should be in base class (an operator SpMat<NIT,NNT,NDER>())
 
-	void Split( SpMat< IT,NT,DER > & partA, SpMat< IT,NT,DER > & partB); 
-	void Merge( SpMat< IT,NT,DER > & partA, SpMat< IT,NT,DER > & partB); 
+	void Split( SpMat< IT,NT,DER > & partA, SpMat< IT,NT,DER > & partB);
+	void Merge( SpMat< IT,NT,DER > & partA, SpMat< IT,NT,DER > & partB);
 
 	Arr<IT,NT> GetArrays() const
 	{
@@ -85,7 +85,7 @@ public:
 	{
 		return static_cast<const DER*>(this)->GetEssentials();
 	}
-    
+
     auto GetInternal() const
     {
         return static_cast<const DER*>(this)->GetInternal();
@@ -104,11 +104,11 @@ public:
 		static_cast<DER*>(this)->Transpose();
 	}
 
-	bool operator== (const SpMat< IT,NT,DER > & rhs) const; 
-		
+	bool operator== (const SpMat< IT,NT,DER > & rhs) const;
+
 	ofstream& put(ofstream& outfile) const;
 	ifstream& get(ifstream& infile);
-	
+
 	bool isZero() const { return static_cast<const DER*>(this)->isZero(); }
 	IT getnrow() const { return static_cast<const DER*>(this)->getnrow(); }
 	IT getncol() const { return static_cast<const DER*>(this)->getncol(); }
@@ -117,7 +117,7 @@ public:
 protected:
 
 	template < typename UIT, typename UNT, typename UDER >
-	friend ofstream& operator<< (ofstream& outfile, const SpMat< UIT,UNT,UDER > & s);	
+	friend ofstream& operator<< (ofstream& outfile, const SpMat< UIT,UNT,UDER > & s);
 
 	template < typename UIT, typename UNT, typename UDER >
 	friend ifstream& operator>> (ifstream& infile, SpMat< UIT,UNT,UDER > & s);
@@ -130,6 +130,6 @@ protected:
 
 };
 
-#include "SpMat.cpp"	
+#include "SpMat.cpp"
 #endif
 

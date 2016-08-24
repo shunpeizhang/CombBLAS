@@ -6,17 +6,17 @@
 /****************************************************************/
 /*
  Copyright (c) 2010-2015, The Regents of the University of California
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -51,18 +51,18 @@
  * that's why indy.back() == wset[hsize-1].key is enough to ensure proper merging.
  **/
 template <class SR, class IT, class NUM, class IVT, class OVT>
-void SpImpl<SR,IT,NUM,IVT,OVT>::SpMXSpV(const Dcsc<IT,NUM> & Adcsc, int32_t mA, const int32_t * indx, const IVT * numx, int32_t veclen,  
+void SpImpl<SR,IT,NUM,IVT,OVT>::SpMXSpV(const Dcsc<IT,NUM> & Adcsc, int32_t mA, const int32_t * indx, const IVT * numx, int32_t veclen,
 			vector<int32_t> & indy, vector< OVT > & numy)
 {
-	int32_t hsize = 0;		
+	int32_t hsize = 0;
 	// colinds dereferences A.ir (valid from colinds[].first to colinds[].second)
-	vector< pair<IT,IT> > colinds( (IT) veclen);		
-	Adcsc.FillColInds(indx, (IT) veclen, colinds, NULL, 0);	// csize is irrelevant if aux is NULL	
+	vector< pair<IT,IT> > colinds( (IT) veclen);
+	Adcsc.FillColInds(indx, (IT) veclen, colinds, NULL, 0);	// csize is irrelevant if aux is NULL
 
 	if(sizeof(NUM) > sizeof(OVT))	// ABAB: include a filtering based runtime choice as well?
 	{
-		HeapEntry<IT, OVT> * wset = new HeapEntry<IT, OVT>[veclen]; 
-		for(IT j =0; j< veclen; ++j)		// create the initial heap 
+		HeapEntry<IT, OVT> * wset = new HeapEntry<IT, OVT>[veclen];
+		for(IT j =0; j< veclen; ++j)		// create the initial heap
 		{
 			while(colinds[j].first != colinds[j].second )	// iterate until finding the first entry within this column that passes the filter
 			{
@@ -76,21 +76,21 @@ void SpImpl<SR,IT,NUM,IVT,OVT>::SpMXSpV(const Dcsc<IT,NUM> & Adcsc, int32_t mA, 
 					wset[hsize++] = HeapEntry< IT,OVT > ( Adcsc.ir[colinds[j].first], j, mrhs);
 					break;	// this column successfully inserted an entry to the heap
 				}
-			} 
+			}
 		}
 		make_heap(wset, wset+hsize);
 		while(hsize > 0)
 		{
 			pop_heap(wset, wset + hsize);         	// result is stored in wset[hsize-1]
-			IT locv = wset[hsize-1].runr;		// relative location of the nonzero in sparse column vector 
-			if((!indy.empty()) && indy.back() == wset[hsize-1].key)	
+			IT locv = wset[hsize-1].runr;		// relative location of the nonzero in sparse column vector
+			if((!indy.empty()) && indy.back() == wset[hsize-1].key)
 			{
 				numy.back() = SR::add(numy.back(), wset[hsize-1].num);
 			}
 			else
 			{
 				indy.push_back( (int32_t) wset[hsize-1].key);
-				numy.push_back(wset[hsize-1].num);	
+				numy.push_back(wset[hsize-1].num);
 			}
 			bool pushed = false;
 			// invariant: if ++(colinds[locv].first) == colinds[locv].second, then locv will not appear again in the heap
@@ -110,34 +110,34 @@ void SpImpl<SR,IT,NUM,IVT,OVT>::SpMXSpV(const Dcsc<IT,NUM> & Adcsc, int32_t mA, 
 		}
 		delete [] wset;
 	}
-	
+
 	else
 	{
-		HeapEntry<IT, NUM> * wset = new HeapEntry<IT, NUM>[veclen]; 
-		for(IT j =0; j< veclen; ++j)		// create the initial heap 
+		HeapEntry<IT, NUM> * wset = new HeapEntry<IT, NUM>[veclen];
+		for(IT j =0; j< veclen; ++j)		// create the initial heap
 		{
 			if(colinds[j].first != colinds[j].second)	// current != end
 			{
 				wset[hsize++] = HeapEntry< IT,NUM > ( Adcsc.ir[colinds[j].first], j, Adcsc.numx[colinds[j].first]);  // HeapEntry(key, run, num)
-			} 
-		}	
+			}
+		}
 		make_heap(wset, wset+hsize);
 		while(hsize > 0)
 		{
 			pop_heap(wset, wset + hsize);         	// result is stored in wset[hsize-1]
-			IT locv = wset[hsize-1].runr;		// relative location of the nonzero in sparse column vector 
-			OVT mrhs = SR::multiply(wset[hsize-1].num, numx[locv]);	
-		
+			IT locv = wset[hsize-1].runr;		// relative location of the nonzero in sparse column vector
+			OVT mrhs = SR::multiply(wset[hsize-1].num, numx[locv]);
+
 			if (!SR::returnedSAID())
 			{
-				if((!indy.empty()) && indy.back() == wset[hsize-1].key)	
+				if((!indy.empty()) && indy.back() == wset[hsize-1].key)
 				{
 					numy.back() = SR::add(numy.back(), mrhs);
 				}
 				else
 				{
 					indy.push_back( (int32_t) wset[hsize-1].key);
-					numy.push_back(mrhs);	
+					numy.push_back(mrhs);
 				}
 			}
 
@@ -145,7 +145,7 @@ void SpImpl<SR,IT,NUM,IVT,OVT>::SpMXSpV(const Dcsc<IT,NUM> & Adcsc, int32_t mA, 
 			{
 				// runr stays the same !
 				wset[hsize-1].key = Adcsc.ir[colinds[locv].first];
-				wset[hsize-1].num = Adcsc.numx[colinds[locv].first];  
+				wset[hsize-1].num = Adcsc.numx[colinds[locv].first];
 				push_heap(wset, wset+hsize);
 			}
 			else		--hsize;
@@ -158,14 +158,14 @@ void SpImpl<SR,IT,NUM,IVT,OVT>::SpMXSpV(const Dcsc<IT,NUM> & Adcsc, int32_t mA, 
 /**
   * One of the two versions of SpMXSpV with on boolean matrix [uses only Semiring::add()]
   * This version is likely to be more memory efficient than the other one (the one that uses preallocated memory buffers)
-  * Because here we don't use a dense accumulation vector but a heap. It will probably be slower though. 
+  * Because here we don't use a dense accumulation vector but a heap. It will probably be slower though.
 **/
 template <class SR, class IT, class IVT, class OVT>
-void SpImpl<SR,IT,bool,IVT,OVT>::SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA, const int32_t * indx, const IVT * numx, int32_t veclen,  
+void SpImpl<SR,IT,bool,IVT,OVT>::SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA, const int32_t * indx, const IVT * numx, int32_t veclen,
 			vector<int32_t> & indy, vector<OVT> & numy)
-{   
+{
 	IT inf = numeric_limits<IT>::min();
-	IT sup = numeric_limits<IT>::max(); 
+	IT sup = numeric_limits<IT>::max();
 	KNHeap< IT, IVT > sHeap(sup, inf); 	// max size: flops
 
 	IT k = 0; 	// index to indx vector
@@ -205,7 +205,7 @@ void SpImpl<SR,IT,bool,IVT,OVT>::SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA
 			indy.push_back( (int32_t) row);
 			numy.push_back(num);
 		}
-	}		
+	}
 }
 
 
@@ -216,15 +216,15 @@ void SpImpl<SR,IT,bool,IVT,OVT>::SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA
  * If IVT and OVT are different, then OVT should allow implicit conversion from IVT
 **/
 template <typename SR, typename IT, typename IVT, class OVT>
-void SpImpl<SR,IT,bool,IVT,OVT>::SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA, const int32_t * indx, const IVT * numx, int32_t veclen,  
+void SpImpl<SR,IT,bool,IVT,OVT>::SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA, const int32_t * indx, const IVT * numx, int32_t veclen,
 			int32_t * indy, OVT * numy, int * cnts, int * dspls, int p_c)
-{   
+{
 	OVT * localy = new OVT[mA];
 	bool * isthere = new bool[mA];
 	fill(isthere, isthere+mA, false);
-	vector< vector<int32_t> > nzinds(p_c);	// nonzero indices		
+	vector< vector<int32_t> > nzinds(p_c);	// nonzero indices
 
-	int32_t perproc = mA / p_c;	
+	int32_t perproc = mA / p_c;
 	int32_t k = 0; 	// index to indx vector
 	IT i = 0; 	// index to columns of matrix
 	while(i< Adcsc.nzc && k < veclen)
@@ -238,15 +238,15 @@ void SpImpl<SR,IT,bool,IVT,OVT>::SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA
 				int32_t rowid = (int32_t) Adcsc.ir[j];
 				if(!isthere[rowid])
 				{
-					int32_t owner = min(rowid / perproc, static_cast<int32_t>(p_c-1)); 			
+					int32_t owner = min(rowid / perproc, static_cast<int32_t>(p_c-1));
 					localy[rowid] = numx[k];	// initial assignment, requires implicit conversion if IVT != OVT
 					nzinds[owner].push_back(rowid);
 					isthere[rowid] = true;
 				}
-				else	
+				else
 				{
 					localy[rowid] = SR::add(localy[rowid], numx[k]);
-				}	
+				}
 			}
 			++i;
 			++k;
@@ -262,7 +262,7 @@ void SpImpl<SR,IT,bool,IVT,OVT>::SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA
 		for(int i=0; i< cnts[p]; ++i)
 		{
 			indy[dspls[p]+i] = locnzinds[i] - offset;	// conver to local offset
-			numy[dspls[p]+i] = localy[locnzinds[i]]; 	
+			numy[dspls[p]+i] = localy[locnzinds[i]];
 		}
 	}
 	delete [] localy;
@@ -272,13 +272,13 @@ void SpImpl<SR,IT,bool,IVT,OVT>::SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA
 
 //! We can safely use a SPA here because Adcsc is short (::RowSplit() has already been called on it)
 template <typename SR, typename IT, typename IVT, typename OVT>
-void SpImpl<SR,IT,bool,IVT,OVT>::SpMXSpV_ForThreading(const Dcsc<IT,bool> & Adcsc, int32_t mA, const int32_t * indx, const IVT * numx, int32_t veclen,  
+void SpImpl<SR,IT,bool,IVT,OVT>::SpMXSpV_ForThreading(const Dcsc<IT,bool> & Adcsc, int32_t mA, const int32_t * indx, const IVT * numx, int32_t veclen,
 			vector<int32_t> & indy, vector<OVT> & numy, int32_t offset)
-{   
+{
 	OVT * localy = new OVT[mA];
 	bool * isthere = new bool[mA];
 	fill(isthere, isthere+mA, false);
-	vector<int32_t> nzinds;	// nonzero indices		
+	vector<int32_t> nzinds;	// nonzero indices
 
 	// The following piece of code is not general, but it's more memory efficient than FillColInds
 	int32_t k = 0; 	// index to indx vector
@@ -301,7 +301,7 @@ void SpImpl<SR,IT,bool,IVT,OVT>::SpMXSpV_ForThreading(const Dcsc<IT,bool> & Adcs
 				else
 				{
 					localy[rowid] = SR::add(localy[rowid], numx[k]);
-				}	
+				}
 			}
 			++i; ++k;
 		}
@@ -313,7 +313,7 @@ void SpImpl<SR,IT,bool,IVT,OVT>::SpMXSpV_ForThreading(const Dcsc<IT,bool> & Adcs
 	for(int i=0; i< nnzy; ++i)
 	{
 		indy[i] = nzinds[i] + offset;	// return column-global index and let gespmv determine the receiver's local index
-		numy[i] = localy[nzinds[i]]; 	
+		numy[i] = localy[nzinds[i]];
 	}
 	DeleteAll(localy,isthere);
 }
@@ -328,7 +328,7 @@ void SpImpl<SR,IT,bool,IVT,OVT>::SpMXSpV_ForThreading(const Csc<IT,bool> & Acsc,
     bool * isthere = new bool[mA];
     fill(isthere, isthere+mA, false);
     vector<int32_t> nzinds;	// nonzero indices
-    
+
     for (int32_t k = 0; k < veclen; ++k)
     {
         IT colid = indx[k];
@@ -354,7 +354,7 @@ void SpImpl<SR,IT,bool,IVT,OVT>::SpMXSpV_ForThreading(const Csc<IT,bool> & Acsc,
     for(int i=0; i< nnzy; ++i)
     {
         indy[i] = nzinds[i] + offset;	// return column-global index and let gespmv determine the receiver's local index
-        numy[i] = localy[nzinds[i]]; 	
+        numy[i] = localy[nzinds[i]];
     }
     DeleteAll(localy,isthere);
 }

@@ -6,17 +6,17 @@
 /****************************************************************/
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -50,7 +50,7 @@ class Dcsc;
 /**
  * Triplets are represented using the boost::tuple class of the Boost library
  * Number of entries are 64-bit addressible, but each entry is only <class IT> addressible
- * Therefore, size is int64_t but nrows/ncols (representing range of first two entries in tuple) is of type IT 
+ * Therefore, size is int64_t but nrows/ncols (representing range of first two entries in tuple) is of type IT
  * \remarks Indices start from 0 in this class
  * \remarks Sorted with respect to columns (Column-sorted triples)
  */
@@ -58,11 +58,11 @@ template <class IT, class NT>
 class SpTuples: public SpMat<IT, NT, SpTuples<IT,NT> >
 {
 public:
-	// Constructors 
+	// Constructors
 	SpTuples (int64_t size, IT nRow, IT nCol);
 	SpTuples (int64_t size, IT nRow, IT nCol, tuple<IT, IT, NT> * mytuples, bool sorted = false);
 	SpTuples (int64_t maxnnz, IT nRow, IT nCol, vector<IT> & edges, bool removeloops = true);	// Graph500 contructor
-	SpTuples (int64_t size, IT nRow, IT nCol, StackEntry<NT, pair<IT,IT> > * & multstack);		
+	SpTuples (int64_t size, IT nRow, IT nCol, StackEntry<NT, pair<IT,IT> > * & multstack);
 	SpTuples (const SpTuples<IT,NT> & rhs);	 	// Actual Copy constructor
 	SpTuples (const SpDCCols<IT,NT> & rhs); 	// Copy constructor for conversion from SpDCCols
 	~SpTuples();
@@ -74,20 +74,20 @@ public:
 	NT & numvalue (IT i) { return joker::get<2>(tuples[i]); }
 
 	IT rowindex (IT i) const { return joker::get<0>(tuples[i]); }
-	IT colindex (IT i) const { return joker::get<1>(tuples[i]); } 
-	NT numvalue (IT i) const { return joker::get<2>(tuples[i]); } 
+	IT colindex (IT i) const { return joker::get<1>(tuples[i]); }
+	NT numvalue (IT i) const { return joker::get<2>(tuples[i]); }
 
 
 	template <typename BINFUNC>
 	void RemoveDuplicates(BINFUNC BinOp);
-	
+
 	void SortRowBased()
 	{
 		RowLexiCompare<IT,NT> rowlexicogcmp;
 		if(!SpHelper::is_sorted(tuples, tuples+nnz, rowlexicogcmp))
-			sort(tuples , tuples+nnz, rowlexicogcmp);	
+			sort(tuples , tuples+nnz, rowlexicogcmp);
 
-		// Default "operator<" for tuples uses lexicographical ordering 
+		// Default "operator<" for tuples uses lexicographical ordering
 		// However, cray compiler complains about it, so we use rowlexicogcmp
 	}
 
@@ -113,7 +113,7 @@ public:
 		IT ni = 0;
 		for(IT i=0; i< nnz; ++i)
 		{
-			if(joker::get<0>(tuples[i]) != joker::get<1>(tuples[i])) 
+			if(joker::get<0>(tuples[i]) != joker::get<1>(tuples[i]))
 			{
 				ntuples[ni++] = tuples[i];
 			}
@@ -127,9 +127,9 @@ public:
 	pair<IT,IT> RowLimits()
 	{
 		if(nnz > 0)
-		{	
+		{
 			RowCompare<IT,NT> rowcmp;
-			tuple<IT,IT,NT> * maxit = max_element(tuples, tuples+nnz, rowcmp);	
+			tuple<IT,IT,NT> * maxit = max_element(tuples, tuples+nnz, rowcmp);
 			tuple<IT,IT,NT> * minit = min_element(tuples, tuples+nnz, rowcmp);
 			return make_pair(joker::get<0>(*minit), joker::get<0>(*maxit));
 		}
@@ -137,7 +137,7 @@ public:
 			return make_pair(0,0);
 	}
 	pair<IT,IT> ColLimits()
-	{	
+	{
 		if(nnz > 0)
 		{
 			ColCompare<IT,NT> colcmp;
@@ -153,11 +153,11 @@ public:
 
 	// Performs a balanced merge of the array of SpTuples
 	template<typename SR, typename IU, typename NU>
-	friend SpTuples<IU,NU> MergeAll(const vector<SpTuples<IU,NU> *> & ArrSpTups, IU mstar, IU nstar, bool delarrs); 
+	friend SpTuples<IU,NU> MergeAll(const vector<SpTuples<IU,NU> *> & ArrSpTups, IU mstar, IU nstar, bool delarrs);
 
 	template<typename SR, typename IU, typename NU>
-	friend SpTuples<IU,NU> * MergeAllRec(const vector<SpTuples<IU,NU> *> & ArrSpTups, IU mstar, IU nstar); 
-	
+	friend SpTuples<IU,NU> * MergeAllRec(const vector<SpTuples<IU,NU> *> & ArrSpTups, IU mstar, IU nstar);
+
 	ofstream& putstream (ofstream& outfile) const;
     ofstream& put (ofstream& outfile) const
     { return putstream(outfile); }
@@ -166,22 +166,22 @@ public:
     ifstream& get (ifstream& infile) { return getstream(infile); }
 
 
-	bool isZero() const { return (nnz == 0); }	
+	bool isZero() const { return (nnz == 0); }
 	IT getnrow() const { return m; }
 	IT getncol() const { return n; }
 	int64_t getnnz() const { return nnz; }
 
 	void PrintInfo();
-    tuple<IT, IT, NT> * tuples; 	
+    tuple<IT, IT, NT> * tuples;
 
 private:
 
 	IT m;
 	IT n;
-	int64_t nnz;	
+	int64_t nnz;
 
 	SpTuples (){};		// Default constructor does nothing, hide it
-	
+
 	void FillTuples (Dcsc<IT,NT> * mydcsc);
 
 	template <class IU, class NU>
@@ -190,129 +190,129 @@ private:
 
 
 // At this point, complete type of of SpTuples is known, safe to declare these specialization (but macros won't work as they are preprocessed)
-template <> struct promote_trait< SpTuples<int,int> , SpTuples<int,int> >       
-    {                                           
-        typedef SpTuples<int,int> T_promote;                    
+template <> struct promote_trait< SpTuples<int,int> , SpTuples<int,int> >
+    {
+        typedef SpTuples<int,int> T_promote;
     };
-template <> struct promote_trait< SpTuples<int,float> , SpTuples<int,float> >       
-    {                                           
-        typedef SpTuples<int,float> T_promote;                    
+template <> struct promote_trait< SpTuples<int,float> , SpTuples<int,float> >
+    {
+        typedef SpTuples<int,float> T_promote;
     };
-template <> struct promote_trait< SpTuples<int,double> , SpTuples<int,double> >       
-    {                                           
-        typedef SpTuples<int,double> T_promote;                    
+template <> struct promote_trait< SpTuples<int,double> , SpTuples<int,double> >
+    {
+        typedef SpTuples<int,double> T_promote;
     };
-template <> struct promote_trait< SpTuples<int,bool> , SpTuples<int,int> >       
-    {                                           
-        typedef SpTuples<int,int> T_promote;                    
+template <> struct promote_trait< SpTuples<int,bool> , SpTuples<int,int> >
+    {
+        typedef SpTuples<int,int> T_promote;
     };
-template <> struct promote_trait< SpTuples<int,int> , SpTuples<int,bool> >       
-    {                                           
-        typedef SpTuples<int,int> T_promote;                    
+template <> struct promote_trait< SpTuples<int,int> , SpTuples<int,bool> >
+    {
+        typedef SpTuples<int,int> T_promote;
     };
-template <> struct promote_trait< SpTuples<int,int> , SpTuples<int,float> >       
-    {                                           
-        typedef SpTuples<int,float> T_promote;                    
+template <> struct promote_trait< SpTuples<int,int> , SpTuples<int,float> >
+    {
+        typedef SpTuples<int,float> T_promote;
     };
-template <> struct promote_trait< SpTuples<int,float> , SpTuples<int,int> >       
-    {                                           
-        typedef SpTuples<int,float> T_promote;                    
+template <> struct promote_trait< SpTuples<int,float> , SpTuples<int,int> >
+    {
+        typedef SpTuples<int,float> T_promote;
     };
-template <> struct promote_trait< SpTuples<int,int> , SpTuples<int,double> >       
-    {                                           
-        typedef SpTuples<int,double> T_promote;                    
+template <> struct promote_trait< SpTuples<int,int> , SpTuples<int,double> >
+    {
+        typedef SpTuples<int,double> T_promote;
     };
-template <> struct promote_trait< SpTuples<int,double> , SpTuples<int,int> >       
-    {                                           
-        typedef SpTuples<int,double> T_promote;                    
+template <> struct promote_trait< SpTuples<int,double> , SpTuples<int,int> >
+    {
+        typedef SpTuples<int,double> T_promote;
     };
-template <> struct promote_trait< SpTuples<int,unsigned> , SpTuples<int,bool> >       
-    {                                           
-        typedef SpTuples<int,unsigned> T_promote;                    
+template <> struct promote_trait< SpTuples<int,unsigned> , SpTuples<int,bool> >
+    {
+        typedef SpTuples<int,unsigned> T_promote;
     };
-template <> struct promote_trait< SpTuples<int,bool> , SpTuples<int,unsigned> >       
-    {                                           
-        typedef SpTuples<int,unsigned> T_promote;                    
+template <> struct promote_trait< SpTuples<int,bool> , SpTuples<int,unsigned> >
+    {
+        typedef SpTuples<int,unsigned> T_promote;
     };
-template <> struct promote_trait< SpTuples<int,bool> , SpTuples<int,double> >       
-    {                                           
-        typedef SpTuples<int,double> T_promote;                    
+template <> struct promote_trait< SpTuples<int,bool> , SpTuples<int,double> >
+    {
+        typedef SpTuples<int,double> T_promote;
     };
-template <> struct promote_trait< SpTuples<int,bool> , SpTuples<int,float> >       
-    {                                           
-        typedef SpTuples<int,float> T_promote;                    
+template <> struct promote_trait< SpTuples<int,bool> , SpTuples<int,float> >
+    {
+        typedef SpTuples<int,float> T_promote;
     };
-template <> struct promote_trait< SpTuples<int,double> , SpTuples<int,bool> >       
-    {                                           
-        typedef SpTuples<int,double> T_promote;                    
+template <> struct promote_trait< SpTuples<int,double> , SpTuples<int,bool> >
+    {
+        typedef SpTuples<int,double> T_promote;
     };
-template <> struct promote_trait< SpTuples<int,float> , SpTuples<int,bool> >       
-    {                                           
-        typedef SpTuples<int,float> T_promote;                    
+template <> struct promote_trait< SpTuples<int,float> , SpTuples<int,bool> >
+    {
+        typedef SpTuples<int,float> T_promote;
     };
-template <> struct promote_trait< SpTuples<int64_t,int> , SpTuples<int64_t,int> >       
-    {                                           
-        typedef SpTuples<int64_t,int> T_promote;                    
+template <> struct promote_trait< SpTuples<int64_t,int> , SpTuples<int64_t,int> >
+    {
+        typedef SpTuples<int64_t,int> T_promote;
     };
-template <> struct promote_trait< SpTuples<int64_t,float> , SpTuples<int64_t,float> >       
-    {                                           
-        typedef SpTuples<int64_t,float> T_promote;                    
+template <> struct promote_trait< SpTuples<int64_t,float> , SpTuples<int64_t,float> >
+    {
+        typedef SpTuples<int64_t,float> T_promote;
     };
-template <> struct promote_trait< SpTuples<int64_t,double> , SpTuples<int64_t,double> >       
-    {                                           
-        typedef SpTuples<int64_t,double> T_promote;                    
+template <> struct promote_trait< SpTuples<int64_t,double> , SpTuples<int64_t,double> >
+    {
+        typedef SpTuples<int64_t,double> T_promote;
     };
-template <> struct promote_trait< SpTuples<int64_t,int64_t> , SpTuples<int64_t,int64_t> >       
-    {                                           
-        typedef SpTuples<int64_t,int64_t> T_promote;                    
+template <> struct promote_trait< SpTuples<int64_t,int64_t> , SpTuples<int64_t,int64_t> >
+    {
+        typedef SpTuples<int64_t,int64_t> T_promote;
     };
-template <> struct promote_trait< SpTuples<int64_t,bool> , SpTuples<int64_t,int> >       
-    {                                           
-        typedef SpTuples<int64_t,int> T_promote;                    
+template <> struct promote_trait< SpTuples<int64_t,bool> , SpTuples<int64_t,int> >
+    {
+        typedef SpTuples<int64_t,int> T_promote;
     };
-template <> struct promote_trait< SpTuples<int64_t,int> , SpTuples<int64_t,bool> >       
-    {                                           
-        typedef SpTuples<int64_t,int> T_promote;                    
+template <> struct promote_trait< SpTuples<int64_t,int> , SpTuples<int64_t,bool> >
+    {
+        typedef SpTuples<int64_t,int> T_promote;
     };
-template <> struct promote_trait< SpTuples<int64_t,int> , SpTuples<int64_t,float> >       
-    {                                           
-        typedef SpTuples<int64_t,float> T_promote;                    
+template <> struct promote_trait< SpTuples<int64_t,int> , SpTuples<int64_t,float> >
+    {
+        typedef SpTuples<int64_t,float> T_promote;
     };
-template <> struct promote_trait< SpTuples<int64_t,float> , SpTuples<int64_t,int> >       
-    {                                           
-        typedef SpTuples<int64_t,float> T_promote;                    
+template <> struct promote_trait< SpTuples<int64_t,float> , SpTuples<int64_t,int> >
+    {
+        typedef SpTuples<int64_t,float> T_promote;
     };
-template <> struct promote_trait< SpTuples<int64_t,int> , SpTuples<int64_t,double> >       
-    {                                           
-        typedef SpTuples<int64_t,double> T_promote;                    
+template <> struct promote_trait< SpTuples<int64_t,int> , SpTuples<int64_t,double> >
+    {
+        typedef SpTuples<int64_t,double> T_promote;
     };
-template <> struct promote_trait< SpTuples<int64_t,double> , SpTuples<int64_t,int> >       
-    {                                           
-        typedef SpTuples<int64_t,double> T_promote;                    
+template <> struct promote_trait< SpTuples<int64_t,double> , SpTuples<int64_t,int> >
+    {
+        typedef SpTuples<int64_t,double> T_promote;
     };
-template <> struct promote_trait< SpTuples<int64_t,unsigned> , SpTuples<int64_t,bool> >       
-    {                                           
-        typedef SpTuples<int64_t,unsigned> T_promote;                    
+template <> struct promote_trait< SpTuples<int64_t,unsigned> , SpTuples<int64_t,bool> >
+    {
+        typedef SpTuples<int64_t,unsigned> T_promote;
     };
-template <> struct promote_trait< SpTuples<int64_t,bool> , SpTuples<int64_t,unsigned> >       
-    {                                           
-        typedef SpTuples<int64_t,unsigned> T_promote;                    
+template <> struct promote_trait< SpTuples<int64_t,bool> , SpTuples<int64_t,unsigned> >
+    {
+        typedef SpTuples<int64_t,unsigned> T_promote;
     };
-template <> struct promote_trait< SpTuples<int64_t,bool> , SpTuples<int64_t,double> >       
-    {                                           
-        typedef SpTuples<int64_t,double> T_promote;                    
+template <> struct promote_trait< SpTuples<int64_t,bool> , SpTuples<int64_t,double> >
+    {
+        typedef SpTuples<int64_t,double> T_promote;
     };
-template <> struct promote_trait< SpTuples<int64_t,bool> , SpTuples<int64_t,float> >       
-    {                                           
-        typedef SpTuples<int64_t,float> T_promote;                    
+template <> struct promote_trait< SpTuples<int64_t,bool> , SpTuples<int64_t,float> >
+    {
+        typedef SpTuples<int64_t,float> T_promote;
     };
-template <> struct promote_trait< SpTuples<int64_t,double> , SpTuples<int64_t,bool> >       
-    {                                           
-        typedef SpTuples<int64_t,double> T_promote;                    
+template <> struct promote_trait< SpTuples<int64_t,double> , SpTuples<int64_t,bool> >
+    {
+        typedef SpTuples<int64_t,double> T_promote;
     };
-template <> struct promote_trait< SpTuples<int64_t,float> , SpTuples<int64_t,bool> >       
-    {                                           
-        typedef SpTuples<int64_t,float> T_promote;                    
+template <> struct promote_trait< SpTuples<int64_t,float> , SpTuples<int64_t,bool> >
+    {
+        typedef SpTuples<int64_t,float> T_promote;
     };
-#include "SpTuples.cpp"	
+#include "SpTuples.cpp"
 #endif

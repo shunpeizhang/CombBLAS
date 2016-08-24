@@ -68,15 +68,15 @@ inline uint64_t getblock ( const uint64_t * p, int i )
 
 inline void bmix64 ( uint64_t & h1, uint64_t & h2, uint64_t & k1, uint64_t & k2, uint64_t & c1, uint64_t & c2 )
 {
-  k1 *= c1; 
-  k1  = _rotl64(k1,23); 
+  k1 *= c1;
+  k1  = _rotl64(k1,23);
   k1 *= c2;
   h1 ^= k1;
   h1 += h2;
 
   h2 = _rotl64(h2,41);
 
-  k2 *= c2; 
+  k2 *= c2;
   k2  = _rotl64(k2,23);
   k2 *= c1;
   h2 ^= k2;
@@ -175,7 +175,7 @@ void MurmurHash3_x64_128 ( const void * key, const int len, const uint32_t seed,
 }
 
 //-----------------------------------------------------------------------------
-// If we need a smaller hash value, it's faster to just use a portion of the 
+// If we need a smaller hash value, it's faster to just use a portion of the
 // 128-bit hash
 
 void MurmurHash3_x64_32 ( const void * key, int len, uint32_t seed, void * out )
@@ -196,6 +196,6 @@ void MurmurHash3_x64_64 ( const void * key, int len, uint32_t seed, void * out )
   MurmurHash3_x64_128(key,len,seed,temp);
 
   *(uint64_t*)out = temp[0];
-} 
+}
 
 //-----------------------------------------------------------------------------

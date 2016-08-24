@@ -6,17 +6,17 @@
 /****************************************************************/
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -39,8 +39,8 @@ void SpParHelper::MemoryEfficientPSort(pair<KEY,VAL> * array, IT length, IT * di
 		bool excluded =  false;
 		if(dist[myrank] == 0)	excluded = true;
 
-		int nreals = 0; 
-		for(int i=0; i< nprocs; ++i)	
+		int nreals = 0;
+		for(int i=0; i< nprocs; ++i)
 			if(dist[i] != 0) ++nreals;
 
 		if(nreals == nprocs)	// general case
@@ -56,15 +56,15 @@ void SpParHelper::MemoryEfficientPSort(pair<KEY,VAL> * array, IT length, IT * di
 			int * dist_out = new int[nprocs-nreals];	// ranks to exclude
 			int indin = 0;
 			int indout = 0;
-			for(int i=0; i< nprocs; ++i)	
+			for(int i=0; i< nprocs; ++i)
 			{
 				if(dist[i] == 0)
 					dist_out[indout++] = i;
 				else
-					dist_in[indin++] = (long) dist[i];	
+					dist_in[indin++] = (long) dist[i];
 			}
-		
-			#ifdef DEBUG	
+
+			#ifdef DEBUG
 			ostringstream outs;
 			outs << "To exclude indices: ";
 			copy(dist_out, dist_out+indout, ostream_iterator<int>(outs, " ")); outs << endl;
@@ -76,7 +76,7 @@ void SpParHelper::MemoryEfficientPSort(pair<KEY,VAL> * array, IT length, IT * di
 			MPI_Group_excl(sort_group, indout, dist_out, &real_group);
 			MPI_Group_free(&sort_group);
 
-			// The Create() function should be executed by all processes in comm, 
+			// The Create() function should be executed by all processes in comm,
 			// even if they do not belong to the new group (in that case MPI_COMM_NULL is returned as real_comm?)
 			// MPI::Intracomm MPI::Intracomm::Create(const MPI::Group& group) const;
 			MPI_Comm real_comm;
@@ -96,7 +96,7 @@ void SpParHelper::MemoryEfficientPSort(pair<KEY,VAL> * array, IT length, IT * di
 		IT gl_median = accumulate(dist, dist+nsize, static_cast<IT>(0));	// global rank of the first element of the median processor
 		sort(array, array+length);	// re-sort because we might have swapped data in previous iterations
 		int color = (myrank < nsize)? 0: 1;
-		
+
 		pair<KEY,VAL> * low = array;
 		pair<KEY,VAL> * upp = array;
 		GlobalSelect(gl_median, low, upp, array, length, comm);
@@ -120,7 +120,7 @@ void SpParHelper::GlobalSelect(IT gl_rank, pair<KEY,VAL> * & low,  pair<KEY,VAL>
 	MPI_Comm_size(comm, &nprocs);
 	MPI_Comm_rank(comm, &myrank);
 	IT begin = 0;
-	IT end = length;	// initially everyone is active			
+	IT end = length;	// initially everyone is active
 	pair<KEY, double> * wmminput = new pair<KEY,double>[nprocs];	// (median, #{actives})
 
 	MPI_Datatype MPI_sortType;
@@ -128,12 +128,12 @@ void SpParHelper::GlobalSelect(IT gl_rank, pair<KEY,VAL> * & low,  pair<KEY,VAL>
 	MPI_Type_commit (&MPI_sortType);
 
 	KEY wmm;	// our median pick
-	IT gl_low, gl_upp;	
+	IT gl_low, gl_upp;
 	IT active = end-begin;				// size of the active range
-	IT nacts = 0; 
+	IT nacts = 0;
 	bool found = 0;
 	int iters = 0;
-	
+
 	/* changes by shan : to add begin0 and end0 for exit condition */
 	IT begin0, end0;
 	do
@@ -146,14 +146,14 @@ void SpParHelper::GlobalSelect(IT gl_rank, pair<KEY,VAL> * & low,  pair<KEY,VAL>
 		MPI_Allgather(MPI_IN_PLACE, 0, MPI_sortType, wmminput, 1, MPI_sortType, comm);
 		double totact = 0;	// total number of active elements
 		for(int i=0; i<nprocs; ++i)
-			totact += wmminput[i].second;	
+			totact += wmminput[i].second;
 
 		// input to weighted median of medians is a set of (object, weight) pairs
-		// the algorithm computes the first set of elements (according to total 
+		// the algorithm computes the first set of elements (according to total
 		// order of "object"s), whose sum is still less than or equal to 1/2
 		for(int i=0; i<nprocs; ++i)
 			wmminput[i].second /= totact ;	// normalize the weights
-		
+
 		sort(wmminput, wmminput+nprocs);	// sort w.r.t. medians
 		double totweight = 0;
 		int wmmloc=0;
@@ -165,8 +165,8 @@ void SpParHelper::GlobalSelect(IT gl_rank, pair<KEY,VAL> * & low,  pair<KEY,VAL>
         	wmm = wmminput[wmmloc-1].first;	// weighted median of medians
 
 		pair<KEY,VAL> wmmpair = make_pair(wmm, VAL());
-		low =lower_bound (array+begin, array+end, wmmpair); 
-		upp =upper_bound (array+begin, array+end, wmmpair); 
+		low =lower_bound (array+begin, array+end, wmmpair);
+		upp =upper_bound (array+begin, array+end, wmmpair);
 		IT loc_low = low-array;	// #{elements smaller than wmm}
 		IT loc_upp = upp-array;	// #{elements smaller or equal to wmm}
 
@@ -182,15 +182,15 @@ void SpParHelper::GlobalSelect(IT gl_rank, pair<KEY,VAL> * & low,  pair<KEY,VAL>
 		{
 			// our pick was too big; only recurse to the left
 			end = (upp - array);
-		} 
+		}
 		else
-		{	
-			found = true;	
+		{
+			found = true;
 		}
 		active = end-begin;
 		MPI_Allreduce(&active, &nacts, 1, MPIType<IT>(), MPI_SUM, comm);
 		if (begin0 == begin && end0 == end) break;  // ABAB: Active range did not shrink, so we break (is this kosher?)
-	} 
+	}
 	while((nacts > 2*nprocs) && (!found));
 	delete [] wmminput;
 
@@ -201,7 +201,7 @@ void SpParHelper::GlobalSelect(IT gl_rank, pair<KEY,VAL> * & low,  pair<KEY,VAL>
 	int * nactives = new int[nprocs];
 	nactives[myrank] = static_cast<int>(active);	// At this point, actives are small enough
 	MPI_Allgather(MPI_IN_PLACE, 0, MPI_INT, nactives, 1, MPI_INT, comm);
-	int * dpls = new int[nprocs]();	// displacements (zero initialized pid) 
+	int * dpls = new int[nprocs]();	// displacements (zero initialized pid)
 	partial_sum(nactives, nactives+nprocs-1, dpls+1);
 	pair<KEY,VAL> * recvbuf = new pair<KEY,VAL>[nacts];
 	low = array + begin;	// update low to the beginning of the active range
@@ -218,12 +218,12 @@ void SpParHelper::GlobalSelect(IT gl_rank, pair<KEY,VAL> * & low,  pair<KEY,VAL>
 		}
 	}
 	DeleteAll(recvbuf, dpls, nactives);
-	sort(allactives, allactives+nacts); 
+	sort(allactives, allactives+nacts);
 	MPI_Allreduce(&begin, &gl_low, 1, MPIType<IT>(), MPI_SUM, comm);        // update
 	int diff = gl_rank - gl_low;
 	for(int k=0; k < diff; ++k)
-	{		
-		if(allactives[k].second == myrank)	
+	{
+		if(allactives[k].second == myrank)
 			++low;	// increment the local pointer
 	}
 	delete [] allactives;
@@ -239,15 +239,15 @@ void SpParHelper::BipartiteSwap(pair<KEY,VAL> * low, pair<KEY,VAL> * array, IT l
 	MPI_Comm_rank(comm, &myrank);
 
 	IT * firsthalves = new IT[nprocs];
-	IT * secondhalves = new IT[nprocs];	
+	IT * secondhalves = new IT[nprocs];
 	firsthalves[myrank] = low-array;
 	secondhalves[myrank] = length - (low-array);
 
 	MPI_Allgather(MPI_IN_PLACE, 0, MPIType<IT>(), firsthalves, 1, MPIType<IT>(), comm);
 	MPI_Allgather(MPI_IN_PLACE, 0, MPIType<IT>(), secondhalves, 1, MPIType<IT>(), comm);
-	
+
 	int * sendcnt = new int[nprocs]();	// zero initialize
-	int totrecvcnt = 0; 
+	int totrecvcnt = 0;
 
 	pair<KEY,VAL> * bufbegin = NULL;
 	if(color == 0)	// first processor half, only send second half of data
@@ -302,10 +302,10 @@ void SpParHelper::BipartiteSwap(pair<KEY,VAL> * low, pair<KEY,VAL> * array, IT l
 	int * recvcnt = new int[nprocs];
 	MPI_Alltoall(sendcnt, 1, MPI_INT, recvcnt, 1, MPI_INT, comm);   // get the recv counts
 	// Alltoall is actually unnecessary, because sendcnt = recvcnt
-	// If I have n_mine > n_yours data to send, then I can send you only n_yours 
+	// If I have n_mine > n_yours data to send, then I can send you only n_yours
 	// as this is your space, and you'll send me identical amount.
 	// Then I can only receive n_mine - n_yours from the third processor and
-	// that processor can only send n_mine - n_yours to me back. 
+	// that processor can only send n_mine - n_yours to me back.
 	// The proof follows from induction
 
 	MPI_Datatype MPI_valueType;
@@ -313,13 +313,13 @@ void SpParHelper::BipartiteSwap(pair<KEY,VAL> * low, pair<KEY,VAL> * array, IT l
 	MPI_Type_commit(&MPI_valueType);
 
 	pair<KEY,VAL> * receives = new pair<KEY,VAL>[totrecvcnt];
-	int * sdpls = new int[nprocs]();	// displacements (zero initialized pid) 
-	int * rdpls = new int[nprocs](); 
+	int * sdpls = new int[nprocs]();	// displacements (zero initialized pid)
+	int * rdpls = new int[nprocs]();
 	partial_sum(sendcnt, sendcnt+nprocs-1, sdpls+1);
 	partial_sum(recvcnt, recvcnt+nprocs-1, rdpls+1);
 
 	MPI_Alltoallv(bufbegin, sendcnt, sdpls, MPI_valueType, receives, recvcnt, rdpls, MPI_valueType, comm);  // sparse swap
-	
+
 	DeleteAll(sendcnt, recvcnt, sdpls, rdpls);
 	copy(receives, receives+totrecvcnt, bufbegin);
 	delete [] receives;
@@ -333,14 +333,14 @@ void SpParHelper::DebugPrintKeys(pair<KEY,VAL> * array, IT length, IT * dist, MP
 	MPI_Comm_rank(World, &rank);
 	MPI_Comm_size(World, &nprocs);
 	MPI_File thefile;
-    
+
     char _fn[] = "temp_sortedkeys"; // AL: this is to avoid the problem that C++ string literals are const char* while C string literals are char*, leading to a const warning (technically error, but compilers are tolerant)
-	MPI_File_open(World, _fn, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &thefile);    
+	MPI_File_open(World, _fn, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &thefile);
 
 	// The cast in the last parameter is crucial because the signature of the function is
    	// T accumulate ( InputIterator first, InputIterator last, T init )
 	// Hence if init if of type "int", the output also becomes an it (remember C++ signatures are ignorant of return value)
-	IT sizeuntil = accumulate(dist, dist+rank, static_cast<IT>(0)); 
+	IT sizeuntil = accumulate(dist, dist+rank, static_cast<IT>(0));
 
 	MPI_Offset disp = sizeuntil * sizeof(KEY);	// displacement is in bytes
     	MPI_File_set_view(thefile, disp, MPIType<KEY>(), MPIType<KEY>(), "native", MPI_INFO_NULL);
@@ -353,13 +353,13 @@ void SpParHelper::DebugPrintKeys(pair<KEY,VAL> * array, IT length, IT * dist, MP
 	MPI_File_write(thefile, packed, length, MPIType<KEY>(), NULL);
 	MPI_File_close(&thefile);
 	delete [] packed;
-	
+
 	// Now let processor-0 read the file and print
 	if(rank == 0)
 	{
 		FILE * f = fopen("temp_sortedkeys", "r");
                 if(!f)
-                { 
+                {
                         cerr << "Problem reading binary input file\n";
                         return;
                 }
@@ -390,7 +390,7 @@ template <class IT, class NT, class DER>
 void SpParHelper::FetchMatrix(SpMat<IT,NT,DER> & MRecv, const vector<IT> & essentials, vector<MPI_Win> & arrwin, int ownind)
 {
 	MRecv.Create(essentials);		// allocate memory for arrays
- 
+
 	Arr<IT,NT> arrinfo = MRecv.GetArrays();
 	assert( (arrwin.size() == arrinfo.totalsize()));
 
@@ -417,14 +417,14 @@ void SpParHelper::FetchMatrix(SpMat<IT,NT,DER> & MRecv, const vector<IT> & essen
   * 		For all others, it is a (yet) empty object to be filled by the received data}
   * @param[in] essentials {irrelevant for the root}
  **/
-template<typename IT, typename NT, typename DER>	
+template<typename IT, typename NT, typename DER>
 void SpParHelper::BCastMatrix(MPI_Comm & comm1d, SpMat<IT,NT,DER> & Matrix, const vector<IT> & essentials, int root)
 {
 	int myrank;
 	MPI_Comm_rank(comm1d, &myrank);
 	if(myrank != root)
 	{
-		Matrix.Create(essentials);		// allocate memory for arrays		
+		Matrix.Create(essentials);		// allocate memory for arrays
 	}
 
 	Arr<IT,NT> arrinfo = Matrix.GetArrays();
@@ -435,33 +435,33 @@ void SpParHelper::BCastMatrix(MPI_Comm & comm1d, SpMat<IT,NT,DER> & Matrix, cons
 	for(unsigned int i=0; i< arrinfo.numarrs.size(); ++i)	// get numerical arrays
 	{
 		MPI_Bcast(arrinfo.numarrs[i].addr, arrinfo.numarrs[i].count, MPIType<NT>(), root, comm1d);
-	}			
+	}
 }
-	
+
 
 template <class IT, class NT, class DER>
-void SpParHelper::SetWindows(MPI_Comm & comm1d, const SpMat< IT,NT,DER > & Matrix, vector<MPI_Win> & arrwin) 
-{	
-	Arr<IT,NT> arrs = Matrix.GetArrays(); 
-	 
+void SpParHelper::SetWindows(MPI_Comm & comm1d, const SpMat< IT,NT,DER > & Matrix, vector<MPI_Win> & arrwin)
+{
+	Arr<IT,NT> arrs = Matrix.GetArrays();
+
 	// static MPI::Win MPI::Win::create(const void *base, MPI::Aint size, int disp_unit, MPI::Info info, const MPI_Comm & comm);
 	// The displacement unit argument is provided to facilitate address arithmetic in RMA operations
 	// *** COLLECTIVE OPERATION ***, everybody exposes its own array to everyone else in the communicator
-		
+
 	for(int i=0; i< arrs.indarrs.size(); ++i)
 	{
 	        MPI_Win nWin;
-	        MPI_Win_create(arrs.indarrs[i].addr, 
+	        MPI_Win_create(arrs.indarrs[i].addr,
 			       arrs.indarrs[i].count * sizeof(IT), sizeof(IT), MPI_INFO_NULL, comm1d, &nWin);
 		arrwin.push_back(nWin);
 	}
 	for(int i=0; i< arrs.numarrs.size(); ++i)
 	{
 	        MPI_Win nWin;
-		MPI_Win_create(arrs.numarrs[i].addr, 
+		MPI_Win_create(arrs.numarrs[i].addr,
 			       arrs.numarrs[i].count * sizeof(NT), sizeof(NT), MPI_INFO_NULL, comm1d, &nWin);
 		arrwin.push_back(nWin);
-	}	
+	}
 }
 
 inline void SpParHelper::LockWindows(int ownind, vector<MPI_Win> & arrwin)
@@ -472,7 +472,7 @@ inline void SpParHelper::LockWindows(int ownind, vector<MPI_Win> & arrwin)
 	}
 }
 
-inline void SpParHelper::UnlockWindows(int ownind, vector<MPI_Win> & arrwin) 
+inline void SpParHelper::UnlockWindows(int ownind, vector<MPI_Win> & arrwin)
 {
 	for(vector<MPI_Win>::iterator itr = arrwin.begin(); itr != arrwin.end(); ++itr)
 	{
@@ -482,13 +482,13 @@ inline void SpParHelper::UnlockWindows(int ownind, vector<MPI_Win> & arrwin)
 
 
 /**
- * @param[in] owner {target processor rank within the processor group} 
+ * @param[in] owner {target processor rank within the processor group}
  * @param[in] arrwin {start access epoch only to owner's arrwin (-windows) }
  */
 inline void SpParHelper::StartAccessEpoch(int owner, vector<MPI_Win> & arrwin, MPI_Group & group)
 {
 	/* Now start using the whole comm as a group */
-	int acc_ranks[1]; 
+	int acc_ranks[1];
 	acc_ranks[0] = owner;
 	MPI_Group access;
 	MPI_Group_incl(group, 1, acc_ranks, &access);	// take only the owner
@@ -502,7 +502,7 @@ inline void SpParHelper::StartAccessEpoch(int owner, vector<MPI_Win> & arrwin, M
 }
 
 /**
- * @param[in] self {rank of "this" processor to be excluded when starting the exposure epoch} 
+ * @param[in] self {rank of "this" processor to be excluded when starting the exposure epoch}
  */
 inline void SpParHelper::PostExposureEpoch(int self, vector<MPI_Win> & arrwin, MPI_Group & group)
 {
@@ -517,10 +517,10 @@ void SpParHelper::AccessNFetch(DER * & Matrix, int owner, vector<MPI_Win> & arrw
 	StartAccessEpoch(owner, arrwin, group);	// start the access epoch to arrwin of owner
 
 	vector<IT> ess(DER::esscount);			// pack essentials to a vector
-	for(int j=0; j< DER::esscount; ++j)	
-		ess[j] = sizes[j][owner];	
+	for(int j=0; j< DER::esscount; ++j)
+		ess[j] = sizes[j][owner];
 
-	Matrix = new DER();	// create the object first	
+	Matrix = new DER();	// create the object first
 	FetchMatrix(*Matrix, ess, arrwin, owner);	// then start fetching its elements
 }
 
@@ -530,15 +530,15 @@ void SpParHelper::LockNFetch(DER * & Matrix, int owner, vector<MPI_Win> & arrwin
 	LockWindows(owner, arrwin);
 
 	vector<IT> ess(DER::esscount);			// pack essentials to a vector
-	for(int j=0; j< DER::esscount; ++j)	
-		ess[j] = sizes[j][owner];	
+	for(int j=0; j< DER::esscount; ++j)
+		ess[j] = sizes[j][owner];
 
-	Matrix = new DER();	// create the object first	
+	Matrix = new DER();	// create the object first
 	FetchMatrix(*Matrix, ess, arrwin, owner);	// then start fetching its elements
 }
 
 /**
- * @param[in] sizes 2D array where 
+ * @param[in] sizes 2D array where
  *  	sizes[i] is an array of size r/s representing the ith essential component of all local blocks within that row/col
  *	sizes[i][j] is the size of the ith essential component of the jth local block within this row/col
  */
@@ -551,9 +551,9 @@ void SpParHelper::GetSetSizes(const SpMat<IT,NT,DER> & Matrix, IT ** & sizes, MP
 
 	for(IT i=0; (unsigned)i < essentials.size(); ++i)
 	{
-		sizes[i][index] = essentials[i]; 
+		sizes[i][index] = essentials[i];
 		MPI_Allgather(MPI_IN_PLACE, 1, MPIType<IT>(), sizes[i], 1, MPIType<IT>(), comm1d);
-	}	
+	}
 }
 
 inline void SpParHelper::PrintFile(const string & s, const string & filename)
@@ -628,7 +628,7 @@ inline bool SpParHelper::FetchBatch(MPI_File & infile, MPI_Offset & curpos, MPI_
         curpos -= 1;    // first byte is to check whether we started at the beginning of a line
         bytes2fetch += 1;
     }
-    
+
     MPI_File_read_at(infile, curpos, buf, bytes2fetch, MPI_CHAR, &status);
     MPI_Get_count(&status, MPI_CHAR, &bytes_read);  // MPI_Get_Count can only return 32-bit integers
     if(!bytes_read)
@@ -665,7 +665,7 @@ inline bool SpParHelper::FetchBatch(MPI_File & infile, MPI_Offset & curpos, MPI_
             return false;  // if bytes_read stops in the middle of a line, that line will be re-read next time since curpos has not been moved forward yet
         }
         int n = c - buf + 1;
-        
+
         // string constructor from char * buffer: copies the first n characters from the array of characters pointed by s
         lines.push_back(string(buf, n-1));  // no need to copy the newline character
         bytes_read -= n;   // reduce remaining bytes
@@ -681,15 +681,15 @@ inline bool SpParHelper::FetchBatch(MPI_File & infile, MPI_Offset & curpos, MPI_
 inline void SpParHelper::WaitNFree(vector<MPI_Win> & arrwin)
 {
 	// End the exposure epochs for the arrays of the local matrices A and B
-	// The Wait() call matches calls to Complete() issued by ** EACH OF THE ORIGIN PROCESSES ** 
+	// The Wait() call matches calls to Complete() issued by ** EACH OF THE ORIGIN PROCESSES **
 	// that were granted access to the window during this epoch.
 	for(unsigned int i=0; i< arrwin.size(); ++i)
 	{
 		MPI_Win_wait(arrwin[i]);
 	}
 	FreeWindows(arrwin);
-}		
-	
+}
+
 inline void SpParHelper::FreeWindows(vector<MPI_Win> & arrwin)
 {
 	for(unsigned int i=0; i< arrwin.size(); ++i)

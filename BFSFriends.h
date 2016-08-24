@@ -6,17 +6,17 @@
 /****************************************************************/
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -31,7 +31,7 @@
 
 #include "mpi.h"
 #include <iostream>
-#include "SpParMat.h"	
+#include "SpParMat.h"
 #include "SpParHelper.h"
 #include "MPIType.h"
 #include "Friends.h"
@@ -51,12 +51,12 @@ class SpParMat;
 /***************************** BOTH PARALLEL AND SEQUENTIAL FUNCTIONS ****************************/
 /*************************************************************************************************/
 
-/** 
+/**
  * Multithreaded SpMV with sparse vector and preset buffers
  * the assembly of outgoing buffers sendindbuf/sendnumbuf are done here
  */
 template <typename IT, typename VT>
-void dcsc_gespmv_threaded_setbuffers (const SpDCCols<IT, bool> & A, const int32_t * indx, const VT * numx, int32_t nnzx, 
+void dcsc_gespmv_threaded_setbuffers (const SpDCCols<IT, bool> & A, const int32_t * indx, const VT * numx, int32_t nnzx,
 				 int32_t * sendindbuf, VT * sendnumbuf, int * cnts, int * dspls, int p_c)
 {
 	if(A.getnnz() > 0 && nnzx > 0)
@@ -68,9 +68,9 @@ void dcsc_gespmv_threaded_setbuffers (const SpDCCols<IT, bool> & A, const int32_
 			vector< vector< VT > > numy(splits);
 			int32_t nlocrows = static_cast<int32_t>(A.getnrow());
 			int32_t perpiece = nlocrows / splits;
-			
+
 			#ifdef _OPENMP
-			#pragma omp parallel for 
+			#pragma omp parallel for
 			#endif
 			for(int i=0; i<splits; ++i)
 			{
@@ -79,12 +79,12 @@ void dcsc_gespmv_threaded_setbuffers (const SpDCCols<IT, bool> & A, const int32_
 				else
 					SpMXSpV_ForThreading(*(A.GetDCSC(i)), nlocrows - perpiece*i, indx, numx, nnzx, indy[i], numy[i], i*perpiece);
 			}
-			
-			int32_t perproc = nlocrows / p_c;	
+
+			int32_t perproc = nlocrows / p_c;
 			int32_t last_rec = p_c-1;
-			
+
 			// keep recipients of last entries in each split (-1 for an empty split)
-			// so that we can delete indy[] and numy[] contents as soon as they are processed		
+			// so that we can delete indy[] and numy[] contents as soon as they are processed
 			vector<int32_t> end_recs(splits);
 			for(int i=0; i<splits; ++i)
 			{
@@ -93,11 +93,11 @@ void dcsc_gespmv_threaded_setbuffers (const SpDCCols<IT, bool> & A, const int32_
 				else
 					end_recs[i] = min(indy[i].back() / perproc, last_rec);
 			}
-			
-			int ** loc_rec_cnts = new int *[splits];	
-			#ifdef _OPENMP	
+
+			int ** loc_rec_cnts = new int *[splits];
+			#ifdef _OPENMP
 			#pragma omp parallel for
-			#endif	
+			#endif
 			for(int i=0; i<splits; ++i)
 			{
 				loc_rec_cnts[i]  = new int[p_c](); // thread-local recipient data
@@ -107,29 +107,29 @@ void dcsc_gespmv_threaded_setbuffers (const SpDCCols<IT, bool> & A, const int32_
 					int32_t lastdata = (cur_rec+1) * perproc;  // one past last entry that goes to this current recipient
 					for(typename vector<int32_t>::iterator it = indy[i].begin(); it != indy[i].end(); ++it)
 					{
-						if( ( (*it) >= lastdata ) && cur_rec != last_rec)	
+						if( ( (*it) >= lastdata ) && cur_rec != last_rec)
 						{
-							cur_rec = min( (*it) / perproc, last_rec);	
+							cur_rec = min( (*it) / perproc, last_rec);
 							lastdata = (cur_rec+1) * perproc;
 						}
 						++loc_rec_cnts[i][cur_rec];
 					}
 				}
 			}
-			#ifdef _OPENMP	
-			#pragma omp parallel for 
+			#ifdef _OPENMP
+			#pragma omp parallel for
 			#endif
 			for(int i=0; i<splits; ++i)
 			{
 				if(!indy[i].empty())	// guarantee that .begin() and .end() are not null
 				{
-					// FACT: Data is sorted, so if the recipient of begin is the same as the owner of end, 
+					// FACT: Data is sorted, so if the recipient of begin is the same as the owner of end,
 					// then the whole data is sent to the same processor
-					int32_t beg_rec = min( indy[i].front() / perproc, last_rec); 
-					int32_t alreadysent = 0;	// already sent per recipient 
+					int32_t beg_rec = min( indy[i].front() / perproc, last_rec);
+					int32_t alreadysent = 0;	// already sent per recipient
 					for(int before = i-1; before >= 0; before--)
 						 alreadysent += loc_rec_cnts[before][beg_rec];
-						
+
 					if(beg_rec == end_recs[i])	// fast case
 					{
 						transform(indy[i].begin(), indy[i].end(), indy[i].begin(), bind2nd(minus<int32_t>(), perproc*beg_rec));
@@ -158,7 +158,7 @@ void dcsc_gespmv_threaded_setbuffers (const SpDCCols<IT, bool> & A, const int32_
 				}
 			}
 			// Deallocated rec counts serially once all threads complete
-			for(int i=0; i< splits; ++i)	
+			for(int i=0; i< splits; ++i)
 			{
 				for(int j=0; j< p_c; ++j)
 					cnts[j] += loc_rec_cnts[i][j];
@@ -181,24 +181,24 @@ void dcsc_gespmv_threaded_setbuffers (const SpDCCols<IT, bool> & A, const int32_
  **/
 template<typename VT, typename IT, typename UDER>
 void LocalSpMV(const SpParMat<IT,bool,UDER> & A, int rowneighs, OptBuf<int32_t, VT > & optbuf, int32_t * & indacc, VT * & numacc, int * sendcnt, int accnz)
-{	
+{
 
 #ifdef TIMING
 	double t0=MPI_Wtime();
 #endif
 	if(optbuf.totmax > 0)	// graph500 optimization enabled
-	{ 
+	{
 		if(A.spSeq->getnsplit() > 0)
 		{
 			// optbuf.{inds/nums/dspls} and sendcnt are all pre-allocated and only filled by dcsc_gespmv_threaded
-			dcsc_gespmv_threaded_setbuffers (*(A.spSeq), indacc, numacc, accnz, optbuf.inds, optbuf.nums, sendcnt, optbuf.dspls, rowneighs);	
+			dcsc_gespmv_threaded_setbuffers (*(A.spSeq), indacc, numacc, accnz, optbuf.inds, optbuf.nums, sendcnt, optbuf.dspls, rowneighs);
 		}
 		else
 		{
 			// by-pass dcsc_gespmv call
 			if(A.getlocalnnz() > 0 && accnz > 0)
 			{
-				SpMXSpV(*((A.spSeq)->GetDCSC()), (int32_t) A.getlocalrows(), indacc, numacc, 
+				SpMXSpV(*((A.spSeq)->GetDCSC()), (int32_t) A.getlocalrows(), indacc, numacc,
 					accnz, optbuf.inds, optbuf.nums, sendcnt, optbuf.dspls, rowneighs, optbuf.isthere);
 			}
 		}
@@ -225,23 +225,23 @@ void MergeContributions(FullyDistSpVec<IU,VT> & y, int * & recvcnt, int * & rdis
 	// free memory of y, in case it was aliased
 	vector<IU>().swap(y.ind);
 	vector<VT>().swap(y.num);
-	
+
 #ifndef HEAPMERGE
 	IU ysize = y.MyLocLength();	// my local length is only O(n/p)
 	bool * isthere = new bool[ysize];
-	vector< pair<IU,VT> > ts_pairs;	
+	vector< pair<IU,VT> > ts_pairs;
 	fill_n(isthere, ysize, false);
 
 	// We don't need to keep a "merger" because minimum will always come from the processor
-	// with the smallest rank; so a linear sweep over the received buffer is enough	
+	// with the smallest rank; so a linear sweep over the received buffer is enough
 	for(int i=0; i<rowneighs; ++i)
 	{
-		for(int j=0; j< recvcnt[i]; ++j) 
+		for(int j=0; j< recvcnt[i]; ++j)
 		{
 			int32_t index = recvindbuf[rdispls[i] + j];
 			if(!isthere[index])
 				ts_pairs.push_back(make_pair(index, recvnumbuf[rdispls[i] + j]));
-			
+
 		}
 	}
 	DeleteAll(recvcnt, rdispls);
@@ -253,15 +253,15 @@ void MergeContributions(FullyDistSpVec<IU,VT> & y, int * & recvcnt, int * & rdis
 	for(int i=0; i< nnzy; ++i)
 	{
 		y.ind[i] = ts_pairs[i].first;
-		y.num[i] = ts_pairs[i].second; 	
+		y.num[i] = ts_pairs[i].second;
 	}
 
 #else
 	// Alternative 2: Heap-merge
-	int32_t hsize = 0;		
+	int32_t hsize = 0;
 	int32_t inf = numeric_limits<int32_t>::min();
-	int32_t sup = numeric_limits<int32_t>::max(); 
-	KNHeap< int32_t, int32_t > sHeap(sup, inf); 
+	int32_t sup = numeric_limits<int32_t>::max();
+	KNHeap< int32_t, int32_t > sHeap(sup, inf);
 	int * processed = new int[rowneighs]();
 	for(int32_t i=0; i<rowneighs; ++i)
 	{
@@ -271,14 +271,14 @@ void MergeContributions(FullyDistSpVec<IU,VT> & y, int * & recvcnt, int * & rdis
 			sHeap.insert(recvindbuf[rdispls[i]], i);
 			++hsize;
 		}
-	}	
+	}
 	int32_t key, locv;
 	if(hsize > 0)
 	{
 		sHeap.deleteMin(&key, &locv);
 		y.ind.push_back( static_cast<IU>(key));
 		y.num.push_back(recvnumbuf[rdispls[locv]]);	// nothing is processed yet
-		
+
 		if( (++(processed[locv])) < recvcnt[locv] )
 			sHeap.insert(recvindbuf[rdispls[locv]+processed[locv]], locv);
 		else
@@ -298,7 +298,7 @@ void MergeContributions(FullyDistSpVec<IU,VT> & y, int * & recvcnt, int * & rdis
 			y.ind.push_back(static_cast<IU>(key));
 			y.num.push_back(recvnumbuf[deref]);
 		}
-		
+
 		if( (++(processed[locv])) < recvcnt[locv] )
 			sHeap.insert(recvindbuf[rdispls[locv]+processed[locv]], locv);
 		else
@@ -312,11 +312,11 @@ void MergeContributions(FullyDistSpVec<IU,VT> & y, int * & recvcnt, int * & rdis
 	double t1=MPI_Wtime();
 	cblas_mergeconttime += (t1-t0);
 #endif
-}	
+}
 
 /**
   * This is essentially a SpMV for BFS because it lacks the semiring.
-  * It naturally justs selects columns of A (adjacencies of frontier) and 
+  * It naturally justs selects columns of A (adjacencies of frontier) and
   * merges with the minimum entry succeeding. SpParMat has to be boolean
   * input and output vectors are of type VT but their indices are IT
   */
@@ -325,7 +325,7 @@ FullyDistSpVec<IT,VT>  SpMV (const SpParMat<IT,bool,UDER> & A, const FullyDistSp
 {
 	CheckSpMVCompliance(A,x);
 	optbuf.MarkEmpty();
-		
+
 	MPI_Comm World = x.commGrid->GetWorld();
 	MPI_Comm ColWorld = x.commGrid->GetColWorld();
 	MPI_Comm RowWorld = x.commGrid->GetRowWorld();
@@ -335,8 +335,8 @@ FullyDistSpVec<IT,VT>  SpMV (const SpParMat<IT,bool,UDER> & A, const FullyDistSp
 	IT lenuntil;
 	int32_t *trxinds, *indacc;
 	VT *trxnums, *numacc;
-    
-	
+
+
 #ifdef TIMING
 	double t0=MPI_Wtime();
 #endif
@@ -346,34 +346,34 @@ FullyDistSpVec<IT,VT>  SpMV (const SpParMat<IT,bool,UDER> & A, const FullyDistSp
 	cblas_transvectime += (t1-t0);
 #endif
 	AllGatherVector(ColWorld, trxlocnz, lenuntil, trxinds, trxnums, indacc, numacc, accnz, true);	// trxinds (and potentially trxnums) is deallocated, indacc/numacc allocated
-	
+
 	FullyDistSpVec<IT, VT> y ( x.commGrid, A.getnrow());	// identity doesn't matter for sparse vectors
 	int rowneighs; MPI_Comm_size(RowWorld,&rowneighs);
-	int * sendcnt = new int[rowneighs]();	
+	int * sendcnt = new int[rowneighs]();
 
 	LocalSpMV(A, rowneighs, optbuf, indacc, numacc, sendcnt, accnz);	// indacc/numacc deallocated
 
 	int * rdispls = new int[rowneighs];
 	int * recvcnt = new int[rowneighs];
 	MPI_Alltoall(sendcnt, 1, MPI_INT, recvcnt, 1, MPI_INT, RowWorld);	// share the request counts
-	
+
 	// receive displacements are exact whereas send displacements have slack
 	rdispls[0] = 0;
 	for(int i=0; i<rowneighs-1; ++i)
 	{
 		rdispls[i+1] = rdispls[i] + recvcnt[i];
 	}
-	int totrecv = accumulate(recvcnt,recvcnt+rowneighs,0);	
+	int totrecv = accumulate(recvcnt,recvcnt+rowneighs,0);
 	int32_t * recvindbuf = new int32_t[totrecv];
 	VT * recvnumbuf = new VT[totrecv];
-	
+
 #ifdef TIMING
 	double t2=MPI_Wtime();
 #endif
 	if(optbuf.totmax > 0 )	// graph500 optimization enabled
 	{
-        MPI_Alltoallv(optbuf.inds, sendcnt, optbuf.dspls, MPIType<int32_t>(), recvindbuf, recvcnt, rdispls, MPIType<int32_t>(), RowWorld);  
-		MPI_Alltoallv(optbuf.nums, sendcnt, optbuf.dspls, MPIType<VT>(), recvnumbuf, recvcnt, rdispls, MPIType<VT>(), RowWorld);  
+        MPI_Alltoallv(optbuf.inds, sendcnt, optbuf.dspls, MPIType<int32_t>(), recvindbuf, recvcnt, rdispls, MPIType<int32_t>(), RowWorld);
+		MPI_Alltoallv(optbuf.nums, sendcnt, optbuf.dspls, MPIType<VT>(), recvnumbuf, recvcnt, rdispls, MPIType<VT>(), RowWorld);
 		delete [] sendcnt;
 	}
 	else
@@ -386,7 +386,7 @@ FullyDistSpVec<IT,VT>  SpMV (const SpParMat<IT,bool,UDER> & A, const FullyDistSp
 #endif
 
 	MergeContributions(y,recvcnt, rdispls, recvindbuf, recvnumbuf, rowneighs);
-	return y;	
+	return y;
 }
 
 template <typename VT, typename IT, typename UDER>
@@ -437,14 +437,14 @@ void UpdateParents(MPI_Comm & RowWorld, pair<IT,IT> *updates, int num_updates, F
 	pair<IT,IT>* recv_buff = new pair<IT,IT>[recv_words>>1];
 	MPI_Sendrecv(updates, send_words, MPIType<IT>(), dest, PUPDATA,
 					  recv_buff, recv_words, MPIType<IT>(), source, PUPDATA, RowWorld, &status);
-	
+
 #ifdef THREADED
 #pragma omp parallel for
 #endif
 	for (int i=0; i<recv_words>>1; i++) {
 		parents.SetLocalElement(recv_buff[i].first, recv_buff[i].second);
 	}
-	
+
 	bm_fringe.IncrementNumSet((recv_words>>1));
 	delete[] recv_buff;
 }
@@ -458,29 +458,29 @@ void BottomUpStep(SpParMat<IT,bool,UDER> & A, FullyDistSpVec<IT,VT> & x, BitMapF
 	MPI_Comm ColWorld = cg->GetColWorld();
 	MPI_Comm RowWorld = cg->GetRowWorld();
 	MPI_Status status;
-	
+
 	// get row and column offsets
 	IT rowuntil = x.LengthUntil(), my_coluntil = x.LengthUntil(), coluntil;
 	int diagneigh = cg->GetComplementRank();
 	MPI_Sendrecv(&my_coluntil, 1, MPIType<IT>(), diagneigh, TROST, &coluntil, 1, MPIType<IT>(), diagneigh, TROST, World, &status);
 	MPI_Bcast(&coluntil, 1, MPIType<IT>(), 0, ColWorld);
 	MPI_Bcast(&rowuntil, 1, MPIType<IT>(), 0, RowWorld);
-	
+
 	BitMap* frontier = bm_fringe.TransposeGather();
 	done.SaveOld();
-	
+
 #ifdef THREADED
 	const int buff_size = 8192;
 	pair<IT,IT>* local_update_heads[cblas_splits];
 	for (int t=0; t<cblas_splits; t++)
 		local_update_heads[t] = new pair<IT,IT>[buff_size];
 #endif
-	
+
 	// do bottom up work
 	int numcols = cg->GetGridCols();
 	int mycol = cg->GetRankInProcRow();
 	pair<IT,IT>* parent_updates = new pair<IT,IT>[done.SizeOfChunk()<<1]; // over-allocated
-	
+
 	for (int sub_step=0; sub_step<numcols; sub_step++) {
 		int num_updates = 0;
 		IT sub_start = done.GetGlobalStartOfLocal();
@@ -528,18 +528,18 @@ void BottomUpStep(SpParMat<IT,bool,UDER> & A, FullyDistSpVec<IT,VT> & x, BitMapF
 		SpDCCols<int,bool>::SpColIter::NzIter nzit, nzit_end;
 		SpDCCols<int,bool>::SpColIter colit, colit_end;
 		colit_end = starts[dest_slice+1];
-		for(colit = starts[dest_slice]; colit != colit_end; ++colit) 
+		for(colit = starts[dest_slice]; colit != colit_end; ++colit)
 		{
 			int32_t local_row_ind = colit.colid();
 			IT row = local_row_ind + rowuntil;
-			if (!done.GetBit(row)) 
+			if (!done.GetBit(row))
 			{
 				nzit_end = A.seq().endnz(colit);
-				for(nzit = A.seq().begnz(colit); nzit != nzit_end; ++nzit) 
+				for(nzit = A.seq().begnz(colit); nzit != nzit_end; ++nzit)
 				{
 					int32_t local_col_ind = nzit.rowid();
 					IT col = local_col_ind + coluntil;
-					if (frontier->get_bit(local_col_ind)) 
+					if (frontier->get_bit(local_col_ind))
 					{
 						parent_updates[num_updates++] = make_pair(row-sub_start, col);
 						done.SetBit(row);

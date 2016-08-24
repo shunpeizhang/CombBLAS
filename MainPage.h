@@ -7,33 +7,33 @@
 *
 * @section intro Introduction
 * The Combinatorial BLAS is an extensible distributed-memory parallel graph library offering a small but powerful set of linear
-* algebra primitives specifically targeting graph analytics. 
+* algebra primitives specifically targeting graph analytics.
 * - The Combinatorial BLAS development influences the <a href="http://graphblas.org">Graph BLAS</a> standardization process.
-* - It achieves scalability via its two dimensional distribution and coarse-grained parallelism. 
-* - For an illustrative overview, check out <a href="http://gauss.cs.ucsb.edu/~aydin/talks/CombBLAS_Nov11.pdf">these slides</a>. 
+* - It achieves scalability via its two dimensional distribution and coarse-grained parallelism.
+* - For an illustrative overview, check out <a href="http://gauss.cs.ucsb.edu/~aydin/talks/CombBLAS_Nov11.pdf">these slides</a>.
 * - Operations among sparse matrices and vectors use arbitrary user defined semirings. Here is a semiring <a href="http://kdt.sourceforge.net/wiki/index.php/Using_Semirings">primer</a>
 * - Check out the <a href="http://gauss.cs.ucsb.edu/~aydin/CombBLAS_FILES/FAQ-combblas.html">Frequently asked questions about CombBLAS</a>.
 *
-* <b>Download</b> 
+* <b>Download</b>
 * - Read <a href="http://gauss.cs.ucsb.edu/~aydin/CombBLAS_FILES/release-notes.html">release notes</a>.
 * - The latest CMake'd tarball (version 1.5.0, Jan 2016) <a href="http://gauss.cs.ucsb.edu/~aydin/CombBLAS_FILES/CombBLAS_beta_15_0.tgz"> here</a>. (NERSC users read <a href="http://gauss.cs.ucsb.edu/~aydin/CombBLAS_FILES/NERSC_INSTALL.html">this</a>).
  The previous version (version 1.4.0, Jan 2014) is also available <a href="http://gauss.cs.ucsb.edu/~aydin/CombBLAS_FILES/CombBLAS_beta_14_0.tgz"> here </a> for backwards compatibility and benchmarking.
 * 	- To create sample applications
-* and run simple tests, all you need to do is to execute the following three commands, in the given order, inside the main directory: 
+* and run simple tests, all you need to do is to execute the following three commands, in the given order, inside the main directory:
 * 		- <i> cmake . </i>
 * 		- <i> make </i>
 * 		- <i> ctest -V </i> (you need the testinputs, see below)
 * 	- Test inputs are separately downloadable <a href="http://gauss.cs.ucsb.edu/~aydin/CombBLAS_FILES/testdata_combblas1.2.1.tgz"> here</a>. Extract them inside the CombBLAS_vx.x directory with the command "tar -xzvf testdata_combblas1.2.1.tgz"
-* - Alternatively (if cmake fails, or you just don't want to install it), you can just imitate the sample makefiles inside the ReleaseTests and Applications 
+* - Alternatively (if cmake fails, or you just don't want to install it), you can just imitate the sample makefiles inside the ReleaseTests and Applications
 * directories. Those sample makefiles have the following format: makefile-<i>machine</i>. (example: makefile-macair)
-* 
-* <b>Requirements</b>: You need a recent 
+*
+* <b>Requirements</b>: You need a recent
 * C++ compiler (gcc version 4.8+, Intel version 15.0+ and compatible), a compliant MPI implementation, and C++11 Standard library (libstdc++ that comes with g++
 * has them). The recommended tarball uses the CMake build system, but only to build the documentation and unit-tests, and to automate installation. The chances are that you're not going to use any of our sample applications "as-is", so you can just modify them or imitate their structure to write your own application by just using the header files. There are very few binary libraries to link to, and no configured header files. Like many high-performance C++ libraries, the Combinatorial BLAS is mostly templated.
 *
 * <b>Documentation</b>:
 * This is a reference implementation of the Combinatorial BLAS Library in C++/MPI.
-* It is purposefully designed for distributed memory platforms though it also runs in uniprocessor and shared-memory (such as multicores) platforms. 
+* It is purposefully designed for distributed memory platforms though it also runs in uniprocessor and shared-memory (such as multicores) platforms.
 * It contains efficient implementations of novel data structures/algorithms
 * as well as reimplementations of some previously known data structures/algorithms for convenience. More details can be found in the accompanying paper [1]. One of
 * the distinguishing features of the Combinatorial BLAS is its decoupling of parallel logic from the
@@ -44,19 +44,19 @@
 * We encourage in-memory generators for faster benchmarking. More info on I/O formats (other than the well-known Matrix Market Format) are
 * <a href="http://gauss.cs.ucsb.edu/~aydin/CombBLAS_FILES/Input_File_Formats.pdf">here</a>
 *
-* The main data structure is a distributed sparse matrix ( SpParMat <IT,NT,DER> ) which HAS-A sequential sparse matrix ( SpMat <IT,NT> ) that 
+* The main data structure is a distributed sparse matrix ( SpParMat <IT,NT,DER> ) which HAS-A sequential sparse matrix ( SpMat <IT,NT> ) that
 * can be implemented in various ways as long as it supports the interface of the base class (currently: SpTuples, SpCCols, SpDCCols).
 *
 * For example, the standard way to declare a parallel sparse matrix A that uses 32-bit integers for indices, floats for numerical values (nonzeros),
-* SpDCCols <int,float> for the underlying sequential matrix operations is: 
-* - SpParMat<int, float, SpDCCols<int,float> > A; 
+* SpDCCols <int,float> for the underlying sequential matrix operations is:
+* - SpParMat<int, float, SpDCCols<int,float> > A;
 *
 * The repetitions of int and float types inside the SpDCCols< > is a direct consequence of the static typing of C++
 * and is akin to some STL constructs such as vector<int, SomeAllocator<int> >. If your compiler support "auto", then you can have the compiler infer the type.
 *
-* Sparse and dense vectors can be distributed either along the diagonal processor or to all processor. The latter is more space efficient and provides 
-* much better load balance for SpMSV (sparse matrix-sparse vector multiplication) but the former is simpler and perhaps faster for SpMV 
-* (sparse matrix-dense vector multiplication) 
+* Sparse and dense vectors can be distributed either along the diagonal processor or to all processor. The latter is more space efficient and provides
+* much better load balance for SpMSV (sparse matrix-sparse vector multiplication) but the former is simpler and perhaps faster for SpMV
+* (sparse matrix-dense vector multiplication)
 *
 * <b> New in version 1.5</b>:
 * - Fully parallel matrix market format reader (SpParMat::ParallelReadMM())
@@ -82,50 +82,50 @@
 * - Sparse matrix-matrix multiplication on a semiring SR: PSpGEMM()
 * - Elementwise multiplication of sparse matrices (A .* B and A .* not(B) in Matlab): EWiseMult()
 * - Unary operations on nonzeros: SpParMat::Apply()
-* - Matrix-matrix and matrix-vector scaling (the latter scales each row/column with the same scalar of the vector) 
+* - Matrix-matrix and matrix-vector scaling (the latter scales each row/column with the same scalar of the vector)
 * - Reductions along row/column: SpParMat::Reduce()
 * - Sparse matrix-dense vector multiplication on a semiring, SpMV()
 * - Sparse matrix-sparse vector multiplication on a semiring, SpMV()
 * - Generalized matrix indexing: SpParMat::operator(const FullyDistVec & ri, const FullyDistVec & ci)
 * - Generalized sparse matrix assignment: SpParMat::SpAsgn (const FullyDistVec & ri, const FullyDistVec &ci, SpParMat & B)
 * - Numeric type conversion through conversion operators
-* - Elementwise operations between sparse and dense matrices: SpParMat::EWiseScale() and operator+=()  
+* - Elementwise operations between sparse and dense matrices: SpParMat::EWiseScale() and operator+=()
 * - BFS specific optimizations inside BFSFriends.h
-* 
+*
 * All the binary operations can be performed on matrices with different numerical value representations.
 * The type-traits mechanism will take care of the automatic type promotion, and automatic MPI data type determination.
 *
 * Some features it uses:
 * - templates (for generic types, and for metaprogramming through "curiously recurring template pattern")
-* - operator overloading 
-* - compositors (to avoid intermediate copying) 
+* - operator overloading
+* - compositors (to avoid intermediate copying)
 * - standard library whenever possible
 * - Reference counting using shared_ptr for IITO (implemented in terms of) relationships
-* - As external code, it utilizes 
+* - As external code, it utilizes
 *	- sequence heaps of <a href="http://www.mpi-inf.mpg.de/~sanders/programs/"> Peter Sanders </a>.
 *	- a modified (memory efficient) version of the Viral Shah's <a href="http://www.allthingshpc.org/Publications/psort/psort.html"> PSort </a>.
 *	- a modified version of the R-MAT generator from <a href="http://graph500.org"> Graph 500 reference implementation </a>
-* 
+*
 * Important Sequential classes:
 * - SpTuples		: uses triples format to store matrices, mostly used for input/output and intermediate tasks (such as sorting)
 * - SpDCCols		: implements Alg 1B and Alg 2 [2], holds DCSC.
 * - SpCCols (incomplete) : implements CSC
 
 * Important Parallel classes:
-* - SpParMat		: distributed memory MPI implementation 
+* - SpParMat		: distributed memory MPI implementation
 	\n Each processor locally stores its submatrix (block) as a sequential SpDCCols object
 	\n Uses a polyalgorithm for SpGEMM: For most systems this boils down to a BSP like Sparse SUMMA [3] algorithm.
 * - FullyDistVec	: dense vector distributed to all processors
 * - FullyDistSpVec:	: sparse vector distributed to all processors
 *
-* 
+*
 * <b> Applications </b>  implemented using Combinatorial BLAS:
 * - BetwCent.cpp : Betweenness centrality computation on directed, unweighted graphs. Download sample input <a href=" http://gauss.cs.ucsb.edu/~aydin/CombBLAS_FILES/scale17_bc_inp.tar.gz"> here </a>.
 * - MCL.cpp : An implementation of the MCL graph clustering algorithm.
 * - TopDownBFS.cpp: A conformant implementation of the <a href="http://graph500.org">Graph 500 benchmark</a> using the traditional top-down BFS.
 * - DirOptBFS.cpp: A conformant implementation of the <a href="http://graph500.org">Graph 500 benchmark</a> using the faster direction-optimizing BFS.
-* - FilteredMIS.cpp: Filtered maximal independent set calculation on ER graphs using Luby's algorithm. 
-* - FilteredBFS.cpp: Filtered breadth-first search on a twitter-like data set. 
+* - FilteredMIS.cpp: Filtered maximal independent set calculation on ER graphs using Luby's algorithm.
+* - FilteredBFS.cpp: Filtered breadth-first search on a twitter-like data set.
 * - MaximumMatching/BPMaximalMatching.cpp: Maximal matching algorithms on bipartite graphs [10]
 * - MaximumMatching/BPMaximumMatching.cpp: Maximum matching algorithm on bipartite graphs [11]
 *
@@ -137,9 +137,9 @@ recent sparse matrix indexing, assignment, and multiplication results can be fou
 * - TransposeTest.cpp : File I/O and parallel transpose tests
 * - MultTiming.cpp : Parallel SpGEMM tests
 * - IndexingTest.cpp: Various sparse matrix indexing usages
-* - SpAsgnTiming.cpp: Sparse matrix assignment usage and timing. 
+* - SpAsgnTiming.cpp: Sparse matrix assignment usage and timing.
 * - FindSparse.cpp : Parallel find/sparse routines akin to Matlab's.
-* - GalerkinNew.cpp : Graph contraction or restriction operator (used in Algebraic Multigrid). 
+* - GalerkinNew.cpp : Graph contraction or restriction operator (used in Algebraic Multigrid).
 *
 * <b> Citation: </b> Please cite the design paper [1] if you end up using the Combinatorial BLAS in your research.
 *

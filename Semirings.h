@@ -6,17 +6,17 @@
 /****************************************************************/
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -176,7 +176,7 @@ struct SelectMaxSRing
 	{
 		// we could have just returned arg2 but it would be
 		// fragile since it wouldn't work with y <- x*A
-		return (static_cast<T_promote>(arg1) * 
+		return (static_cast<T_promote>(arg1) *
 			static_cast<T_promote>(arg2) );
 	}
 	static void axpy(T1 a, const T2 & x, T_promote & y)
@@ -221,7 +221,7 @@ struct PlusTimesSRing
 	}
 	static T_promote multiply(const T1 & arg1, const T2 & arg2)
 	{
-		return (static_cast<T_promote>(arg1) * 
+		return (static_cast<T_promote>(arg1) *
 			static_cast<T_promote>(arg2) );
 	}
 	static void axpy(T1 a, const T2 & x, T_promote & y)
@@ -244,7 +244,7 @@ struct MinPlusSRing
 	}
 	static T_promote multiply(const T1 & arg1, const T2 & arg2)
 	{
-		return inf_plus< T_promote > 
+		return inf_plus< T_promote >
 		(static_cast<T_promote>(arg1), static_cast<T_promote>(arg2));
 	}
 	static void axpy(T1 a, const T2 & x, T_promote & y)

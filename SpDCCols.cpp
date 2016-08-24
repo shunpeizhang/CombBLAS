@@ -6,17 +6,17 @@
 /****************************************************************/
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -57,7 +57,7 @@ SpDCCols<IT,NT>::SpDCCols(IT size, IT nRow, IT nCol, IT nzc)
 	if(nnz > 0)
 		dcsc = new Dcsc<IT,NT>(nnz, nzc);
 	else
-		dcsc = NULL; 
+		dcsc = NULL;
 }
 
 template <class IT, class NT>
@@ -65,8 +65,8 @@ SpDCCols<IT,NT>::~SpDCCols()
 {
 	if(nnz > 0)
 	{
-		if(dcsc != NULL) 
-		{	
+		if(dcsc != NULL)
+		{
 			if(splits > 0)
 			{
 				for(int i=0; i<splits; ++i)
@@ -75,14 +75,14 @@ SpDCCols<IT,NT>::~SpDCCols()
 			}
 			else
 			{
-				delete dcsc;	
+				delete dcsc;
 			}
 		}
 	}
 }
 
 // Copy constructor (constructs a new object. i.e. this is NEVER called on an existing object)
-// Derived's copy constructor can safely call Base's default constructor as base has no data members 
+// Derived's copy constructor can safely call Base's default constructor as base has no data members
 template <class IT, class NT>
 SpDCCols<IT,NT>::SpDCCols(const SpDCCols<IT,NT> & rhs)
 : m(rhs.m), n(rhs.n), nnz(rhs.nnz), splits(rhs.splits)
@@ -98,22 +98,22 @@ SpDCCols<IT,NT>::SpDCCols(const SpDCCols<IT,NT> & rhs)
 	}
 }
 
-/** 
+/**
  * Constructor for converting SpTuples matrix -> SpDCCols (may use a private memory heap)
- * @param[in] 	rhs if transpose=true, 
- *	\n		then rhs is assumed to be a row sorted SpTuples object 
+ * @param[in] 	rhs if transpose=true,
+ *	\n		then rhs is assumed to be a row sorted SpTuples object
  *	\n		else rhs is assumed to be a column sorted SpTuples object
  **/
 template <class IT, class NT>
 SpDCCols<IT,NT>::SpDCCols(const SpTuples<IT, NT> & rhs, bool transpose)
 : m(rhs.m), n(rhs.n), nnz(rhs.nnz), splits(0)
-{	 
-	
+{
+
 	if(nnz == 0)	// m by n matrix of complete zeros
 	{
 		if(transpose) swap(m,n);
-		dcsc = NULL;	
-	} 
+		dcsc = NULL;
+	}
 	else
 	{
 		if(transpose)
@@ -127,8 +127,8 @@ SpDCCols<IT,NT>::SpDCCols(const SpTuples<IT, NT> & rhs, bool transpose)
 					++localnzc;
 	 			}
 	 		}
-			dcsc = new Dcsc<IT,NT>(rhs.nnz,localnzc);	
-			dcsc->jc[0]  = rhs.rowindex(0); 
+			dcsc = new Dcsc<IT,NT>(rhs.nnz,localnzc);
+			dcsc->jc[0]  = rhs.rowindex(0);
 			dcsc->cp[0] = 0;
 
 			for(IT i=0; i<rhs.nnz; ++i)
@@ -137,7 +137,7 @@ SpDCCols<IT,NT>::SpDCCols(const SpTuples<IT, NT> & rhs, bool transpose)
 				dcsc->numx[i] = rhs.numvalue(i);
 			}
 
-			IT jspos  = 1;		
+			IT jspos  = 1;
 			for(IT i=1; i<rhs.nnz; ++i)
 			{
 				if(rhs.rowindex(i) != dcsc->jc[jspos-1])
@@ -145,7 +145,7 @@ SpDCCols<IT,NT>::SpDCCols(const SpTuples<IT, NT> & rhs, bool transpose)
 					dcsc->jc[jspos] = rhs.rowindex(i);	// copy rhs.ir to jc since this transpose=true
 					dcsc->cp[jspos++] = i;
 				}
-			}		
+			}
 			dcsc->cp[jspos] = rhs.nnz;
 	 	}
 		else
@@ -158,8 +158,8 @@ SpDCCols<IT,NT>::SpDCCols(const SpTuples<IT, NT> & rhs, bool transpose)
 					++localnzc;
 				}
 			}
-			dcsc = new Dcsc<IT,NT>(rhs.nnz,localnzc);	
-			dcsc->jc[0]  = rhs.colindex(0); 
+			dcsc = new Dcsc<IT,NT>(rhs.nnz,localnzc);
+			dcsc->jc[0]  = rhs.colindex(0);
 			dcsc->cp[0] = 0;
 
 			for(IT i=0; i<rhs.nnz; ++i)
@@ -168,7 +168,7 @@ SpDCCols<IT,NT>::SpDCCols(const SpTuples<IT, NT> & rhs, bool transpose)
 				dcsc->numx[i] = rhs.numvalue(i);
 			}
 
-			IT jspos = 1;		
+			IT jspos = 1;
 			for(IT i=1; i<rhs.nnz; ++i)
 			{
 				if(rhs.colindex(i) != dcsc->jc[jspos-1])
@@ -176,10 +176,10 @@ SpDCCols<IT,NT>::SpDCCols(const SpTuples<IT, NT> & rhs, bool transpose)
 					dcsc->jc[jspos] = rhs.colindex(i);	// copy rhs.jc to jc since this transpose=true
 					dcsc->cp[jspos++] = i;
 				}
-			}		
+			}
 			dcsc->cp[jspos] = rhs.nnz;
 		}
-	} 
+	}
 }
 
 
@@ -197,7 +197,7 @@ template <class IT, class NT>
 SpDCCols<IT,NT>::SpDCCols(IT nRow, IT nCol, IT nTuples, const tuple<IT, IT, NT>*  tuples, bool transpose)
 : m(nRow), n(nCol), nnz(nTuples), splits(0)
 {
-    
+
     if(nnz == 0)	// m by n matrix of complete zeros
     {
         dcsc = NULL;
@@ -209,11 +209,11 @@ SpDCCols<IT,NT>::SpDCCols(IT nRow, IT nCol, IT nTuples, const tuple<IT, IT, NT>*
         {
             totThreads = omp_get_num_threads();
         }
-        
+
         vector <IT> tstart(totThreads);
         vector <IT> tend(totThreads);
         vector <IT> tdisp(totThreads+1);
-        
+
         // extra memory, but replaces an O(nnz) loop by an O(nzc) loop
         IT* temp_jc = new IT[nTuples];
         IT* temp_cp = new IT[nTuples];
@@ -239,13 +239,13 @@ SpDCCols<IT,NT>::SpDCCols(IT nRow, IT nCol, IT nTuples, const tuple<IT, IT, NT>*
                     }
                 }
             }
-           
+
             tstart[threadID] = start;
             if(end>start) tend[threadID] = curpos+1;
             else tend[threadID] = end; // start=end
         }
 
-        
+
         // serial part
         for(int t=totThreads-1; t>0; --t)
         {
@@ -257,7 +257,7 @@ SpDCCols<IT,NT>::SpDCCols(IT nRow, IT nCol, IT nTuples, const tuple<IT, IT, NT>*
                 }
             }
         }
-        
+
         tdisp[0] = 0;
         for(int t=0; t<totThreads; ++t)
         {
@@ -266,7 +266,7 @@ SpDCCols<IT,NT>::SpDCCols(IT nRow, IT nCol, IT nTuples, const tuple<IT, IT, NT>*
 
         IT localnzc = tdisp[totThreads];
         dcsc = new Dcsc<IT,NT>(nTuples,localnzc);
-    
+
 #pragma omp parallel
         {
             int threadID = omp_get_thread_num();
@@ -277,7 +277,7 @@ SpDCCols<IT,NT>::SpDCCols(IT nRow, IT nCol, IT nTuples, const tuple<IT, IT, NT>*
 
         delete [] temp_jc;
         delete [] temp_cp;
-        
+
 #pragma omp parallel for schedule (static)
         for(IT i=0; i<nTuples; ++i)
         {
@@ -285,7 +285,7 @@ SpDCCols<IT,NT>::SpDCCols(IT nRow, IT nCol, IT nTuples, const tuple<IT, IT, NT>*
             dcsc->numx[i] = std::get<2>(tuples[i]);
         }
      }
-    
+
     if(transpose) Transpose(); // this is not efficient, think to improve later. We included this parameter anyway to make this constructor different from another constracttor when the fourth argument is passed as 0.
 }
 
@@ -296,7 +296,7 @@ template <class IT, class NT>
 SpDCCols<IT,NT>::SpDCCols(IT nRow, IT nCol, IT nTuples, const tuple<IT, IT, NT>*  tuples)
 : m(nRow), n(nCol), nnz(nTuples), splits(0)
 {
-    
+
     if(nnz == 0)	// m by n matrix of complete zeros
     {
         dcsc = NULL;
@@ -312,18 +312,18 @@ SpDCCols<IT,NT>::SpDCCols(IT nRow, IT nCol, IT nTuples, const tuple<IT, IT, NT>*
                 ++localnzc;
             }
         }
-        
+
         dcsc = new Dcsc<IT,NT>(nTuples,localnzc);
         dcsc->jc[0]  = std::get<1>(tuples[0]);
         dcsc->cp[0] = 0;
-        
+
 #pragma omp parallel for schedule (static)
         for(IT i=0; i<nTuples; ++i)
         {
             dcsc->ir[i]  = std::get<0>(tuples[i]);
             dcsc->numx[i] = std::get<2>(tuples[i]);
         }
-        
+
         IT jspos = 1;
         for(IT i=1; i<nTuples; ++i) // now this loop
         {
@@ -352,13 +352,13 @@ SpDCCols<IT,NT> & SpDCCols<IT,NT>::operator=(const SpDCCols<IT,NT> & rhs)
 {
 	// this pointer stores the address of the class instance
 	// check for self assignment using address comparison
-	if(this != &rhs)		
+	if(this != &rhs)
 	{
 		if(dcsc != NULL && nnz > 0)
 		{
 			delete dcsc;
 		}
-		if(rhs.dcsc != NULL)	
+		if(rhs.dcsc != NULL)
 		{
 			dcsc = new Dcsc<IT,NT>(*(rhs.dcsc));
 			nnz = rhs.nnz;
@@ -368,8 +368,8 @@ SpDCCols<IT,NT> & SpDCCols<IT,NT>::operator=(const SpDCCols<IT,NT> & rhs)
 			dcsc = NULL;
 			nnz = 0;
 		}
-		
-		m = rhs.m; 
+
+		m = rhs.m;
 		n = rhs.n;
 		splits = rhs.splits;
 	}
@@ -381,7 +381,7 @@ SpDCCols<IT,NT> & SpDCCols<IT,NT>::operator+= (const SpDCCols<IT,NT> & rhs)
 {
 	// this pointer stores the address of the class instance
 	// check for self assignment using address comparison
-	if(this != &rhs)		
+	if(this != &rhs)
 	{
 		if(m == rhs.m && n == rhs.n)
 		{
@@ -398,16 +398,16 @@ SpDCCols<IT,NT> & SpDCCols<IT,NT>::operator+= (const SpDCCols<IT,NT> & rhs)
 			{
 				(*dcsc) += (*(rhs.dcsc));
 				nnz = dcsc->nz;
-			}		
+			}
 		}
 		else
 		{
-			cout<< "Not addable: " << m  << "!=" << rhs.m << " or " << n << "!=" << rhs.n <<endl;		
+			cout<< "Not addable: " << m  << "!=" << rhs.m << " or " << n << "!=" << rhs.n <<endl;
 		}
 	}
 	else
 	{
-		cout<< "Missing feature (A+A): Use multiply with 2 instead !"<<endl;	
+		cout<< "Missing feature (A+A): Use multiply with 2 instead !"<<endl;
 	}
 	return *this;
 }
@@ -422,9 +422,9 @@ SpDCCols<IT,NT>* SpDCCols<IT,NT>::PruneI(_UnaryOperation __unary_op, bool inPlac
 		if (inPlace)
 		{
 			nnz = dcsc->nz;
-	
-			if(nnz == 0) 
-			{	
+
+			if(nnz == 0)
+			{
 				delete dcsc;
 				dcsc = NULL;
 			}
@@ -469,9 +469,9 @@ SpDCCols<IT,NT>* SpDCCols<IT,NT>::Prune(_UnaryOperation __unary_op, bool inPlace
 		if (inPlace)
 		{
 			nnz = dcsc->nz;
-	
-			if(nnz == 0) 
-			{	
+
+			if(nnz == 0)
+			{
 				delete dcsc;
 				dcsc = NULL;
 			}
@@ -509,7 +509,7 @@ SpDCCols<IT,NT>* SpDCCols<IT,NT>::Prune(_UnaryOperation __unary_op, bool inPlace
 template <class IT, class NT>
 void SpDCCols<IT,NT>::EWiseMult (const SpDCCols<IT,NT> & rhs, bool exclude)
 {
-	if(this != &rhs)		
+	if(this != &rhs)
 	{
 		if(m == rhs.m && n == rhs.n)
 		{
@@ -530,16 +530,16 @@ void SpDCCols<IT,NT>::EWiseMult (const SpDCCols<IT,NT> & rhs, bool exclude)
 				nnz = dcsc->nz;
 				if(nnz == 0 )
 					dcsc = NULL;
-			}		
+			}
 		}
 		else
 		{
-			cout<< "Matrices do not conform for A .* op(B) !"<<endl;		
+			cout<< "Matrices do not conform for A .* op(B) !"<<endl;
 		}
 	}
 	else
 	{
-		cout<< "Missing feature (A .* A): Use Square_EWise() instead !"<<endl;	
+		cout<< "Missing feature (A .* A): Use Square_EWise() instead !"<<endl;
 	}
 }
 
@@ -556,9 +556,9 @@ void SpDCCols<IT,NT>::EWiseScale(NT ** scaler, IT m_scaler, IT n_scaler)
 	}
 	else
 	{
-		cout<< "Matrices do not conform for EWiseScale !"<<endl;		
+		cout<< "Matrices do not conform for EWiseScale !"<<endl;
 	}
-}	
+}
 
 
 /****************************************************************************/
@@ -571,11 +571,11 @@ void SpDCCols<IT,NT>::CreateImpl(IT * _cp, IT * _jc, IT * _ir, NT * _numx, IT _n
     m = _m;
     n = _n;
     nnz =  _nz;
-    
+
     if(nnz > 0)
         dcsc = new Dcsc<IT,NT>(_cp, _jc, _ir, _numx, _nz, _nzc, false);	// memory not owned by DCSC
     else
-        dcsc = NULL; 
+        dcsc = NULL;
 }
 
 template <class IT, class NT>
@@ -589,17 +589,17 @@ void SpDCCols<IT,NT>::CreateImpl(const vector<IT> & essentials)
 	if(nnz > 0)
 		dcsc = new Dcsc<IT,NT>(nnz,essentials[3]);
 	else
-		dcsc = NULL; 
+		dcsc = NULL;
 }
 
 template <class IT, class NT>
 void SpDCCols<IT,NT>::CreateImpl(IT size, IT nRow, IT nCol, tuple<IT, IT, NT> * mytuples)
 {
-	SpTuples<IT,NT> tuples(size, nRow, nCol, mytuples);        
+	SpTuples<IT,NT> tuples(size, nRow, nCol, mytuples);
 	tuples.SortColBased();
-	
+
 #ifdef DEBUG
-	pair<IT,IT> rlim = tuples.RowLimits(); 
+	pair<IT,IT> rlim = tuples.RowLimits();
 	pair<IT,IT> clim = tuples.ColLimits();
 
 	ofstream oput;
@@ -612,10 +612,10 @@ void SpDCCols<IT,NT>::CreateImpl(IT size, IT nRow, IT nCol, tuple<IT, IT, NT> * 
 	string ofilename = "Read";
 	ofilename += rank;
 	oput.open(ofilename.c_str(), ios_base::app );
-	oput << "Creating of dimensions " << nRow << "-by-" << nCol << " of size: " << size << 
+	oput << "Creating of dimensions " << nRow << "-by-" << nCol << " of size: " << size <<
 			" with row range (" << rlim.first  << "," << rlim.second << ") and column range (" << clim.first  << "," << clim.second << ")" << endl;
 	if(tuples.getnnz() > 0)
-	{ 
+	{
 		IT minfr = joker::get<0>(tuples.front());
 		IT minto = joker::get<1>(tuples.front());
 		IT maxfr = joker::get<0>(tuples.back());
@@ -626,7 +626,7 @@ void SpDCCols<IT,NT>::CreateImpl(IT size, IT nRow, IT nCol, tuple<IT, IT, NT> * 
 	oput.close();
 #endif
 
-	SpDCCols<IT,NT> object(tuples, false);	
+	SpDCCols<IT,NT> object(tuples, false);
 	*this = object;
 }
 
@@ -688,7 +688,7 @@ Arr<IT,NT> SpDCCols<IT,NT>::GetArrays() const
 		arr.indarrs[1] = LocArr<IT,IT>(NULL, 0);
 		arr.indarrs[2] = LocArr<IT,IT>(NULL, 0);
 		arr.numarrs[0] = LocArr<NT,IT>(NULL, 0);
-	
+
 	}
 	return arr;
 }
@@ -740,18 +740,18 @@ SpDCCols<IT,NT> * SpDCCols<IT,NT>::TransposeConstPtr() const
 {
 	SpTuples<IT,NT> Atuples(*this);
 	Atuples.SortRowBased();
-	
+
 	return new SpDCCols<IT,NT>(Atuples,true);
 }
 
-/** 
+/**
   * Splits the matrix into two parts, simply by cutting along the columns
   * Simple algorithm that doesn't intend to split perfectly, but it should do a pretty good job
   * Practically destructs the calling object also (frees most of its memory)
   * \todo {special case of ColSplit, to be deprecated...}
   */
 template <class IT, class NT>
-void SpDCCols<IT,NT>::Split(SpDCCols<IT,NT> & partA, SpDCCols<IT,NT> & partB) 
+void SpDCCols<IT,NT>::Split(SpDCCols<IT,NT> & partA, SpDCCols<IT,NT> & partB)
 {
 	IT cut = n/2;
 	if(cut == 0)
@@ -770,9 +770,9 @@ void SpDCCols<IT,NT>::Split(SpDCCols<IT,NT> & partA, SpDCCols<IT,NT> & partB)
 
 	partA = SpDCCols<IT,NT> (m, cut, Adcsc);
 	partB = SpDCCols<IT,NT> (m, n-cut, Bdcsc);
-	
+
 	// handle destruction through assignment operator
-	*this = SpDCCols<IT, NT>();		
+	*this = SpDCCols<IT, NT>();
 }
 
 /**
@@ -800,12 +800,12 @@ void SpDCCols<IT,NT>::ColSplit(int parts, vector< SpDCCols<IT,NT> > & matrices)
             return;
         }
         vector< Dcsc<IT,NT> * > dcscs(parts, NULL);
-        
+
         if(nnz != 0)
         {
             dcsc->ColSplit(dcscs, cuts);
         }
-        
+
         for(int i=0; i< (parts-1); ++i)
         {
             SpDCCols<IT,NT> matrix = SpDCCols<IT,NT>(m, (n/parts), dcscs[i]);
@@ -817,12 +817,12 @@ void SpDCCols<IT,NT>::ColSplit(int parts, vector< SpDCCols<IT,NT> > & matrices)
     *this = SpDCCols<IT, NT>();		    // handle destruction through assignment operator
 }
 
-/** 
+/**
   * Merges two matrices (cut along the columns) into 1 piece
   * Split method should have been executed on the object beforehand
  **/
 template <class IT, class NT>
-void SpDCCols<IT,NT>::Merge(SpDCCols<IT,NT> & partA, SpDCCols<IT,NT> & partB) 
+void SpDCCols<IT,NT>::Merge(SpDCCols<IT,NT> & partA, SpDCCols<IT,NT> & partB)
 {
 	assert( partA.m == partB.m );
 
@@ -847,13 +847,13 @@ void SpDCCols<IT,NT>::Merge(SpDCCols<IT,NT> & partA, SpDCCols<IT,NT> & partB)
 	}
 	*this = SpDCCols<IT,NT> (partA.m, partA.n + partB.n, Cdcsc);
 
-	partA = SpDCCols<IT, NT>();	
+	partA = SpDCCols<IT, NT>();
 	partB = SpDCCols<IT, NT>();
 }
 
 /**
  * C += A*B' (Using OuterProduct Algorithm)
- * This version is currently limited to multiplication of matrices with the same precision 
+ * This version is currently limited to multiplication of matrices with the same precision
  * (e.g. it can't multiply double-precision matrices with booleans)
  * The multiplication is on the specified semiring (passed as parameter)
  */
@@ -867,19 +867,19 @@ int SpDCCols<IT,NT>::PlusEq_AnXBt(const SpDCCols<IT,NT> & A, const SpDCCols<IT,N
 	}
 	Isect<IT> *isect1, *isect2, *itr1, *itr2, *cols, *rows;
 	SpHelper::SpIntersect(*(A.dcsc), *(B.dcsc), cols, rows, isect1, isect2, itr1, itr2);
-	
+
 	IT kisect = static_cast<IT>(itr1-isect1);		// size of the intersection ((itr1-isect1) == (itr2-isect2))
 	if(kisect == 0)
 	{
 		DeleteAll(isect1, isect2, cols, rows);
 		return -1;
 	}
-	
+
 	StackEntry< NT, pair<IT,IT> > * multstack;
-	IT cnz = SpHelper::SpCartesian< SR > (*(A.dcsc), *(B.dcsc), kisect, isect1, isect2, multstack);  
+	IT cnz = SpHelper::SpCartesian< SR > (*(A.dcsc), *(B.dcsc), kisect, isect1, isect2, multstack);
 	DeleteAll(isect1, isect2, cols, rows);
 
-	IT mdim = A.m;	
+	IT mdim = A.m;
 	IT ndim = B.m;		// since B has already been transposed
 	if(isZero())
 	{
@@ -892,12 +892,12 @@ int SpDCCols<IT,NT>::PlusEq_AnXBt(const SpDCCols<IT,NT> & A, const SpDCCols<IT,N
 	nnz = dcsc->nz;
 
 	delete [] multstack;
-	return 1;	
+	return 1;
 }
 
 /**
  * C += A*B (Using ColByCol Algorithm)
- * This version is currently limited to multiplication of matrices with the same precision 
+ * This version is currently limited to multiplication of matrices with the same precision
  * (e.g. it can't multiply double-precision matrices with booleans)
  * The multiplication is on the specified semiring (passed as parameter)
  */
@@ -910,9 +910,9 @@ int SpDCCols<IT,NT>::PlusEq_AnXBn(const SpDCCols<IT,NT> & A, const SpDCCols<IT,N
 		return -1;	// no need to do anything
 	}
 	StackEntry< NT, pair<IT,IT> > * multstack;
-	int cnz = SpHelper::SpColByCol< SR > (*(A.dcsc), *(B.dcsc), A.n, multstack);  
-	
-	IT mdim = A.m;	
+	int cnz = SpHelper::SpColByCol< SR > (*(A.dcsc), *(B.dcsc), A.n, multstack);
+
+	IT mdim = A.m;
 	IT ndim = B.n;
 	if(isZero())
 	{
@@ -923,9 +923,9 @@ int SpDCCols<IT,NT>::PlusEq_AnXBn(const SpDCCols<IT,NT> & A, const SpDCCols<IT,N
 		dcsc->AddAndAssign(multstack, mdim, ndim, cnz);
 	}
 	nnz = dcsc->nz;
-	
+
 	delete [] multstack;
-	return 1;	
+	return 1;
 }
 
 
@@ -956,11 +956,11 @@ SpDCCols<IT,NT> SpDCCols<IT,NT>::operator() (IT ri, IT ci) const
 		IT irend = dcsc->cp[itr - dcsc->jc + 1];
 
 		IT * ele = find(dcsc->ir + irbeg, dcsc->ir + irend, ri);
-		if(ele != dcsc->ir + irend)	
-		{	
-			SpDCCols<IT,NT> SingEleMat(1, 1, 1, 1);	// 1-by-1 matrix with 1 nonzero 
+		if(ele != dcsc->ir + irend)
+		{
+			SpDCCols<IT,NT> SingEleMat(1, 1, 1, 1);	// 1-by-1 matrix with 1 nonzero
 			*(SingEleMat.dcsc->numx) = dcsc->numx[ele - dcsc->ir];
-			*(SingEleMat.dcsc->ir) = *ele; 
+			*(SingEleMat.dcsc->ir) = *ele;
 			*(SingEleMat.dcsc->jc) = *itr;
 			(SingEleMat.dcsc->cp)[0] = 0;
 			(SingEleMat.dcsc->cp)[1] = 1;
@@ -972,18 +972,18 @@ SpDCCols<IT,NT> SpDCCols<IT,NT>::operator() (IT ri, IT ci) const
 	}
 	else
 	{
-		return SpDCCols<IT,NT>();	 // 0-by-0 empty matrix		
+		return SpDCCols<IT,NT>();	 // 0-by-0 empty matrix
 	}
 }
 
-/** 
- * The almighty indexing polyalgorithm 
+/**
+ * The almighty indexing polyalgorithm
  * Calls different subroutines depending the sparseness of ri/ci
  */
 template <class IT, class NT>
 SpDCCols<IT,NT> SpDCCols<IT,NT>::operator() (const vector<IT> & ri, const vector<IT> & ci) const
 {
-	typedef PlusTimesSRing<NT,NT> PT;	
+	typedef PlusTimesSRing<NT,NT> PT;
 
 	IT rsize = ri.size();
 	IT csize = ci.size();
@@ -992,7 +992,7 @@ SpDCCols<IT,NT> SpDCCols<IT,NT>::operator() (const vector<IT> & ri, const vector
 	{
 		// return an m x n matrix of complete zeros
 		// since we don't know whether columns or rows are indexed
-		return SpDCCols<IT,NT> (0, m, n, 0);		
+		return SpDCCols<IT,NT> (0, m, n, 0);
 	}
 	else if(rsize == 0)
 	{
@@ -1012,14 +1012,14 @@ SpDCCols<IT,NT> SpDCCols<IT,NT>::operator() (const vector<IT> & ri, const vector
 }
 
 template <class IT, class NT>
-ofstream & SpDCCols<IT,NT>::put(ofstream & outfile) const 
+ofstream & SpDCCols<IT,NT>::put(ofstream & outfile) const
 {
 	if(nnz == 0)
 	{
 		outfile << "Matrix doesn't have any nonzeros" <<endl;
 		return outfile;
 	}
-	SpTuples<IT,NT> tuples(*this); 
+	SpTuples<IT,NT> tuples(*this);
 	outfile << tuples << endl;
 	return outfile;
 }
@@ -1031,10 +1031,10 @@ ifstream & SpDCCols<IT,NT>::get(ifstream & infile)
 	cout << "Getting... SpDCCols" << endl;
 	IT m, n, nnz;
 	infile >> m >> n >> nnz;
-	SpTuples<IT,NT> tuples(nnz, m, n);        
+	SpTuples<IT,NT> tuples(nnz, m, n);
 	infile >> tuples;
 	tuples.SortColBased();
-        
+
 	SpDCCols<IT,NT> object(tuples, false);
 	*this = object;
 	return infile;
@@ -1104,7 +1104,7 @@ void SpDCCols<IT,NT>::PrintInfo() const
 						A[rowid][colid] = dcsc->numx[j];
 					}
 				}
-			} 
+			}
 			for(IT i=0; i< m; ++i)
 			{
 				for(IT j=0; j<n; ++j)
@@ -1129,7 +1129,7 @@ template <class IT, class NT>
 SpDCCols<IT,NT>::SpDCCols(IT nRow, IT nCol, Dcsc<IT,NT> * mydcsc)
 :dcsc(mydcsc), m(nRow), n(nCol), splits(0)
 {
-	if (mydcsc == NULL) 
+	if (mydcsc == NULL)
 		nnz = 0;
 	else
 		nnz = mydcsc->nz;
@@ -1143,7 +1143,7 @@ SpDCCols<IT,NT>::SpDCCols (IT size, IT nRow, IT nCol, const vector<IT> & indices
 	if(size > 0)
 		dcsc = new Dcsc<IT,NT>(size,indices,isRow);
 	else
-		dcsc = NULL; 
+		dcsc = NULL;
 }
 
 
@@ -1154,17 +1154,17 @@ SpDCCols<IT,NT>::SpDCCols (IT size, IT nRow, IT nCol, const vector<IT> & indices
 template <class IT, class NT>
 inline void SpDCCols<IT,NT>::CopyDcsc(Dcsc<IT,NT> * source)
 {
-	// source dcsc will be NULL if number of nonzeros is zero 
-	if(source != NULL)	
+	// source dcsc will be NULL if number of nonzeros is zero
+	if(source != NULL)
 		dcsc = new Dcsc<IT,NT>(*source);
 	else
 		dcsc = NULL;
 }
 
 /**
- * \return An indexed SpDCCols object without using multiplication 
+ * \return An indexed SpDCCols object without using multiplication
  * \pre ci is sorted and is not completely empty.
- * \remarks it is OK for some indices ci[i] to be empty in the indexed SpDCCols matrix 
+ * \remarks it is OK for some indices ci[i] to be empty in the indexed SpDCCols matrix
  *	[i.e. in the output, nzc does not need to be equal to n]
  */
 template <class IT, class NT>
@@ -1173,7 +1173,7 @@ SpDCCols<IT,NT> SpDCCols<IT,NT>::ColIndex(const vector<IT> & ci) const
 	IT csize = ci.size();
 	if(nnz == 0)	// nothing to index
 	{
-		return SpDCCols<IT,NT>(0, m, csize, 0);	
+		return SpDCCols<IT,NT>(0, m, csize, 0);
 	}
 	else if(ci.empty())
 	{
@@ -1201,8 +1201,8 @@ SpDCCols<IT,NT> SpDCCols<IT,NT>::ColIndex(const vector<IT> & ci) const
 			++j;
 		}
 	}
-	
-	SpDCCols<IT,NT> SubA(estsize, m, csize, estnzc);	
+
+	SpDCCols<IT,NT> SubA(estsize, m, csize, estnzc);
 	if(estnzc == 0)
 	{
 		return SubA;		// no need to run the second pass
@@ -1239,25 +1239,25 @@ template <class IT, class NT>
 template <typename SR, typename NTR>
 SpDCCols< IT, typename promote_trait<NT,NTR>::T_promote > SpDCCols<IT,NT>::OrdOutProdMult(const SpDCCols<IT,NTR> & rhs) const
 {
-	typedef typename promote_trait<NT,NTR>::T_promote T_promote;  
+	typedef typename promote_trait<NT,NTR>::T_promote T_promote;
 
 	if(isZero() || rhs.isZero())
 	{
-		return SpDCCols< IT, T_promote > (0, m, rhs.n, 0);		// return an empty matrix	
+		return SpDCCols< IT, T_promote > (0, m, rhs.n, 0);		// return an empty matrix
 	}
 	SpDCCols<IT,NTR> Btrans = rhs.TransposeConst();
 
 	Isect<IT> *isect1, *isect2, *itr1, *itr2, *cols, *rows;
 	SpHelper::SpIntersect(*dcsc, *(Btrans.dcsc), cols, rows, isect1, isect2, itr1, itr2);
-	
+
 	IT kisect = static_cast<IT>(itr1-isect1);		// size of the intersection ((itr1-isect1) == (itr2-isect2))
 	if(kisect == 0)
 	{
 		DeleteAll(isect1, isect2, cols, rows);
-		return SpDCCols< IT, T_promote > (0, m, rhs.n, 0);	
+		return SpDCCols< IT, T_promote > (0, m, rhs.n, 0);
 	}
 	StackEntry< T_promote, pair<IT,IT> > * multstack;
-	IT cnz = SpHelper::SpCartesian< SR > (*dcsc, *(Btrans.dcsc), kisect, isect1, isect2, multstack);  
+	IT cnz = SpHelper::SpCartesian< SR > (*dcsc, *(Btrans.dcsc), kisect, isect1, isect2, multstack);
 	DeleteAll(isect1, isect2, cols, rows);
 
 	Dcsc<IT, T_promote> * mydcsc = NULL;
@@ -1266,7 +1266,7 @@ SpDCCols< IT, typename promote_trait<NT,NTR>::T_promote > SpDCCols<IT,NT>::OrdOu
 		mydcsc = new Dcsc< IT,T_promote > (multstack, m, rhs.n, cnz);
 		delete [] multstack;
 	}
-	return SpDCCols< IT,T_promote > (m, rhs.n, mydcsc);	
+	return SpDCCols< IT,T_promote > (m, rhs.n, mydcsc);
 }
 
 
@@ -1274,21 +1274,21 @@ template <class IT, class NT>
 template <typename SR, typename NTR>
 SpDCCols< IT, typename promote_trait<NT,NTR>::T_promote > SpDCCols<IT,NT>::OrdColByCol(const SpDCCols<IT,NTR> & rhs) const
 {
-	typedef typename promote_trait<NT,NTR>::T_promote T_promote;  
+	typedef typename promote_trait<NT,NTR>::T_promote T_promote;
 
 	if(isZero() || rhs.isZero())
 	{
-		return SpDCCols<IT, T_promote> (0, m, rhs.n, 0);		// return an empty matrix	
+		return SpDCCols<IT, T_promote> (0, m, rhs.n, 0);		// return an empty matrix
 	}
 	StackEntry< T_promote, pair<IT,IT> > * multstack;
-	IT cnz = SpHelper::SpColByCol< SR > (*dcsc, *(rhs.dcsc), n, multstack);  
-	
+	IT cnz = SpHelper::SpColByCol< SR > (*dcsc, *(rhs.dcsc), n, multstack);
+
 	Dcsc<IT,T_promote > * mydcsc = NULL;
 	if(cnz > 0)
 	{
 		mydcsc = new Dcsc< IT,T_promote > (multstack, m, rhs.n, cnz);
 		delete [] multstack;
 	}
-	return SpDCCols< IT,T_promote > (m, rhs.n, mydcsc);	
+	return SpDCCols< IT,T_promote > (m, rhs.n, mydcsc);
 }
 

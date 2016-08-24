@@ -6,17 +6,17 @@
 /****************************************************************/
 /*
  Copyright (c) 2010-2015, The Regents of the University of California
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -67,7 +67,7 @@ Csc<IT,NT> & Csc<IT,NT>::operator= (const Csc<IT,NT> & rhs)
             delete [] ir;
         }
         delete [] jc;
-        
+
         nz	= rhs.nz;
         n	= rhs.n;
         if(nz > 0)	// if the copied object is not empty
@@ -110,12 +110,12 @@ void Csc<IT,NT>::Resize(IT nsize)
         nz = 0;
         return;
     }
-    
+
     NT * tmpnumx = numx;
     IT * tmpir = ir;
     numx	= new NT[nsize];
     ir	= new IT[nsize];
-    
+
     if(nsize > nz)	// Grow it
     {
         std::copy(tmpir, tmpir + nz, ir);   //copy all old elements

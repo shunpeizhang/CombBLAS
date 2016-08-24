@@ -6,17 +6,17 @@
 /****************************************************************/
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -49,7 +49,7 @@ DenseParVec< IT,NT > DenseParMat<IT,NT>::Reduce(Dim dim, _BinaryOperation __bina
 				sendbuf[j] = identity;
 				for(int i=0; i < m; ++i)
 				{
-					sendbuf[j] = __binary_op(array[i][j], sendbuf[j]); 
+					sendbuf[j] = __binary_op(array[i][j], sendbuf[j]);
 				}
 			}
 			NT * recvbuf = NULL;
@@ -57,7 +57,7 @@ DenseParVec< IT,NT > DenseParMat<IT,NT>::Reduce(Dim dim, _BinaryOperation __bina
 			if(parvec.diagonal)
 			{
 				parvec.arr.resize(n);
-				recvbuf = &parvec.arr[0];	
+				recvbuf = &parvec.arr[0];
 			}
 			MPI_Reduce(sendbuf, recvbuf, n, MPIType<NT>(), MPIOp<_BinaryOperation, NT>::op(), root,commGrid->GetColWorld());
 			delete sendbuf;
@@ -75,7 +75,7 @@ DenseParVec< IT,NT > DenseParMat<IT,NT>::Reduce(Dim dim, _BinaryOperation __bina
 			if(parvec.diagonal)
 			{
 				parvec.arr.resize(m);
-				recvbuf = &parvec.arr[0];	
+				recvbuf = &parvec.arr[0];
 			}
 			MPI_Reduce(sendbuf, recvbuf, m, MPIType<NT>(), MPIOp<_BinaryOperation, NT>::op(), root,commGrid->GetRowWorld());
 			delete [] sendbuf;
@@ -94,36 +94,36 @@ template <class IT, class NT>
 template <typename DER>
 DenseParMat< IT,NT > & DenseParMat<IT,NT>::operator+=(const SpParMat< IT,NT,DER > & rhs)		// add a sparse matrix
 {
-	if(*commGrid == *rhs.commGrid)	
+	if(*commGrid == *rhs.commGrid)
 	{
 		(rhs.spSeq)->UpdateDense(array, plus<double>());
 	}
 	else
 	{
-		cout << "Grids are not comparable elementwise addition" << endl; 
+		cout << "Grids are not comparable elementwise addition" << endl;
 		MPI_Abort(MPI_COMM_WORLD,GRIDMISMATCH);
 	}
-	return *this;	
+	return *this;
 }
 
 
 template <class IT, class NT>
 DenseParMat< IT,NT > &  DenseParMat<IT,NT>::operator=(const DenseParMat< IT,NT > & rhs)		// assignment operator
 {
-	if(this != &rhs)		
+	if(this != &rhs)
 	{
-		if(array != NULL) 
+		if(array != NULL)
 			SpHelper::deallocate2D(array, m);
 
 		m = rhs.m;
 		n = rhs.n;
-		if(rhs.array != NULL)	
+		if(rhs.array != NULL)
 		{
 			array = SpHelper::allocate2D<NT>(m, n);
 			for(int i=0; i< m; ++i)
 				copy(array[i], array[i]+n, rhs.array[i]);
 		}
-		commGrid.reset(new CommGrid(*(rhs.commGrid)));		
+		commGrid.reset(new CommGrid(*(rhs.commGrid)));
 	}
 	return *this;
 }

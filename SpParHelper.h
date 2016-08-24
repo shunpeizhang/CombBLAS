@@ -6,17 +6,17 @@
 /****************************************************************/
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -53,7 +53,7 @@ public:
 	static void BipartiteSwap(pair<KEY,VAL> * low, pair<KEY,VAL> * array, IT length, int nfirsthalf, int color, const MPI_Comm & comm);
 
 	// Necessary because psort creates three 2D vectors of size p-by-p
-	// One of those vector with 8 byte data uses 8*(4096)^2 = 128 MB space 
+	// One of those vector with 8 byte data uses 8*(4096)^2 = 128 MB space
 	// Per processor extra storage becomes:
 	//	24 MB with 1K processors
 	//	96 MB with 2K processors
@@ -61,14 +61,14 @@ public:
 	// 	1.5 GB with 8K processors
 	template<typename KEY, typename VAL, typename IT>
 	static void MemoryEfficientPSort(pair<KEY,VAL> * array, IT length, IT * dist, const MPI_Comm & comm);
-	
+
 	template<typename KEY, typename VAL, typename IT>
 	static void DebugPrintKeys(pair<KEY,VAL> * array, IT length, IT * dist, MPI_Comm & World);
 
 	template<typename IT, typename NT, typename DER>
 	static void FetchMatrix(SpMat<IT,NT,DER> & MRecv, const vector<IT> & essentials, vector<MPI_Win> & arrwin, int ownind);
 
-	template<typename IT, typename NT, typename DER>	
+	template<typename IT, typename NT, typename DER>
 	static void BCastMatrix(MPI_Comm & comm1d, SpMat<IT,NT,DER> & Matrix, const vector<IT> & essentials, int root);
 
 	template<typename IT, typename NT, typename DER>
@@ -94,7 +94,7 @@ public:
     static void PrintFile(const string & s, const string & filename, MPI_Comm & world);
     static void check_newline(int *bytes_read, int bytes_requested, char *buf);
     static bool FetchBatch(MPI_File & infile, MPI_Offset & curpos, MPI_Offset end_fpos, bool firstcall, vector<string> & lines, int myrank);
-    
+
 	static void WaitNFree(vector<MPI_Win> & arrwin);
 	static void FreeWindows(vector<MPI_Win> & arrwin);
 };

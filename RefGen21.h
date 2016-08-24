@@ -6,17 +6,17 @@
 /****************************************************************/
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -87,7 +87,7 @@ class RefGen21
 public:
 
 	/* Spread the two 64-bit numbers into five nonzero values in the correct range (2 parameter version) */
-	static void make_mrg_seed_short(uint64_t userseed, uint_fast32_t* seed) 
+	static void make_mrg_seed_short(uint64_t userseed, uint_fast32_t* seed)
 	{
   		seed[0] = (userseed & 0x3FFFFFFF) + 1;
   		seed[1] = ((userseed >> 30) & 0x3FFFFFFF) + 1;
@@ -96,16 +96,16 @@ public:
   		seed[4] = ((userseed >> 60) << 4) + (userseed >> 60) + 1;
 	}
 
-	static int generate_4way_bernoulli(mrg_state* st, int level, int nlevels) 
+	static int generate_4way_bernoulli(mrg_state* st, int level, int nlevels)
 	{
   		/* Generator a pseudorandom number in the range [0, INITIATOR_DENOMINATOR) without modulo bias. */
   		static const uint32_t limit = (UINT32_C(0xFFFFFFFF) % INITIATOR_DENOMINATOR);
   		uint32_t val = mrg_get_uint_orig(st);
   		if (/* Unlikely */ val < limit) {
-    			do 
+    			do
 			{
       				val = mrg_get_uint_orig(st);
-    			} 
+    			}
 			while (val < limit);
   		}
 		#if SPK_NOISE_LEVEL == 0
@@ -130,7 +130,7 @@ public:
 	/* Reverse bits in a number; this should be optimized for performance
  	* (including using bit- or byte-reverse intrinsics if your platform has them).
  	* */
-	static inline uint64_t bitreverse(uint64_t x) 
+	static inline uint64_t bitreverse(uint64_t x)
 	{
 		#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)
 		#define USE_GCC_BYTESWAP /* __builtin_bswap* are in 4.3 but not 4.2 */
@@ -179,7 +179,7 @@ public:
 
 	/* Apply a permutation to scramble vertex numbers; a randomly generated
  	* permutation is not used because applying it at scale is too expensive. */
-	static inline int64_t scramble(int64_t v0, int lgN, uint64_t val0, uint64_t val1) 
+	static inline int64_t scramble(int64_t v0, int lgN, uint64_t val0, uint64_t val1)
 	{
   		uint64_t v = (uint64_t)v0;
   		v += val0 + val1;
@@ -193,16 +193,16 @@ public:
 	}
 
 	/* Make a single graph edge using a pre-set MRG state. */
-	static void make_one_edge(int64_t nverts, int level, int lgN, mrg_state* st, packed_edge* result, uint64_t val0, uint64_t val1) 
+	static void make_one_edge(int64_t nverts, int level, int lgN, mrg_state* st, packed_edge* result, uint64_t val0, uint64_t val1)
 	{
   		int64_t base_src = 0, base_tgt = 0;
-  		while (nverts > 1) 
+  		while (nverts > 1)
 		{
     			int square = generate_4way_bernoulli(st, level, lgN);
     			int src_offset = square / 2;
     			int tgt_offset = square % 2;
     			assert (base_src <= base_tgt);
-    			if (base_src == base_tgt) 
+    			if (base_src == base_tgt)
 			{
       				/* Clip-and-flip for undirected graph */
       				if (src_offset > tgt_offset) {
@@ -238,10 +238,10 @@ public:
 
 	/* Generate a range of edges (from start_edge to end_edge of the total graph),
  	 * writing into elements [0, end_edge - start_edge) of the edges array.  This
- 	 * code is parallel on OpenMP, it must be used with separately-implemented SPMD parallelism for MPI. 
+ 	 * code is parallel on OpenMP, it must be used with separately-implemented SPMD parallelism for MPI.
 	 */
 	static void generate_kronecker_range(	const uint_fast32_t seed[5] /* All values in [0, 2^31 - 1), not all zero */,
-       					int logN /* In base 2 */, int64_t start_edge, int64_t end_edge, packed_edge* edges) 
+       					int logN /* In base 2 */, int64_t start_edge, int64_t end_edge, packed_edge* edges)
 	{
   		int64_t nverts = (int64_t)1 << logN;
   		uint64_t val0, val1; /* Values for scrambling */
@@ -250,14 +250,14 @@ public:
 		#ifdef _OPENMP
 		#pragma omp parallel for
 		#endif
-  		for (int64_t ei = start_edge; ei < end_edge; ++ei) 
+  		for (int64_t ei = start_edge; ei < end_edge; ++ei)
 		{
     			mrg_state new_state = state;
  		   	mrg_skip(&new_state, 0, ei, 0);
     			make_one_edge(nverts, 0, logN, &new_state, edges + (ei - start_edge), val0, val1);
   		}
 	}
-	static inline void compute_edge_range(int rank, int size, int64_t M, int64_t* start_idx, int64_t* end_idx) 
+	static inline void compute_edge_range(int rank, int size, int64_t M, int64_t* start_idx, int64_t* end_idx)
 	{
   		int64_t rankc = (int64_t)(rank);
   		int64_t sizec = (int64_t)(size);
@@ -294,7 +294,7 @@ public:
   		*result_ptr = local_edges;
   		*nedges_ptr = nedges;
 
-  		if (rank == 0) 
+  		if (rank == 0)
 		{
     			fprintf(stdout, "graph_generation:               %f s\n", gen_time);
   		}
@@ -303,7 +303,7 @@ public:
 	static inline long init_random ()
 	{
   		long seed = -1;
-  		if (getenv ("SEED")) 
+  		if (getenv ("SEED"))
 		{
     			errno = 0;
     			seed = strtol (getenv ("SEED"), NULL, 10);

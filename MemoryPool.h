@@ -6,17 +6,17 @@
 /****************************************************************/
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -43,7 +43,7 @@ class Memory
 	public:
 	Memory(char * m_beg, size_t m_size): begin(m_beg),size(m_size)
 	{};
-	
+
 	char * begaddr() { return begin; }
 	char * endaddr() { return begin + size; }
 
@@ -51,7 +51,7 @@ class Memory
 	{ return (begin < rhs.begin); }
 	bool operator == (const Memory & rhs) const
 	{ return (begin == rhs.begin); }
-	
+
 	char * begin;
 	size_t size;
 };
@@ -61,7 +61,7 @@ class Memory
   * \invariant Available memory addresses will be sorted w.r.t. their starting positions
   * \invariant At least one element exists in the freelist at any time.
   * \invariant Defragment on the fly: at any time, NO two consecutive chunks with chunk1.endaddr equals chunk2.begaddr exist
-  */ 
+  */
 class MemoryPool
 {
 public:
@@ -70,13 +70,13 @@ public:
 	void * alloc(size_t size);
 	void dealloc (void * base, size_t size);
 
-	friend ofstream& operator<< (ofstream& outfile, const MemoryPool & mpool);	
+	friend ofstream& operator<< (ofstream& outfile, const MemoryPool & mpool);
 
 private:
 	// std::list is a doubly linked list (i.e., a Sequence that supports both forward and backward traversal)
 	list<Memory> freelist;
 	char * initbeg;
-	char * initend; 
+	char * initend;
 };
 
 

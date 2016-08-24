@@ -6,17 +6,17 @@
 /****************************************************************/
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -37,10 +37,10 @@ class VectorLocalIterator
 {
 	public:
 	virtual ~VectorLocalIterator() {}
-	
+
 	virtual IT LocalToGlobal(IT loc_idx) const = 0;
 	virtual IT GlobalToLocal(IT gbl_idx) const = 0;
-	
+
 	virtual bool Next() = 0;
 	virtual bool NextTo(IT loc_idx) = 0;
 	virtual bool HasNext() = 0;
@@ -48,7 +48,7 @@ class VectorLocalIterator
 	virtual NT& GetValue() const = 0;
 
 	virtual void Del() = 0;
-	
+
 	virtual void Set(const IT loc_idx, const NT& val) = 0;
 };
 
@@ -58,23 +58,23 @@ class DenseVectorLocalIterator: public VectorLocalIterator<IT, NT>
 	protected:
 	FullyDistVec<IT, NT>& v;
 	IT iter_idx;
-	
+
 	public:
 	DenseVectorLocalIterator(FullyDistVec<IT, NT>& in_v): v(in_v), iter_idx(0) {}
-	
+
 	IT LocalToGlobal(IT loc_idx) const
 	{
 		return v.LengthUntil() + loc_idx;
 	}
-	
+
 	IT GlobalToLocal(IT gbl_idx) const
 	{
 		IT ret;
 		v.Owner(gbl_idx, ret);
 		return ret;
 	}
-	
-	
+
+
 	bool Next()
 	{
 		iter_idx++;
@@ -94,7 +94,7 @@ class DenseVectorLocalIterator: public VectorLocalIterator<IT, NT>
 	{
 		return iter_idx >= 0 && (unsigned)iter_idx < v.arr.size();
 	}
-	
+
 	IT GetLocIndex() const
 	{
 		if ((unsigned)iter_idx < v.arr.size())
@@ -102,7 +102,7 @@ class DenseVectorLocalIterator: public VectorLocalIterator<IT, NT>
 		else
 			return -1;
 	}
-	
+
 	NT& GetValue() const
 	{
 		return v.arr[iter_idx];
@@ -112,7 +112,7 @@ class DenseVectorLocalIterator: public VectorLocalIterator<IT, NT>
 	{
 		assert(false);
 	}
-	
+
 	void Set(const IT loc_idx, const NT& val)
 	{
 		v.arr[loc_idx] = val;
@@ -125,26 +125,26 @@ class SparseVectorLocalIterator: public VectorLocalIterator<IT, NT>
 	protected:
 	FullyDistSpVec<IT, NT>& v;
 	IT iter_idx;
-	
+
 	public:
 	SparseVectorLocalIterator(FullyDistSpVec<IT, NT>& in_v): v(in_v), iter_idx(0)
 	{
 		if (v.ind.size() == 0)
 			iter_idx = -1;
 	}
-	
+
 	IT LocalToGlobal(IT loc_idx) const
 	{
 		return v.LengthUntil() + loc_idx;
 	}
-	
+
 	IT GlobalToLocal(IT gbl_idx) const
 	{
 		IT ret;
 		v.Owner(gbl_idx, ret);
 		return ret;
 	}
-	
+
 	bool Next()
 	{
 		iter_idx++;
@@ -156,7 +156,7 @@ class SparseVectorLocalIterator: public VectorLocalIterator<IT, NT>
 
 	bool NextTo(IT loc_idx)
 	{
-		typename vector<IT>::iterator iter = lower_bound(v.ind.begin()+iter_idx, v.ind.end(), loc_idx);	
+		typename vector<IT>::iterator iter = lower_bound(v.ind.begin()+iter_idx, v.ind.end(), loc_idx);
 		if(iter == v.ind.end())	// beyond limits, insert from back
 		{
 			iter_idx = -1;
@@ -173,12 +173,12 @@ class SparseVectorLocalIterator: public VectorLocalIterator<IT, NT>
 			return true;
 		}
 	}
-	
+
 	bool HasNext()
 	{
 		return iter_idx >= 0 && (unsigned)iter_idx < v.ind.size();
 	}
-	
+
 	IT GetLocIndex() const
 	{
 		if (iter_idx < 0)
@@ -186,7 +186,7 @@ class SparseVectorLocalIterator: public VectorLocalIterator<IT, NT>
 		else
 			return v.ind[iter_idx];
 	}
-	
+
 	NT& GetValue() const
 	{
 		return v.num[iter_idx];
@@ -199,7 +199,7 @@ class SparseVectorLocalIterator: public VectorLocalIterator<IT, NT>
 		if ((unsigned)iter_idx >= v.ind.size())
 			iter_idx = -1;
 	}
-	
+
 	void Set(const IT loc_idx, const NT& val)
 	{
 		// see if we're just replacing the current value
@@ -208,10 +208,10 @@ class SparseVectorLocalIterator: public VectorLocalIterator<IT, NT>
 			v.num[iter_idx] = val;
 			return;
 		}*/
-		
+
 		// inserted elsewhere
 		// This is from FullyDistSpVec::SetElement():
-		typename vector<IT>::iterator iter = lower_bound(v.ind.begin(), v.ind.end(), loc_idx);	
+		typename vector<IT>::iterator iter = lower_bound(v.ind.begin(), v.ind.end(), loc_idx);
 		if(iter == v.ind.end())	// beyond limits, insert from back
 		{
 			v.ind.push_back(loc_idx);
@@ -229,7 +229,7 @@ class SparseVectorLocalIterator: public VectorLocalIterator<IT, NT>
 			*(v.num.begin() + (iter-v.ind.begin())) = val;
 		}
 	}
-	
+
 	void Append(const IT loc_idx, const NT& val)
 	{
 		v.ind.push_back(loc_idx);
