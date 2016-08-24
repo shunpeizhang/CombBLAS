@@ -287,6 +287,10 @@ public:
 	friend DenseParVec<IU,typename promote_trait<NUM,NUV>::T_promote>
 	SpMV (const SpParMat<IU,NUM,UDER> & A, const DenseParVec<IU,NUV> & x );
 
+  template <typename SR, typename IU, typename NUM, typename NUV, typename UDER>
+  friend SpParVec<IU,typename promote_trait<NUM,NUV>::T_promote>
+  SpMV (const SpParMat<IU,NUM,UDER> & A, const SpParVec<IU,NUV> & x );
+
 	template <typename SR, typename IU, typename NUM, typename NUV, typename UDER>
 	friend FullyDistSpVec<IU,typename promote_trait<NUM,NUV>::T_promote>
 	SpMV (const SpParMat<IU,NUM,UDER> & A, const FullyDistSpVec<IU,NUV> & x );
