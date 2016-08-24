@@ -1,0 +1,82 @@
+INCDIR = /opt/local/include
+INCADD = -I$(INCDIR) -I$(INCDIR)/mpich2
+
+OPT = -DNDEBUG -O3 -DMPICH_IGNORE_CXX_SEEK 
+DEB = -g -O0 -fno-inline -DMPICH_IGNORE_CXX_SEEK
+COMPILER = mpicxx  -std=c++11 -fopenmp
+FLAGS = $(DEB)
+
+CommGrid.o:	../CommGrid.cpp ../CommGrid.h
+	$(COMPILER) $(FLAGS) $(INCADD) -c -o CommGrid.o ../CommGrid.cpp
+
+mmio.o:	../mmio.c ../mmio.h
+	mpicc $(FLAGS) $(INCADD) -c -o mmio.o ../mmio.c
+
+MPIType.o:	../MPIType.cpp ../MPIType.h
+	$(COMPILER) $(FLAGS) $(INCADD) -c -o MPIType.o ../MPIType.cpp
+
+MemoryPool.o:	../MemoryPool.cpp ../SpDefs.h
+	$(COMPILER) $(FLAGS) $(INCADD) -c -o MemoryPool.o ../MemoryPool.cpp
+
+TransposeTest.o: TransposeTest.cpp ../SpDCCols.cpp ../dcsc.cpp ../SpHelper.h ../SpParHelper.h ../SpParMat.cpp ../Friends.h ../ParFriends.h 
+	$(COMPILER) $(INCADD) $(FLAGS) -c -o TransposeTest.o TransposeTest.cpp
+
+IteratorTest.o: IteratorTest.cpp ../SpDCCols.cpp ../dcsc.cpp ../SpHelper.h ../SpParHelper.h ../SpParMat.cpp ../Friends.h ../ParFriends.h 
+	$(COMPILER) $(INCADD) $(FLAGS) -c -o IteratorTest.o IteratorTest.cpp
+
+MultTest.o: MultTest.cpp ../SpDCCols.cpp ../dcsc.cpp ../SpHelper.h ../SpParHelper.h ../SpParMat.cpp ../Friends.h ../ParFriends.h 
+	$(COMPILER) $(INCADD) $(FLAGS) -c -o MultTest.o MultTest.cpp
+
+MultTiming.o: MultTiming.cpp ../SpDCCols.cpp ../dcsc.cpp ../SpHelper.h ../SpParHelper.h ../SpParMat.cpp ../Friends.h ../ParFriends.h 
+	$(COMPILER) $(INCADD) $(FLAGS) -c -o MultTiming.o MultTiming.cpp
+
+ReduceTest.o: ReduceTest.cpp ../SpDCCols.cpp ../dcsc.cpp ../SpHelper.h ../SpParHelper.h ../SpParMat.cpp ../Friends.h ../ParFriends.h 
+	$(COMPILER) $(INCADD) $(FLAGS) -c -o ReduceTest.o ReduceTest.cpp
+
+VectorIndexing.o: VectorIndexing.cpp ../FullyDistSpVec.cpp ../FullyDistVec.cpp ../FullyDistSpVec.h ../FullyDistVec.h 
+	$(COMPILER) $(INCADD) $(FLAGS) -c -o VectorIndexing.o VectorIndexing.cpp
+
+VectorIOPermute.o: VectorIOPermute.cpp ../FullyDistSpVec.cpp ../FullyDistVec.cpp ../FullyDistSpVec.h ../FullyDistVec.h 
+	$(COMPILER) $(INCADD) $(FLAGS) -c -o VectorIOPermute.o VectorIOPermute.cpp
+
+ParIOTest.o: ParIOTest.cpp ../SpDCCols.cpp ../dcsc.cpp ../SpHelper.h ../SpParHelper.h ../SpParMat.cpp ../Friends.h ../ParFriends.h  ../SpParHelper.cpp
+	$(COMPILER) $(INCADD) $(FLAGS) -c -o ParIOTest.o ParIOTest.cpp
+
+TransposeTest: MemoryPool.o CommGrid.o MPIType.o TransposeTest.o mmio.o
+	$(COMPILER) $(FLAGS) $(INCADD) -o TransposeTest TransposeTest.o MemoryPool.o CommGrid.o MPIType.o mmio.o
+
+MultTest: MemoryPool.o CommGrid.o MPIType.o MultTest.o mmio.o
+	$(COMPILER) $(FLAGS) $(INCADD) -o MultTest MultTest.o MemoryPool.o CommGrid.o MPIType.o mmio.o
+
+MultTime: MemoryPool.o CommGrid.o MPIType.o MultTiming.o mmio.o
+	$(COMPILER) $(FLAGS) $(INCADD) -o MultTime MultTiming.o MemoryPool.o CommGrid.o MPIType.o mmio.o
+
+IteratorTest: MemoryPool.o CommGrid.o MPIType.o IteratorTest.o mmio.o
+	$(COMPILER) $(FLAGS) $(INCADD) -o IteratorTest IteratorTest.o MemoryPool.o CommGrid.o MPIType.o mmio.o
+
+ReduceTest: MemoryPool.o CommGrid.o MPIType.o ReduceTest.o mmio.o
+	$(COMPILER) $(FLAGS) $(INCADD) -o ReduceTest ReduceTest.o MemoryPool.o CommGrid.o MPIType.o mmio.o
+
+VectorInd: MemoryPool.o CommGrid.o MPIType.o VectorIndexing.o mmio.o
+	$(COMPILER) $(FLAGS) $(INCADD) -o VectorInd VectorIndexing.o MemoryPool.o CommGrid.o MPIType.o mmio.o
+
+VectorIOPerm: MemoryPool.o CommGrid.o MPIType.o VectorIOPermute.o mmio.o
+	$(COMPILER) $(FLAGS) $(INCADD) -o VectorIOPerm VectorIOPermute.o MemoryPool.o CommGrid.o MPIType.o mmio.o
+
+ParIOMM: MemoryPool.o CommGrid.o MPIType.o ParIOTest.o mmio.o
+	$(COMPILER) $(FLAGS) $(INCADD) -o ParIOMM ParIOTest.o MemoryPool.o CommGrid.o MPIType.o mmio.o
+
+clean: 
+	rm -f TransposeTest
+	rm -f MultTest
+	rm -f ReduceTest
+	rm -f VectorInd
+	rm -f VectorIOPerm
+	rm -f IteratorTest
+	rm -f ParIOMM
+	rm -f MultTime
+	rm -f *.o
+
+cleanout:
+	rm out.*
+	rm err.*
