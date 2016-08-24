@@ -719,7 +719,7 @@ template <typename IU>
 void RandPerm(SpParVec<IU,IU> & V)
 {
 	SpParHelper::Print("COMBBLAS: This version of RandPerm(SpParVec &) is obsolete, please use DenseParVec::RandPerm()\n");
-	MPI_Intracomm DiagWorld = V.commGrid->GetDiagWorld();
+	auto DiagWorld = V.commGrid->GetDiagWorld();
 
 	if(DiagWorld != MPI_COMM_NULL) // Diagonal processors only
 	{
