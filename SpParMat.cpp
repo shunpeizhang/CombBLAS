@@ -2147,6 +2147,27 @@ void SpParMat< IT,NT,DER >::ParallelReadMM (const string & filename)
     SparseCommon(data, locsize, nrows, ncols, true);    // sum duplicates! (what else can we do anyway)
 }
 
+template<class IT, class NT, class DER>
+void SpParMat<IT,NT,DER>::MatrixFromIJK(size_t nrows, size_t ncols,
+                                        vector<IT> rows, vector<IT> cols,
+                                        vector<NT> vals, bool sum_dups) {
+  int nprocs = commGrid->GetSize();
+  vector<vector<tuple<IT,IT,NT>>> data(nprocs);
+  IT locsize = rows.size();
+  for(IT i=0; i<locsize; ++i)
+  {
+    IT lrow, lcol;
+    int owner = Owner(nrows, ncols, rows[i], cols[i], lrow, lcol);
+    assert(rows[i] >= 0);
+    assert(rows[i] < nrows);
+    assert(cols[i] >= 0);
+    assert(cols[i] < ncols);
+    data[owner].push_back(make_tuple(lrow,lcol,vals[i]));
+  }
+
+  SparseCommon(data, locsize, nrows, ncols, sum_dups);    // sum duplicates! (what else can we do anyway)
+}
+
 
 //! Handles all sorts of orderings as long as there are no duplicates
 //! May perform better when the data is already reverse column-sorted (i.e. in decreasing order)
