@@ -141,6 +141,8 @@ public:
 	void DebugPrint();
 	shared_ptr<CommGrid> getcommgrid() { return commGrid; }
 	NT NOT_FOUND;
+  vector<IT>& getind() { return ind; }
+  vector<NT>& getnum() { return num; }
 private:
 	shared_ptr<CommGrid> commGrid;
 	vector< IT > ind;	// ind.size() give the number of nonzeros

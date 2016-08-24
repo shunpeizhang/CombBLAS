@@ -119,6 +119,8 @@ public:
 	template <typename _BinaryOperation>
 	NT Reduce(_BinaryOperation __binary_op, NT identity);	//! Reduce can be used to implement max_element, for instance
 
+  vector<NT>& data() {return arr;}
+
 private:
 	shared_ptr<CommGrid> commGrid;
 	vector< NT > arr;
