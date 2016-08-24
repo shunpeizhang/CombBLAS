@@ -18,7 +18,7 @@ class MPIOpCache
 private:
     typedef std::map<std::type_info const*, MPI_Op, type_info_compare> stored_map_type;
     stored_map_type map;
-    
+
 public:
     void clear()
     {
@@ -45,15 +45,10 @@ public:
         else
             return MPI_OP_NULL;
     }
-    
+
     void set(const std::type_info* t, MPI_Op datatype)
     {
-#ifdef NOTGNU
-        if (map.find(t) != map.end()) map.erase(key);
-        map.insert(make_pair(t, datatype));
-#else
         map[t] = datatype;
-#endif
     }
 };
 
@@ -82,16 +77,16 @@ struct MPIOp
     {
         std::type_info const* t = &typeid(Op);
         MPI_Op foundop = mpioc.get(t);
-        
+
         if (foundop == MPI_OP_NULL)
         {
             MPI_Op_create(funcmpi, false, &foundop);
-          
+
             int myrank;
             MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
             if(myrank == 0)
                 cout << "Creating a new MPI Op for " << t->name() << endl;
-            
+
             mpioc.set(t, foundop);
         }
         return foundop;
