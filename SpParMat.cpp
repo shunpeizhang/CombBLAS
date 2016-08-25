@@ -2066,7 +2066,7 @@ void SpParMat< IT,NT,DER >::ParallelReadMM (const string & filename)
             cout << "Matrix is Boolean" << endl;
             type = 2;
         }
-        if(mm_is_symmetric(matcode))
+        if(mm_is_symmetric(matcode) || mm_is_hermitian(matcode))
         {
             cout << "Matrix is symmetric" << endl;
             symmetric = 1;
