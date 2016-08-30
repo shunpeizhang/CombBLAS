@@ -521,8 +521,8 @@ void DenseParVec<IT,NT>::DebugPrint()
 }
 
 template <class IT, class NT>
-template <typename _UnaryOperation>
-void DenseParVec<IT,NT>::Apply(_UnaryOperation __unary_op, const SpParVec<IT,NT> & mask)
+template <typename _UnaryOperation, typename NNT>
+void DenseParVec<IT,NT>::Apply(_UnaryOperation __unary_op, const SpParVec<IT,NNT> & mask)
 {
 	typename vector< IT >::const_iterator miter = mask.ind.begin();
 	while (miter < mask.ind.end())

@@ -100,8 +100,8 @@ public:
 		transform(arr.begin(), arr.end(), arr.begin(), __unary_op);
 	}
 
-	template <typename _UnaryOperation>
-	void Apply(_UnaryOperation __unary_op, const SpParVec<IT,NT>& mask);
+	template <typename _UnaryOperation, typename NNT>
+	void Apply(_UnaryOperation __unary_op, const SpParVec<IT,NNT>& mask);
 
 	void PrintToFile(string prefix)
 	{
