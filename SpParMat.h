@@ -260,6 +260,7 @@ public:
 	typename DER::LocalIT getlocalcols() const { return spSeq->getncol();}
 	typename DER::LocalIT getlocalnnz() const { return spSeq->getnnz(); }
 	DER & seq() { return (*spSeq); }
+	const DER & seq() const { return (*spSeq); }
 	DER * seqptr() { return spSeq; }
 
 	//! Friend declarations
