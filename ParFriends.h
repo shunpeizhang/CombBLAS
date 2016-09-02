@@ -431,11 +431,6 @@ SpParMat<IU, NUO, UDERO> Mult_AnXBn_Synch
 		if(!C_cont->isZero())
 			tomerge.push_back(C_cont);
 
-		#ifndef NDEBUG
-		ostringstream outs;
-		outs << i << "th SUMMA iteration"<< endl;
-		SpParHelper::Print(outs.str());
-		#endif
 	}
 	if(clearA && A.spSeq != NULL)
 	{

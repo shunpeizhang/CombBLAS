@@ -82,11 +82,6 @@ struct MPIOp
         {
             MPI_Op_create(funcmpi, false, &foundop);
 
-            int myrank;
-            MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
-            if(myrank == 0)
-                cout << "Creating a new MPI Op for " << t->name() << endl;
-
             mpioc.set(t, foundop);
         }
         return foundop;

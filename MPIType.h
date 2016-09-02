@@ -111,10 +111,6 @@ MPI_Datatype MPIType ( void )
 	{
 		MPI_Type_contiguous(sizeof(T), MPI_CHAR, &datatype );
 		MPI_Type_commit(&datatype);
-		int myrank;
-		MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
-		if(myrank == 0)
-			cout << "Creating a new MPI data type for " << t->name() << endl;
 		mpidtc.set(t, datatype);
 	}
    	return datatype;
