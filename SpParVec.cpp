@@ -628,7 +628,7 @@ IT SpParVec<IT,NT>::getTypicalLocLength() const
                 {
                         // the local length on the last processor will be greater than the others if the vector length is not evenly divisible
                         // but for these calculations we need that length
-			MPI_Recv(&n_perproc, 1, MPIType<IT>(), 0, 1, DiagWorld, NULL);
+			MPI_Recv(&n_perproc, 1, MPIType<IT>(), 0, 1, DiagWorld, MPI_STATUS_IGNORE);
                 }
                 else if (dgrank == 0 && nprocs > 1)
                 {
