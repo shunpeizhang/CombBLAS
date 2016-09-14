@@ -123,14 +123,14 @@ public:
   vector<NT>& data() {return arr;}
   const vector<NT>& data() const {return arr;}
 
+	template <typename _BinaryOperation>
+	void EWise(const DenseParVec<IT,NT> & rhs,  _BinaryOperation __binary_op);
+
 private:
 	shared_ptr<CommGrid> commGrid;
 	vector< NT > arr;
 	bool diagonal;
 	NT zero;	//!< the element for non-existings scalars (0.0 for a vector on Reals, +infinity for a vector on the tropical semiring)
-
-	template <typename _BinaryOperation>
-	void EWise(const DenseParVec<IT,NT> & rhs,  _BinaryOperation __binary_op);
 
 	template <class IU, class NU>
 	friend class DenseParMat;
