@@ -61,12 +61,13 @@ DenseParVec<IT, NT>::DenseParVec (IT globallength)
 		int ndrank = commGrid->GetDiagRank();
 
 		IT typical = globallength/nprocs;
+    _typ_len = typical;
+    _total_len = globallength;
 		if(ndrank == nprocs - 1)
 			arr.resize(globallength - ndrank*typical, zero);
 		else
 			arr.resize(typical, zero);
 	}
-  reset_dim();
 }
 
 template <class IT, class NT>
