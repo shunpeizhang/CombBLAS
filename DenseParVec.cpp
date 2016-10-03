@@ -93,8 +93,6 @@ DenseParVec<IT, NT>::DenseParVec ( shared_ptr<CommGrid> grid, NT id): zero(id)
 		diagonal = true;
 	else
 		diagonal = false;
-
-  reset_dim();
 };
 
 template <class IT, class NT>
