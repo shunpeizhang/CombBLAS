@@ -49,7 +49,8 @@ template<class IT, class NT>
 DenseParVec<IT, NT>::DenseParVec (shared_ptr<CommGrid> grid, IT globallength)
 {
 	zero = static_cast<NT>(0);
-	commGrid.reset(new CommGrid(*grid));
+  commGrid = grid;
+	// commGrid.reset(new CommGrid(*grid));
 	if(commGrid->GetRankInProcRow() == commGrid->GetRankInProcCol())
 		diagonal = true;
 	else
