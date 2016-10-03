@@ -52,6 +52,7 @@
 #include "Operations.h"
 #include "DistEdgeList.h"
 #include "CombBLAS.h"
+#include "suspension.hpp"
 
 
 /**
@@ -73,7 +74,7 @@ public:
 
 	// Constructors
 	SpParMat ();
-    	SpParMat (MPI_Comm world); 	// ABAB: there is risk that any integer would call this constructor due to MPICH representation
+  SpParMat (MPI_Comm world); 	// ABAB: there is risk that any integer would call this constructor due to MPICH representation
 	SpParMat (shared_ptr<CommGrid> grid);
 	SpParMat (DER * myseq, shared_ptr<CommGrid> grid);
 
@@ -185,9 +186,29 @@ public:
 	template <typename NNT, typename NDER> operator SpParMat< IT,NNT,NDER > () const;	//!< Type conversion operator
 	template <typename NIT, typename NNT, typename NDER> operator SpParMat< NIT,NNT,NDER > () const;	//!< Type conversion operator (for indices as well)
 
-	IT getnrow() const;
-	IT getncol() const;
-	IT getnnz() const;
+  IT _nnz;
+  IT _ncol;
+  IT _nrow;
+
+  void reset_dims() {
+    _nnz = _getnnz();
+    _ncol = _getncol();
+    _nrow = _getnrow();
+  }
+
+	IT _getnrow() const;
+	IT _getncol() const;
+	IT _getnnz() const;
+
+	IT getnrow() const {
+    return _nrow;
+  }
+	IT getncol() const {
+    return _ncol;
+  }
+	IT getnnz() const {
+    return _nnz;
+  }
 
 	SpParMat<IT,NT,DER> SubsRefCol (const vector<IT> & ci) const;				//!< Column indexing with special parallel semantics
 
@@ -237,7 +258,7 @@ public:
 		}
 	};
 
-    void ParallelReadMM (const string & filename);
+    void ParallelReadMM (const string & filename, bool verbose = false);
 	template <class HANDLER>
 	void ReadDistribute (const string & filename, int master, bool nonum, HANDLER handler, bool transpose = false, bool pario = false);
 	void ReadDistribute (const string & filename, int master, bool nonum=false, bool pario = false)
@@ -262,6 +283,7 @@ public:
 	DER & seq() { return (*spSeq); }
 	const DER & seq() const { return (*spSeq); }
 	DER * seqptr() { return spSeq; }
+	shared_ptr<CommGrid> commGrid;
 
 	//! Friend declarations
 	template <typename SR, typename NUO, typename UDERO, typename IU, typename NU1, typename NU2, typename UDER1, typename UDER2>
@@ -347,7 +369,6 @@ private:
 	void AllocateSetBuffers(IT * & rows, IT * & cols, NT * & vals,  int * & rcurptrs, int * & ccurptrs, int rowneighs, int colneighs, IT buffpercolneigh);
 	void BcastEssentials(MPI_Comm & world, IT & total_m, IT & total_n, IT & total_nnz, int master);
 
-	shared_ptr<CommGrid> commGrid;
 	DER * spSeq;
 
 	template <class IU, class NU>

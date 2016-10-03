@@ -80,9 +80,17 @@ public:
 	void iota(IT size, NT first);
 	void RandPerm();	// randomly permute the vector
 
-	IT getTypicalLocLength() const;
+  IT _typ_len;
+  IT _total_len;
+	IT _getTypicalLocLength() const;
+  void reset_dim() {
+    _typ_len = _getTypicalLocLength();
+    _total_len = getTotalLength(commGrid->GetWorld());
+  }
+
+	IT getTypicalLocLength() const { return _typ_len; }
 	IT getTotalLength(MPI_Comm & comm) const;
-	IT getTotalLength() const { return getTotalLength(commGrid->GetWorld()); }
+	IT getTotalLength() const { return _total_len; }
 	IT getLocalLength() const { return arr.size(); }
 
 	template <typename _Predicate>

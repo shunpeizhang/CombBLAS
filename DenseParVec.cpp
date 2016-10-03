@@ -40,6 +40,8 @@ DenseParVec<IT, NT>::DenseParVec ()
 		diagonal = true;
 	else
 		diagonal = false;
+
+  reset_dim();
 }
 
 // Create a new distributed dense array with all values initialized to zero
@@ -64,6 +66,7 @@ DenseParVec<IT, NT>::DenseParVec (IT globallength)
 		else
 			arr.resize(typical, zero);
 	}
+  reset_dim();
 }
 
 template <class IT, class NT>
@@ -78,6 +81,8 @@ DenseParVec<IT, NT>::DenseParVec (IT locallength, NT initval, NT id): zero(id)
 
 	if (diagonal)
 		arr.resize(locallength, initval);
+
+  reset_dim();
 }
 
 template <class IT, class NT>
@@ -88,6 +93,8 @@ DenseParVec<IT, NT>::DenseParVec ( shared_ptr<CommGrid> grid, NT id): zero(id)
 		diagonal = true;
 	else
 		diagonal = false;
+
+  reset_dim();
 };
 
 template <class IT, class NT>
@@ -100,6 +107,8 @@ DenseParVec<IT, NT>::DenseParVec ( shared_ptr<CommGrid> grid, IT locallength, NT
 
 	if (diagonal)
 		arr.resize(locallength, initval);
+
+  reset_dim();
 };
 
 template <class IT, class NT>
@@ -126,6 +135,7 @@ DenseParVec< IT,NT > &  DenseParVec<IT,NT>::operator=(const SpParVec< IT,NT > & 
 		arr[rhs.ind[i]] = rhs.num[i];
 	}
 
+  reset_dim();
 	return *this;
 }
 
@@ -138,6 +148,8 @@ DenseParVec< IT,NT > &  DenseParVec<IT,NT>::operator=(const DenseParVec< IT,NT >
 	arr = rhs.arr;
 	diagonal = rhs.diagonal;
 	zero = rhs.zero;
+  _typ_len = rhs._typ_len;
+  _total_len = rhs._total_len;
 	return *this;
 }
 
@@ -148,6 +160,9 @@ DenseParVec< IT,NT > &  DenseParVec<IT,NT>::stealFrom(DenseParVec<IT,NT> & victi
 	arr.swap(victim.arr);
 	diagonal = victim.diagonal;
 	zero = victim.zero;
+
+  _typ_len = victim._typ_len;
+  _total_len = victim._total_len;
 
 	return *this;
 }
@@ -587,6 +602,8 @@ void DenseParVec<IT,NT>::iota(IT size, NT first)
 		arr.resize(length);
 		SpHelper::iota(arr.begin(), arr.end(), (dgrank * n_perproc) + first);	// global across processors
 	}
+
+  reset_dim();
 }
 
 template <class IT, class NT>
@@ -681,6 +698,7 @@ DenseParVec<IT,NT> DenseParVec<IT,NT>::operator() (const DenseParVec<IT,IT> & ri
 		}
 		DeleteAll(sdispls, sendcnt, databuf,reversemap);
 	}
+  reset_dim();
 	return Indexed;
 }
 
@@ -697,7 +715,7 @@ IT DenseParVec<IT,NT>::getTotalLength(MPI_Comm & comm) const
 }
 
 template <class IT, class NT>
-IT DenseParVec<IT,NT>::getTypicalLocLength() const
+IT DenseParVec<IT,NT>::_getTypicalLocLength() const
 {
 	IT n_perproc = 0 ;
 	MPI_Comm DiagWorld = commGrid->GetDiagWorld();

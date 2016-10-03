@@ -819,6 +819,7 @@ DenseParVec<IU,typename promote_trait<NUM,NUV>::T_promote>  SpMV
 		MPI_Reduce(localy, NULL, ysize, MPIType<T_promote>(), SR::mpi_op(), diaginrow, RowWorld);
 		delete [] localy;
 	}
+  y.reset_dim();
 	return y;
 }
 

@@ -57,6 +57,7 @@ SpParMat< IT,NT,DER >::SpParMat (ifstream & input, MPI_Comm & world)
 	}
 	commGrid.reset(new CommGrid(world, 0, 0));
 	input >> (*spSeq);
+  reset_dims();
 }
 
 template <class IT, class NT, class DER>
@@ -64,6 +65,7 @@ SpParMat< IT,NT,DER >::SpParMat (DER * myseq, MPI_Comm & world): spSeq(myseq)
 {
 	assert( (sizeof(IT) >= sizeof(typename DER::LocalIT)) );
 	commGrid.reset(new CommGrid(world, 0, 0));
+  reset_dims();
 }
 
 template <class IT, class NT, class DER>
@@ -71,6 +73,7 @@ SpParMat< IT,NT,DER >::SpParMat (DER * myseq, shared_ptr<CommGrid> grid): spSeq(
 {
 	assert( (sizeof(IT) >= sizeof(typename DER::LocalIT)) );
 	commGrid = grid;
+  reset_dims();
 }
 
 template <class IT, class NT, class DER>
@@ -79,6 +82,7 @@ SpParMat< IT,NT,DER >::SpParMat (shared_ptr<CommGrid> grid)
 	assert( (sizeof(IT) >= sizeof(typename DER::LocalIT)) );
 	spSeq = new DER();
 	commGrid = grid;
+  reset_dims();
 }
 
 //! Deprecated. Don't call the default constructor
@@ -89,6 +93,7 @@ SpParMat< IT,NT,DER >::SpParMat ()
 	assert( (sizeof(IT) >= sizeof(typename DER::LocalIT)) );
 	spSeq = new DER();
 	commGrid.reset(new CommGrid(MPI_COMM_WORLD, 0, 0));
+  reset_dims();
 }
 
 /**
@@ -101,6 +106,7 @@ SpParMat< IT,NT,DER >::SpParMat (MPI_Comm world)
     assert( (sizeof(IT) >= sizeof(typename DER::LocalIT)) );
     spSeq = new DER();
     commGrid.reset(new CommGrid(world, 0, 0));
+    reset_dims();
 }
 
 template <class IT, class NT, class DER>
@@ -181,6 +187,9 @@ SpParMat< IT,NT,DER >::SpParMat (const SpParMat< IT,NT,DER > & rhs)
 		spSeq = new DER(*(rhs.spSeq));  	// Deep copy of local block
 
 	commGrid =  rhs.commGrid;
+  _nnz = rhs._nnz;
+  _ncol = rhs._ncol;
+  _nrow = rhs._nrow;
 }
 
 template <class IT, class NT, class DER>
@@ -195,6 +204,9 @@ SpParMat< IT,NT,DER > & SpParMat< IT,NT,DER >::operator=(const SpParMat< IT,NT,D
 			spSeq = new DER(*(rhs.spSeq));  // Deep copy of local block
 
 		commGrid = rhs.commGrid;
+    _nnz = rhs._nnz;
+    _ncol = rhs._ncol;
+    _nrow = rhs._nrow;
 	}
 	return *this;
 }
@@ -207,6 +219,7 @@ SpParMat< IT,NT,DER > & SpParMat< IT,NT,DER >::operator+=(const SpParMat< IT,NT,
 		if(*commGrid == *rhs.commGrid)
 		{
 			(*spSeq) += (*(rhs.spSeq));
+      reset_dims();
 		}
 		else
 		{
@@ -232,7 +245,7 @@ float SpParMat< IT,NT,DER >::LoadImbalance() const
 }
 
 template <class IT, class NT, class DER>
-IT SpParMat< IT,NT,DER >::getnnz() const
+IT SpParMat< IT,NT,DER >::_getnnz() const
 {
 	IT totalnnz = 0;
 	IT localnnz = spSeq->getnnz();
@@ -241,7 +254,7 @@ IT SpParMat< IT,NT,DER >::getnnz() const
 }
 
 template <class IT, class NT, class DER>
-IT SpParMat< IT,NT,DER >::getnrow() const
+IT SpParMat< IT,NT,DER >::_getnrow() const
 {
 	IT totalrows = 0;
 	IT localrows = spSeq->getnrow();
@@ -250,7 +263,7 @@ IT SpParMat< IT,NT,DER >::getnrow() const
 }
 
 template <class IT, class NT, class DER>
-IT SpParMat< IT,NT,DER >::getncol() const
+IT SpParMat< IT,NT,DER >::_getncol() const
 {
 	IT totalcols = 0;
 	IT localcols = spSeq->getncol();
@@ -343,6 +356,7 @@ void SpParMat<IT,NT,DER>::DimApply(Dim dim, const FullyDistVec<IT, NT>& x, _Bina
 			break;
 		}
 	}
+  reset_dims();
 }
 
 template <class IT, class NT, class DER>
@@ -1021,7 +1035,8 @@ SpParMat<IT,NT,DER> SpParMat<IT,NT,DER>::SubsRef_SR (const FullyDistVec<IT,IT> &
 	Q.Transpose();
 	if(inplace)
 	{
-       		*this = Mult_AnXBn_DoubleBuff<PTNTBOOL, NT, DER>(PA, Q, true, true);	// clear the memory of both PA and P
+    *this = Mult_AnXBn_DoubleBuff<PTNTBOOL, NT, DER>(PA, Q, true, true);	// clear the memory of both PA and P
+    reset_dims();
 		return SpParMat<IT,NT,DER>(commGrid);	// dummy return to match signature
 	}
 	else
@@ -1072,6 +1087,7 @@ void SpParMat<IT,NT,DER>::SpAsgn(const FullyDistVec<IT,IT> & ri, const FullyDist
 	delete qvec;	// free memory
 	SpParMat<IT,NT,DER> RBQ = Mult_AnXBn_DoubleBuff<PTRing, NT, DER>(RB, Q, true, true); // clear memory of RB and Q
 	*this += RBQ;	// extend-add
+  reset_dims();
 }
 
 template <class IT, class NT, class DER>
@@ -1106,6 +1122,7 @@ void SpParMat<IT,NT,DER>::Prune(const FullyDistVec<IT,IT> & ri, const FullyDistV
 	SpParMat<IT,NT,DER> T(total_n, total_n, ci, ci, 1);
 	SpParMat<IT,NT,DER> SAT = Mult_AnXBn_DoubleBuff<PTRing, NT, DER>(SA, T, true, true); // clear memory of SA and T
 	EWiseMult(SAT, true);	// In-place EWiseMult with not(SAT)
+  reset_dims();
 }
 
 
@@ -1116,6 +1133,7 @@ void SpParMat<IT,NT,DER>::EWiseMult (const SpParMat< IT,NT,DER >  & rhs, bool ex
 	if(*commGrid == *rhs.commGrid)
 	{
 		spSeq->EWiseMult(*(rhs.spSeq), exclude);		// Dimension compatibility check performed by sequential function
+    reset_dims();
 	}
 	else
 	{
@@ -1131,6 +1149,7 @@ void SpParMat<IT,NT,DER>::EWiseScale(const DenseParMat<IT, NT> & rhs)
 	if(*commGrid == *rhs.commGrid)
 	{
 		spSeq->EWiseScale(rhs.array, rhs.m, rhs.n);	// Dimension compatibility check performed by sequential function
+    reset_dims();
 	}
 	else
 	{
@@ -1148,6 +1167,7 @@ void SpParMat<IT,NT,DER>::UpdateDense(DenseParMat<IT, NT> & rhs, _BinaryOperatio
 		if(getlocalrows() == rhs.m  && getlocalcols() == rhs.n)
 		{
 			spSeq->UpdateDense(rhs.array, __binary_op);
+      reset_dims();
 		}
 		else
 		{
@@ -1250,7 +1270,8 @@ void SpParMat< IT,NT,DER >::SparseCommon(vector< vector < tuple<IT,IT,NT> > > & 
 		// the previous constructor sorts based on columns-first (but that doesn't matter as long as they are sorted one way or another)
 		A.RemoveDuplicates(plus<NT>());
 	}
-  	spSeq = new DER(A,false);        // Convert SpTuples to DER
+  spSeq = new DER(A,false);        // Convert SpTuples to DER
+  reset_dims();
 }
 
 
@@ -1316,7 +1337,7 @@ SpParMat< IT,NT,DER >::SpParMat (IT total_m, IT total_n, const FullyDistVec<IT,I
 
 template <class IT, class NT, class DER>
 template <class DELIT>
-SpParMat< IT,NT,DER >::SpParMat (const DistEdgeList<DELIT> & DEL, bool removeloops)
+SpParMat< IT,NT,DER >::SpParMat (const DistEdgeList<DELIT> & DEL, bool removeloops) : _ncol(_getncol), _nrow(_getnrow), _nnz(_getnnz)
 {
 	commGrid = DEL.commGrid;
 	typedef typename DER::LocalIT LIT;
@@ -1446,6 +1467,7 @@ IT SpParMat<IT,NT,DER>::RemoveLoops()
 		spSeq = new DER(tuples, false);	// Convert to DER
 	}
 	MPI_Allreduce( &removed, & totrem, 1, MPIType<IT>(), MPI_SUM, commGrid->GetWorld());
+  reset_dims();
 	return totrem;
 }
 
@@ -1553,6 +1575,7 @@ void SpParMat<IT,NT,DER>::OptimizeForGraph500(OptBuf<LIT,OT> & optbuf)
 	}
 	SpParHelper::Print("Optimization buffers set\n", commGrid->GetWorld());
 	optbuf.Set(maxlens,mA);
+  reset_dims();
 }
 
 template <class IT, class NT, class DER>
@@ -1652,6 +1675,7 @@ void SpParMat<IT,NT,DER>::Square ()
 	{
 		delete tomerge[i];
 	}
+  reset_dims();
 }
 
 
@@ -1713,6 +1737,7 @@ void SpParMat<IT,NT,DER>::Transpose()
 		spSeq = new DER();
 		spSeq->Create( remotennz, remotem, remoten, arrtuples);		// the deletion of arrtuples[] is handled by SpMat::Create
 	}
+  reset_dims();
 }
 
 
@@ -2021,7 +2046,7 @@ void SpParMat< IT,NT,DER >::PrintForPatoh(string filename) const
 //! Requires proper matrix market banner at the moment
 //! Might replace ReadDistribute in the long term
 template <class IT, class NT, class DER>
-void SpParMat< IT,NT,DER >::ParallelReadMM (const string & filename)
+void SpParMat< IT,NT,DER >::ParallelReadMM (const string & filename, bool verbose)
 {
     int32_t type = -1;
     int32_t symmetric = 0;
@@ -2053,29 +2078,29 @@ void SpParMat< IT,NT,DER >::ParallelReadMM (const string & filename)
         }
         else if(mm_is_real(matcode))
         {
-            cout << "Matrix is Float" << endl;
+            if(verbose) cout << "Matrix is Float" << endl;
             type = 0;
         }
         else if(mm_is_integer(matcode))
         {
-            cout << "Matrix is Integer" << endl;
+            if(verbose) cout << "Matrix is Integer" << endl;
             type = 1;
         }
         else if(mm_is_pattern(matcode))
         {
-            cout << "Matrix is Boolean" << endl;
+            if(verbose) cout << "Matrix is Boolean" << endl;
             type = 2;
         }
         if(mm_is_symmetric(matcode) || mm_is_hermitian(matcode))
         {
-            cout << "Matrix is symmetric" << endl;
+            if(verbose) cout << "Matrix is symmetric" << endl;
             symmetric = 1;
         }
         int ret_code;
         if ((ret_code = mm_read_mtx_crd_size(f, &nrows, &ncols, &nonzeros, &linesread)) !=0)  // ABAB: mm_read_mtx_crd_size made 64-bit friendly
             exit(1);
 
-        cout << "Total number of nonzeros expected across all processors is " << nonzeros << endl;
+        if(verbose) cout << "Total number of nonzeros expected across all processors is " << nonzeros << endl;
 
     }
     MPI_Bcast(&type, 1, MPI_INT, 0, commGrid->commWorld);
@@ -2094,7 +2119,7 @@ void SpParMat< IT,NT,DER >::ParallelReadMM (const string & filename)
     MPI_Offset fpos, header_off, end_fpos;
     if(commGrid->GetRank() == 0)    // the offset needs to be for this rank
     {
-        cout << "File is " << file_size << " bytes" << endl;
+        if(verbose) cout << "File is " << file_size << " bytes" << endl;
         fpos = ftell(f);
         header_off = fpos;
         file_size -= fpos;
@@ -2132,7 +2157,7 @@ void SpParMat< IT,NT,DER >::ParallelReadMM (const string & filename)
     MPI_Reduce(&entriesread, &allentriesread, 1, MPIType<int64_t>(), MPI_SUM, 0, commGrid->commWorld);
     if(myrank == 0)
     {
-        cout << "Total number of entries read across all processors is " << allentriesread << endl;
+        if(verbose) cout << "Total number of entries read across all processors is " << allentriesread << endl;
     }
 
     vector< vector < tuple<IT,IT,NT> > > data(nprocs);
@@ -2500,6 +2525,7 @@ void SpParMat< IT,NT,DER >::ReadDistribute (const string & filename, int master,
 #ifdef TAU_PROFILE
    	TAU_PROFILE_STOP(rdtimer);
 #endif
+  reset_dims();
 	return;
 }
 

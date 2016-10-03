@@ -60,7 +60,7 @@ DenseParVec< IT,NT > DenseParMat<IT,NT>::Reduce(Dim dim, _BinaryOperation __bina
 				recvbuf = &parvec.arr[0];
 			}
 			MPI_Reduce(sendbuf, recvbuf, n, MPIType<NT>(), MPIOp<_BinaryOperation, NT>::op(), root,commGrid->GetColWorld());
-			delete sendbuf;
+			delete[] sendbuf;
 			break;
 		}
 		case Row:	// pack along the rows, result is a vector of size m
@@ -78,7 +78,7 @@ DenseParVec< IT,NT > DenseParMat<IT,NT>::Reduce(Dim dim, _BinaryOperation __bina
 				recvbuf = &parvec.arr[0];
 			}
 			MPI_Reduce(sendbuf, recvbuf, m, MPIType<NT>(), MPIOp<_BinaryOperation, NT>::op(), root,commGrid->GetRowWorld());
-			delete [] sendbuf;
+			delete[] sendbuf;
 			break;
 		}
 		default:
