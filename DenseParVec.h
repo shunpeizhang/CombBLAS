@@ -51,7 +51,8 @@ class DenseParVec
 {
 public:
 	DenseParVec ( );
-	explicit DenseParVec ( IT globallength );
+	DenseParVec ( shared_ptr<CommGrid> grid, IT globallength );
+	// explicit DenseParVec ( IT globallength );
 	DenseParVec ( IT locallength, NT initval, NT id); // initializes the vector to size locallength (if this node is on a diagonal)
 	DenseParVec ( shared_ptr<CommGrid> grid, NT id);
 	DenseParVec ( shared_ptr<CommGrid> grid, IT locallength, NT initval, NT id);

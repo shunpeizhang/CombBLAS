@@ -46,15 +46,16 @@ DenseParVec<IT, NT>::DenseParVec ()
 
 // Create a new distributed dense array with all values initialized to zero
 template<class IT, class NT>
-DenseParVec<IT, NT>::DenseParVec (IT globallength)
+DenseParVec<IT, NT>::DenseParVec (shared_ptr<CommGrid> grid, IT globallength)
 {
 	zero = static_cast<NT>(0);
-	commGrid.reset(new CommGrid(MPI_COMM_WORLD, 0, 0));
+	commGrid.reset(new CommGrid(*grid));
 	if(commGrid->GetRankInProcRow() == commGrid->GetRankInProcCol())
 		diagonal = true;
 	else
 		diagonal = false;
 
+  _total_len = globallength;
 	if (diagonal)
 	{
 		int nprocs = commGrid->GetDiagSize();
@@ -62,7 +63,6 @@ DenseParVec<IT, NT>::DenseParVec (IT globallength)
 
 		IT typical = globallength/nprocs;
     _typ_len = typical;
-    _total_len = globallength;
 		if(ndrank == nprocs - 1)
 			arr.resize(globallength - ndrank*typical, zero);
 		else
