@@ -786,7 +786,7 @@ DenseParVec<IU,typename promote_trait<NUM,NUV>::T_promote>  SpMV
 
 	T_promote id = (T_promote) 0;	// do we need a better identity?
 	DenseParVec<IU, T_promote> y ( x.commGrid, id);
-  y._typ_len = x._type_len;
+  y._typ_len = x._typ_len;
   y._total_len = x._total_len;
 	IU ysize = A.getlocalrows();
 	if(x.diagonal)
