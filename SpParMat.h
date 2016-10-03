@@ -52,7 +52,6 @@
 #include "Operations.h"
 #include "DistEdgeList.h"
 #include "CombBLAS.h"
-#include "suspension.hpp"
 
 
 /**
