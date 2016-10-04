@@ -90,7 +90,8 @@ DenseParVec<IT, NT>::DenseParVec (IT locallength, NT initval, NT id): zero(id)
 template <class IT, class NT>
 DenseParVec<IT, NT>::DenseParVec ( shared_ptr<CommGrid> grid, NT id): zero(id)
 {
-	commGrid.reset(new CommGrid(*grid));
+	// commGrid.reset(new CommGrid(*grid));
+  commGrid = grid;
 	if(commGrid->GetRankInProcRow() == commGrid->GetRankInProcCol())
 		diagonal = true;
 	else
@@ -144,7 +145,7 @@ DenseParVec< IT,NT > &  DenseParVec<IT,NT>::operator=(const DenseParVec< IT,NT >
 {
 	if (this == &rhs)      // Same object?
       		return *this;        // Yes, so skip assignment, and just return *this.
-	commGrid.reset(new CommGrid(*(rhs.commGrid)));
+  commGrid = rhs.commGrid;
 	arr = rhs.arr;
 	diagonal = rhs.diagonal;
 	zero = rhs.zero;
@@ -156,7 +157,8 @@ DenseParVec< IT,NT > &  DenseParVec<IT,NT>::operator=(const DenseParVec< IT,NT >
 template <class IT, class NT>
 DenseParVec< IT,NT > &  DenseParVec<IT,NT>::stealFrom(DenseParVec<IT,NT> & victim)		// SpParVec->DenseParVec conversion operator
 {
-	commGrid.reset(new CommGrid(*(victim.commGrid)));
+	// commGrid.reset(new CommGrid(*(victim.commGrid)));
+  commGrid = victim.commGrid;
 	arr.swap(victim.arr);
 	diagonal = victim.diagonal;
 	zero = victim.zero;
