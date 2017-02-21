@@ -87,16 +87,16 @@ DenseParVec<IT, NT>::DenseParVec (IT locallength, NT initval, NT id): zero(id)
   reset_dim();
 }
 
-template <class IT, class NT>
-DenseParVec<IT, NT>::DenseParVec ( shared_ptr<CommGrid> grid, NT id): zero(id)
-{
-	// commGrid.reset(new CommGrid(*grid));
-  commGrid = grid;
-	if(commGrid->GetRankInProcRow() == commGrid->GetRankInProcCol())
-		diagonal = true;
-	else
-		diagonal = false;
-};
+// template <class IT, class NT>
+// DenseParVec<IT, NT>::DenseParVec ( shared_ptr<CommGrid> grid, NT id): zero(id)
+// {
+// 	// commGrid.reset(new CommGrid(*grid));
+//   commGrid = grid;
+// 	if(commGrid->GetRankInProcRow() == commGrid->GetRankInProcCol())
+// 		diagonal = true;
+// 	else
+// 		diagonal = false;
+// };
 
 template <class IT, class NT>
 DenseParVec<IT, NT>::DenseParVec ( shared_ptr<CommGrid> grid, IT locallength, NT initval, NT id): commGrid(grid), zero(id)

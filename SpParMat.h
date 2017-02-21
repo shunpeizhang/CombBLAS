@@ -163,6 +163,14 @@ public:
 	}
 
 	template <typename _UnaryOperation>
+	SpParMat<IT,NT,DER> PruneII(_UnaryOperation __unary_op) const //<! Prune any nonzero entries based on both row/column indices and value
+	{
+		IT grow=0, gcol=0;
+		GetPlaceInGlobalGrid(grow, gcol);
+    return SpParMat<IT,NT,DER>(spSeq->PruneI(__unary_op, false, grow, gcol), commGrid);
+	}
+
+	template <typename _UnaryOperation>
 	SpParMat<IT,NT,DER> Prune(_UnaryOperation __unary_op, bool inPlace = true) //<! Prune any nonzero entries for which the __unary_op evaluates to true (solely based on value)
 	{
 		if (inPlace)

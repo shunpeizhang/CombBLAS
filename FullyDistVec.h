@@ -62,7 +62,7 @@ public:
 	FullyDistVec ( shared_ptr<CommGrid> grid);
 	FullyDistVec ( shared_ptr<CommGrid> grid, IT globallen, NT initval);
 	FullyDistVec ( const FullyDistSpVec<IT, NT> & rhs ); // Sparse -> Dense conversion constructor
-    	FullyDistVec ( const DenseParVec<IT,NT> & rhs);		//!< DenseParVec->FullyDistVec conversion operator
+  FullyDistVec ( const DenseParVec<IT,NT> & rhs);		//!< DenseParVec->FullyDistVec conversion operator
 	FullyDistVec ( const vector<NT> & fillarr, shared_ptr<CommGrid> grid ); // initialize a FullyDistVec with a vector from each processor
 
 
@@ -151,7 +151,7 @@ public:
 	template <typename _Predicate>
 	FullyDistSpVec<IT,NT> Find(_Predicate pred) const;	//!< Return the elements for which pred is true
 
-    FullyDistSpVec<IT,NT> Find(NT val) const;	//!< Return the elements val is found
+  FullyDistSpVec<IT,NT> Find(NT val) const;	//!< Return the elements val is found
 
 	template <typename _Predicate>
 	FullyDistVec<IT,IT> FindInds(_Predicate pred) const;	//!< Return the indices where pred is true
@@ -251,11 +251,22 @@ public:
 	using FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>::glen;
 	using FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>::commGrid;
 
-private:
-	vector< NT > arr;
+  vector<NT> data() { return arr; }
+  const vector<NT> data() const { return arr; }
+
+  // TODO: cache
+  IT getTotalLength() {
+    IT v = arr.size();
+    IT r;
+    MPI_Allreduce(&v, &r, 1, MPIType<IT>(), MPI_SUM, commGrid->GetWorld());
+    return r;
+  }
 
 	template <typename _BinaryOperation>
 	void EWise(const FullyDistVec<IT,NT> & rhs,  _BinaryOperation __binary_op);
+
+private:
+	vector< NT > arr;
 
 	template <class IU, class NU>
 	friend class DenseParMat;

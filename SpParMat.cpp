@@ -275,7 +275,6 @@ template <class IT, class NT, class DER>
 template <typename _BinaryOperation>
 void SpParMat<IT,NT,DER>::DimApply(Dim dim, const FullyDistVec<IT, NT>& x, _BinaryOperation __binary_op)
 {
-
 	if(!(*commGrid == *(x.commGrid)))
 	{
 		cout << "Grids are not comparable for SpParMat::DimApply" << endl;
@@ -285,6 +284,7 @@ void SpParMat<IT,NT,DER>::DimApply(Dim dim, const FullyDistVec<IT, NT>& x, _Bina
 	MPI_Comm World = x.commGrid->GetWorld();
 	MPI_Comm ColWorld = x.commGrid->GetColWorld();
 	MPI_Comm RowWorld = x.commGrid->GetRowWorld();
+
 	switch(dim)
 	{
 		case Column:	// scale each column
@@ -336,7 +336,6 @@ void SpParMat<IT,NT,DER>::DimApply(Dim dim, const FullyDistVec<IT, NT>& x, _Bina
 			std::partial_sum(rowsize, rowsize+rowneighs-1, dpls+1);
 			int accsize = std::accumulate(rowsize, rowsize+rowneighs, 0);
 			NT * scaler = new NT[accsize];
-
 			MPI_Allgatherv(const_cast<NT*>(SpHelper::p2a(x.arr)), xsize, MPIType<NT>(), scaler, rowsize, dpls, MPIType<NT>(), RowWorld);
 			DeleteAll(rowsize, dpls);
 
