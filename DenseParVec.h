@@ -135,6 +135,20 @@ public:
 	template <typename _BinaryOperation>
 	void EWise(const DenseParVec<IT,NT> & rhs,  _BinaryOperation __binary_op);
 
+  IT offset() const {
+    MPI_Comm DiagWorld = commGrid->GetDiagWorld();
+    if(DiagWorld != MPI_COMM_NULL) // Diagonal processors only
+    {
+      int dgrank, nprocs;
+      MPI_Comm_rank(DiagWorld, &dgrank);
+      MPI_Comm_size(DiagWorld, &nprocs);
+      IT n_perproc = getTypicalLocLength();
+      IT offset = dgrank * n_perproc;
+      return offset;
+    }
+    return -1;
+  }
+
 private:
 	shared_ptr<CommGrid> commGrid;
 	vector< NT > arr;
