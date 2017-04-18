@@ -2134,6 +2134,8 @@ void SpParMat< IT,NT,DER >::ParallelReadMM (const string & filename, bool verbos
 
     MPI_File mpi_fh;
     MPI_File_open (commGrid->commWorld, const_cast<char*>(filename.c_str()), MPI_MODE_RDONLY, MPI_INFO_NULL, &mpi_fh);
+    MPI_Offset filesize;
+    MPI_File_get_size(mpi_fh, &filesize);
 
     // ABAB: It is the user's job that NT is compatible with "type" and IT is compatible with int64_t
     vector<IT> rows;
@@ -2141,14 +2143,13 @@ void SpParMat< IT,NT,DER >::ParallelReadMM (const string & filename, bool verbos
     vector<NT> vals;
 
     vector<string> lines;
-    bool finished = SpParHelper::FetchBatch(mpi_fh, fpos, end_fpos, true, lines, myrank);
+    bool finished = SpParHelper::FetchBatch(mpi_fh, fpos, end_fpos, filesize, true, lines, myrank);
     int64_t entriesread = lines.size();
     SpHelper::ProcessLines(rows, cols, vals, lines, symmetric, type);
-    MPI_Barrier(commGrid->commWorld);
 
     while(!finished)
     {
-        finished = SpParHelper::FetchBatch(mpi_fh, fpos, end_fpos, false, lines, myrank);
+        finished = SpParHelper::FetchBatch(mpi_fh, fpos, end_fpos, filesize, false, lines, myrank);
         entriesread += lines.size();
         SpHelper::ProcessLines(rows, cols, vals, lines, symmetric, type);
     }

@@ -93,7 +93,7 @@ public:
 	static void PrintFile(const string & s, const string & filename);
     static void PrintFile(const string & s, const string & filename, MPI_Comm & world);
     static void check_newline(int *bytes_read, int bytes_requested, char *buf);
-    static bool FetchBatch(MPI_File & infile, MPI_Offset & curpos, MPI_Offset end_fpos, bool firstcall, vector<string> & lines, int myrank);
+    static bool FetchBatch(MPI_File & infile, MPI_Offset & curpos, MPI_Offset end_fpos, MPI_Offset filesize, bool firstcall, vector<string> & lines, int myrank);
 
 	static void WaitNFree(vector<MPI_Win> & arrwin);
 	static void FreeWindows(vector<MPI_Win> & arrwin);

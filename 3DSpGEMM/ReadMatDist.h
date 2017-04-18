@@ -2,7 +2,7 @@
 #define _READ_MAT_DIST_H_
 
 #include <mpi.h>
-#include <sys/time.h> 
+#include <sys/time.h>
 #include <iostream>
 #include <iomanip>
 #include <functional>
@@ -21,7 +21,7 @@
 #include <stdint.h>
 
 #include "../CombBLAS.h"
-#include "Glue.h"   
+#include "Glue.h"
 
 
 template <typename PARMAT>
@@ -49,8 +49,8 @@ void Reader(string filename, CCGrid & CMG, SpDCCols<IT,NT> & splitmat, bool tran
         layerGrid.reset( new CommGrid(CMG.layerWorld, 0, 0) );
         SpParMat < IT, NT, SpDCCols<IT,NT> > *A = new SpParMat < IT, NT, SpDCCols<IT,NT> >(layerGrid);
         //A->ReadDistribute(filename, 0, false);
-	A->ParallelReadMM(filename);        
-        
+	A->ParallelReadMM(filename);
+
         // random permutations for load balance
         if(permute)
         {
@@ -69,14 +69,14 @@ void Reader(string filename, CCGrid & CMG, SpDCCols<IT,NT> & splitmat, bool tran
                  SpParHelper::Print("nrow != ncol. Can not apply symmetric permutation.\n");
             }
         }
-        
-        
+
+
         SpDCCols<IT, NT> * localmat = A->seqptr();
         double trans_beg = MPI_Wtime();
         if(trans) localmat->Transpose(); // locally transpose
         comp_trans += (MPI_Wtime() - trans_beg);
 
-        
+
         double split_beg = MPI_Wtime();
         localmat->ColSplit(nparts, partsmat);     // split matrices are emplaced-back into partsmat vector, localmat destroyed
 
@@ -90,13 +90,13 @@ void Reader(string filename, CCGrid & CMG, SpDCCols<IT,NT> & splitmat, bool tran
         }
         comp_split += (MPI_Wtime() - split_beg);
 	}
-    
+
     double scatter_beg = MPI_Wtime();   // timer on
     int esscnt = SpDCCols<IT,NT>::esscount; // necessary cast for MPI
 
     vector<IT> myess(esscnt);
     MPI_Scatter(vecEss.data(), esscnt, MPIType<IT>(), myess.data(), esscnt, MPIType<IT>(), 0, CMG.fiberWorld);
-    
+
     if(CMG.layer_grid == 0) // senders
     {
         splitmat = partsmat[0]; // just copy the local split
