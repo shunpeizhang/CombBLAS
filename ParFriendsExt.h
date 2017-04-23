@@ -822,30 +822,14 @@ DenseParVec<IU,typename promote_trait<NUM,NUV>::T_promote>  SpMV
 	return y;
 }
 
-vector<int32_t> convert(vector<int32_t> x) {
-  return x;
-}
-
-vector<int32_t> convert(vector<int64_t> x) {
-  vector<int32_t> out(x.size());
+template<class IN, class OUT>
+vector<OUT> convert(vector<IN> x) {
+  vector<OUT> out(x.size());
   for(int i = 0; i < x.size(); i++) {
     out[i] = x[i];
   }
   return out;
 }
-
-vector<int64_t> convert_back(vector<int64_t> x) {
-  return x;
-}
-
-vector<int64_t> convert_back(vector<int32_t> x) {
-  vector<int64_t> out(x.size());
-  for(int i = 0; i < x.size(); i++) {
-    out[i] = x[i];
-  }
-  return out;
-}
-
 
 template <typename SR, typename IU, typename NUM, typename NUV, typename UDER>
 SpParVec<IU,typename promote_trait<NUM,NUV>::T_promote>  SpMV
@@ -892,10 +876,10 @@ SpParVec<IU,typename promote_trait<NUM,NUV>::T_promote>  SpMV
 		// serial SpMV with sparse vector
 		vector<IU> indy;
 		vector< T_promote >  numy;
-    vector<int32_t> inds = convert(x.ind);
+    vector<int32_t> inds = convert<IU, int32_t>(x.ind);
     vector<int32_t> indys;
 		dcsc_gespmv<SR, IU, int32_t, NUM>(*(A.spSeq), SpHelper::p2a(inds), SpHelper::p2a(x.num), nnzx, indys, numy);
-    indy = convert_back(indys);
+    indy = convert<int32_t, IU>(indys);
 		// dcsc_gespmv<SR>(*(A.spSeq), SpHelper::p2a(x.ind), SpHelper::p2a(x.num), nnzx, indy, numy);
 
 		int proccols = x.commGrid->GetGridCols();
@@ -953,10 +937,10 @@ SpParVec<IU,typename promote_trait<NUM,NUV>::T_promote>  SpMV
 		// serial SpMV with sparse vector
 		vector< IU > indy;
 		vector< T_promote >  numy;
-    vector<int32_t> xinds2 = convert(xinds);
+    vector<int32_t> xinds2 = convert<IU, int32_t>(xinds);
     vector<int32_t> indys;
 		dcsc_gespmv<SR, IU, int32_t, NUM>(*(A.spSeq), SpHelper::p2a(xinds2), SpHelper::p2a(xnums), nnzx, indys, numy);
-    indy = convert_back(indys);
+    indy = convert<int32_t, IU>(indys);
 		// dcsc_gespmv<SR>(*(A.spSeq), SpHelper::p2a(xinds), SpHelper::p2a(xnums), nnzx, indy, numy);
 
 		int mysize = indy.size();
