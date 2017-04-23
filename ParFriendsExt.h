@@ -822,6 +822,30 @@ DenseParVec<IU,typename promote_trait<NUM,NUV>::T_promote>  SpMV
 	return y;
 }
 
+vector<int32_t> convert(vector<int32_t> x) {
+  return x;
+}
+
+vector<int32_t> convert(vector<int64_t> x) {
+  vector<int32_t> out(x.size());
+  for(int i = 0; i < x.size(); i++) {
+    out[i] = x[i];
+  }
+  return out;
+}
+
+vector<int64_t> convert_back(vector<int64_t> x) {
+  return x;
+}
+
+vector<int64_t> convert_back(vector<int32_t> x) {
+  vector<int64_t> out(x.size());
+  for(int i = 0; i < x.size(); i++) {
+    out[i] = x[i];
+  }
+  return out;
+}
+
 
 template <typename SR, typename IU, typename NUM, typename NUV, typename UDER>
 SpParVec<IU,typename promote_trait<NUM,NUV>::T_promote>  SpMV
@@ -866,9 +890,13 @@ SpParVec<IU,typename promote_trait<NUM,NUV>::T_promote>  SpMV
 		fill_n(isthere, ysize, false);
 
 		// serial SpMV with sparse vector
-		vector< IU > indy;
+		vector<IU> indy;
 		vector< T_promote >  numy;
-		dcsc_gespmv<SR>(*(A.spSeq), SpHelper::p2a(x.ind), SpHelper::p2a(x.num), nnzx, indy, numy);
+    vector<int32_t> inds = convert(x.ind);
+    vector<int32_t> indys;
+		dcsc_gespmv<SR, IU, int32_t, NUM>(*(A.spSeq), SpHelper::p2a(inds), SpHelper::p2a(x.num), nnzx, indys, numy);
+    indy = convert_back(indys);
+		// dcsc_gespmv<SR>(*(A.spSeq), SpHelper::p2a(x.ind), SpHelper::p2a(x.num), nnzx, indy, numy);
 
 		int proccols = x.commGrid->GetGridCols();
 		int * gsizes = new int[proccols];	// # of processor columns = number of processors in the RowWorld
@@ -917,15 +945,19 @@ SpParVec<IU,typename promote_trait<NUM,NUV>::T_promote>  SpMV
 		IU nnzx;
 		MPI_Bcast(&nnzx, 1, MPIType<IU>(), diagincol, ColWorld);
 
-		IU * xinds = new IU[nnzx];
-		NUV * xnums = new NUV[nnzx];
-		MPI_Bcast(xinds, nnzx, MPIType<IU>(), diagincol, ColWorld);
-		MPI_Bcast(xnums, nnzx, MPIType<NUV>(), diagincol, ColWorld);
+		vector<IU> xinds(nnzx);
+		vector<NUV> xnums(nnzx);
+		MPI_Bcast(xinds.data(), nnzx, MPIType<IU>(), diagincol, ColWorld);
+		MPI_Bcast(xnums.data(), nnzx, MPIType<NUV>(), diagincol, ColWorld);
 
 		// serial SpMV with sparse vector
 		vector< IU > indy;
 		vector< T_promote >  numy;
-		dcsc_gespmv<SR>(*(A.spSeq), xinds, xnums, nnzx, indy, numy);
+    vector<int32_t> xinds2 = convert(xinds);
+    vector<int32_t> indys;
+		dcsc_gespmv<SR, IU, int32_t, NUM>(*(A.spSeq), SpHelper::p2a(xinds2), SpHelper::p2a(xnums), nnzx, indys, numy);
+    indy = convert_back(indys);
+		// dcsc_gespmv<SR>(*(A.spSeq), SpHelper::p2a(xinds), SpHelper::p2a(xnums), nnzx, indy, numy);
 
 		int mysize = indy.size();
 		MPI_Gather(&mysize, 1, MPI_INT, NULL, 1, MPI_INT, diaginrow, RowWorld);
@@ -933,9 +965,6 @@ SpParVec<IU,typename promote_trait<NUM,NUV>::T_promote>  SpMV
 		// IntraComm::GatherV(sendbuf, int sentcnt, sendtype, recvbuf, int * recvcnts, int * displs, recvtype, root)
 		MPI_Gatherv(SpHelper::p2a(indy), mysize, MPIType<IU>(), NULL, NULL, NULL, MPIType<IU>(), diaginrow, RowWorld);
 		MPI_Gatherv(SpHelper::p2a(numy), mysize, MPIType<T_promote>(), NULL, NULL, NULL, MPIType<T_promote>(), diaginrow, RowWorld);
-
-		delete [] xinds;
-		delete [] xnums;
 	}
 	return y;
 }
