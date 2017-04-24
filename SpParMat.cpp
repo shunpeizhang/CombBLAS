@@ -2141,6 +2141,10 @@ void SpParMat< IT,NT,DER >::ParallelReadMM (const string & filename, bool verbos
     vector<IT> rows;
     vector<IT> cols;
     vector<NT> vals;
+    // reserve space for better performance
+    rows.reserve(nonzeros/nprocs);
+    cols.reserve(nonzeros/nprocs);
+    vals.reserve(nonzeros/nprocs);
 
     vector<string> lines;
     bool finished = SpParHelper::FetchBatch(mpi_fh, fpos, end_fpos, filesize, true, lines, myrank);
