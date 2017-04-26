@@ -1318,11 +1318,12 @@ void SpParMat<IT, NT, DER>::SparseCommon(
   partial_sum(sendcnt, sendcnt + nprocs - 1, sdispls + 1);
   partial_sum(recvcnt, recvcnt + nprocs - 1, rdispls + 1);
 
-  tuple<IT, IT, NT>* senddata =
-      new tuple<IT, IT, NT>[locsize];  // re-used for both rows and columns
+  vector<tuple<IT, IT, NT>> senddata(locsize);
   for (int i = 0; i < nprocs; ++i) {
-    copy(data[i].begin(), data[i].end(), senddata + sdispls[i]);
-    vector<tuple<IT, IT, NT>>().swap(data[i]);  // clear memory
+    copy(data[i].begin(), data[i].end(), senddata.data() + sdispls[i]);
+    // clear memory
+    data[i].clear();
+    data[i].shrink_to_fit();
   }
   MPI_Datatype MPI_triple;
   MPI_Type_contiguous(sizeof(tuple<IT, IT, NT>), MPI_CHAR, &MPI_triple);
@@ -1330,10 +1331,10 @@ void SpParMat<IT, NT, DER>::SparseCommon(
 
   IT totrecv = accumulate(recvcnt, recvcnt + nprocs, static_cast<IT>(0));
   tuple<IT, IT, NT>* recvdata = new tuple<IT, IT, NT>[totrecv];
-  MPI_Alltoallv(senddata, sendcnt, sdispls, MPI_triple, recvdata, recvcnt,
+  MPI_Alltoallv(senddata.data(), sendcnt, sdispls, MPI_triple, recvdata, recvcnt,
                 rdispls, MPI_triple, commGrid->GetWorld());
 
-  DeleteAll(senddata, sendcnt, recvcnt, sdispls, rdispls);
+  DeleteAll(sendcnt, recvcnt, sdispls, rdispls);
   MPI_Type_free(&MPI_triple);
 
   int r = commGrid->GetGridRows();
@@ -2269,9 +2270,9 @@ void SpParMat<IT, NT, DER>::ParallelReadMM(const string& filename,
     if (verbose) cout << "reserving " << nonzeros / nprocs << " space" << endl;
   }
   // reserve space for better performance
-  rows.reserve(nonzeros / nprocs);
-  cols.reserve(nonzeros / nprocs);
-  vals.reserve(nonzeros / nprocs);
+  rows.reserve(4* nonzeros / nprocs);
+  cols.reserve(4*nonzeros / nprocs);
+  vals.reserve(4*nonzeros / nprocs);
 
   vector<string> lines;
   bool finished = SpParHelper::FetchBatch(mpi_fh, fpos, end_fpos, filesize,
