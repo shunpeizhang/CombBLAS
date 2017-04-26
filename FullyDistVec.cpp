@@ -947,6 +947,7 @@ void FullyDistVec<IT,NT>::RandPerm()
     {
         arr[indsbuf[i]] = sendbuf[i];
     }
+    delete [] indsbuf;
 #endif
 }
 
