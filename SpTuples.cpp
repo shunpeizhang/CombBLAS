@@ -146,8 +146,8 @@ SpTuples<IT,NT>::~SpTuples()
 {
 	if(nnz > 0)
 	{
-		//delete [] tuples;
-        ::operator delete(tuples);
+		delete [] tuples;
+ // ::operator delete(tuples);
 	}
 }
 

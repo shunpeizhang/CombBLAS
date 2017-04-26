@@ -1304,15 +1304,17 @@ void SpParMat<IT, NT, DER>::SparseCommon(
     vector<vector<tuple<IT, IT, NT>>>& data, IT locsize, IT total_m, IT total_n,
     bool SumDuplicates) {
   int nprocs = commGrid->GetSize();
-  int64_t* sendcnt = new int64_t[nprocs];
-  int64_t* recvcnt = new int64_t[nprocs];
-  for (int i = 0; i < nprocs; ++i)
+  int* sendcnt = new int[nprocs];
+  int* recvcnt = new int[nprocs];
+  for (int i = 0; i < nprocs; ++i) {
     sendcnt[i] = data[i].size();  // sizes are all the same
+    assert(data[i].size() < int64_t(INT_MAX));
+  }
 
-  MPI_Alltoall(sendcnt, 1, MPIType<int64_t>, recvcnt, 1, MPIType<int64_t>,
+  MPI_Alltoall(sendcnt, 1, MPI_INT, recvcnt, 1, MPI_INT,
                commGrid->GetWorld());  // share the counts
-  int64_t* sdispls = new int64_t[nprocs]();
-  int64_t* rdispls = new int64_t[nprocs]();
+  int* sdispls = new int[nprocs]();
+  int* rdispls = new int[nprocs]();
   partial_sum(sendcnt, sendcnt + nprocs - 1, sdispls + 1);
   partial_sum(recvcnt, recvcnt + nprocs - 1, rdispls + 1);
 
