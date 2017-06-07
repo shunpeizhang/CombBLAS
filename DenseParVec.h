@@ -56,6 +56,7 @@ public:
 	DenseParVec ( IT locallength, NT initval, NT id); // initializes the vector to size locallength (if this node is on a diagonal)
 	// DenseParVec ( shared_ptr<CommGrid> grid, NT id);
 	DenseParVec ( shared_ptr<CommGrid> grid, IT locallength, NT initval, NT id);
+	DenseParVec ( shared_ptr<CommGrid> grid, IT globallength, NT initval);
 
 	ifstream& ReadDistribute (ifstream& infile, int master);
 	DenseParVec<IT,NT> & operator=(const SpParVec<IT,NT> & rhs);		//!< SpParVec->DenseParVec conversion operator
