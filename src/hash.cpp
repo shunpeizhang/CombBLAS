@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <cstring>
-#include "hash.hpp"
+#include "CombBLAS/hash.hpp"
 
 uint64_t inline _rotl64(uint64_t value, int8_t amount) {
   return ((value) << (amount)) | ((value) >> (64 - (amount)));

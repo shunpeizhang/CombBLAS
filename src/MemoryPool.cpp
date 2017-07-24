@@ -26,7 +26,7 @@
  THE SOFTWARE.
  */
 
-#include "MemoryPool.h"
+#include "CombBLAS/MemoryPool.h"
 
 MemoryPool::MemoryPool(void * m_beg, size_t m_size):initbeg((char*)m_beg), initend(((char*)m_beg)+m_size)
 {

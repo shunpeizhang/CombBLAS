@@ -7,8 +7,8 @@
 /*  Authors: Jeremiah Willcock                                             */
 /*           Andrew Lumsdaine                                              */
 
-#ifndef UTILS_H
-#define UTILS_H
+#ifndef GRAPH_500_UTILS_H
+#define GRAPH_500_UTILS_H
 
 #include <stddef.h>
 #include <stdint.h>
