@@ -33,6 +33,8 @@
 #include "SpDefs.h"
 #include "CombBLAS.h"
 
+namespace combblas {
+
 //! Fine if either absolute or relative error is small
 template <class T>
 struct ErrorTolerantEqual:
@@ -152,7 +154,6 @@ struct ColLexiCompareWithID:  // struct instead of class so that operator() is p
                         }
                 }
         };
-
-
+}
 
 #endif

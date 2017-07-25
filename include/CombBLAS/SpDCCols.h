@@ -43,7 +43,7 @@
 #include "Friends.h"
 #include "CombBLAS.h"
 #include "FullyDist.h"
-
+namespace combblas {
 
 template <class IT, class NT>
 class SpDCCols: public SpMat<IT, NT, SpDCCols<IT, NT> >
@@ -402,6 +402,7 @@ struct create_trait< SpDCCols<OIT, ONT> , NIT, NNT >
      typedef SpDCCols<NIT,NNT> T_inferred;
 };
 
+}
 #include "SpDCCols.cpp"
 #endif
 

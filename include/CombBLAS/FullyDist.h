@@ -32,8 +32,7 @@
 #include <iostream>
 #include <algorithm>
 #include "myenableif.h"
-using namespace std;
-
+namespace combblas {
 
 template <class IT, class NT, class Enable=void>
 class FullyDist
@@ -271,6 +270,7 @@ IT FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::valu
 		n_thisrow = n_perprocrow;
 
 	return n_thisrow;
+}
 }
 
 #endif

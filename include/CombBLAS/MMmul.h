@@ -29,7 +29,7 @@
 
 #ifndef _MM_MUL_H
 #define _MM_MUL_H
-
+namespace combblas {
 template <class BT>
 struct MMmul
 {
@@ -48,6 +48,7 @@ template <typename BT>
 inline MMmul< BT > operator* (const BT & smm1, const BT & smm2)
 {
 	return MMmul< BT >(smm1,smm2);	//! Just defer the multiplication
+}
 }
 
 #endif

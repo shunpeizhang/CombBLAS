@@ -33,7 +33,7 @@
 #include "PBBS/radixSort.h"
 #endif
 
-
+namespace combblas {
 template <class IT, class NT>
 class Dcsc;
 
@@ -247,6 +247,7 @@ void SpImplNoSR<IT,bool,VT>::SpMXSpV_ForThreading(const Dcsc<IT,bool> & Adcsc, i
 	}
 	delete [] localy;
 	delete [] isthere;
+}
 }
 
 

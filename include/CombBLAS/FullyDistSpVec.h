@@ -40,6 +40,8 @@
 #include "OptBuf.h"
 #include "CombBLAS.h"
 
+namespace combblas {
+
 template <class IT, class NT, class DER>
 class SpParMat;
 
@@ -374,6 +376,7 @@ private:
     friend SpParMat<IU, bool, DER> PermMat1 (const FullyDistSpVec<IU,NU> & ri, const IU ncol, _UnaryOperation __unop);
 };
 
+}
 #include "FullyDistSpVec.cpp"
 #endif
 

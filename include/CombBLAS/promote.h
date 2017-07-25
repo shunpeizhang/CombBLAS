@@ -30,7 +30,7 @@
 #define _PROMOTE_H_
 
 #include "myenableif.h"
-
+namespace combblas {
 template <class T1, class T2, class Enable = void>
 struct promote_trait  { };
 
@@ -81,5 +81,6 @@ DECLARE_PROMOTE(double, double, double);
 DECLARE_PROMOTE(int, int, int);
 DECLARE_PROMOTE(unsigned, unsigned, unsigned);
 DECLARE_PROMOTE(unsigned long long, unsigned long long, unsigned long long);
+}
 
 #endif

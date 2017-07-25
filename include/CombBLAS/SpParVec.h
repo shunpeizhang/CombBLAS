@@ -38,7 +38,7 @@
 #include "Operations.h"
 #include "SpParMat.h"
 #include "promote.h"
-
+namespace combblas {
 template <class IT, class NT, class DER>
 class SpParMat;
 
@@ -242,6 +242,7 @@ class SpParVec {
   template <typename IU>
   friend void RenameVertices(DistEdgeList<IU>& DEL);
 };
+}
 
 #include "SpParVec.cpp"
 #endif

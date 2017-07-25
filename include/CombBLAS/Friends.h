@@ -40,7 +40,8 @@
 #include "SpParHelper.h"
 #include "Compare.h"
 #include "CombBLAS.h"
-using namespace std;
+
+namespace combblas {
 
 template <class IU, class NU>
 class SpTuples;
@@ -1175,6 +1176,7 @@ SpDCCols<IU,RETT> EWiseApply (const SpDCCols<IU,NU1> & A, const SpDCCols<IU,NU2>
 
 	Dcsc<IU, RETT> * tdcsc = new Dcsc<IU, RETT>(EWiseApply<RETT>(A.dcsc, B.dcsc, __binary_op, do_op, allowANulls, allowBNulls, ANullVal, BNullVal, allowIntersect));
 	return 	SpDCCols<IU, RETT> (A.m , A.n, tdcsc);
+}
 }
 
 

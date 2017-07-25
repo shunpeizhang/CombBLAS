@@ -30,6 +30,8 @@
 #include "CombBLAS/CommGrid.h"
 #include "CombBLAS/SpDefs.h"
 
+namespace combblas {
+
 CommGrid::CommGrid(MPI_Comm world, int nrowproc, int ncolproc): grrows(nrowproc), grcols(ncolproc)
 {
 	MPI_Comm_dup(world, &commWorld);
@@ -146,13 +148,13 @@ bool CommGrid::operator== (const CommGrid & rhs) const
 }
 
 
-void CommGrid::OpenDebugFile(string prefix, ofstream & output) const
+void CommGrid::OpenDebugFile(std::string prefix, std::ofstream & output) const
 {
-	stringstream ss;
-	string rank;
+  std::stringstream ss;
+  std::string rank;
 	ss << myrank;
 	ss >> rank;
-	string ofilename = prefix;
+  std::string ofilename = prefix;
 	ofilename += rank;
 	output.open(ofilename.c_str(), ios_base::app );
 }
@@ -174,6 +176,4 @@ shared_ptr<CommGrid> ProductGrid(CommGrid * gridA, CommGrid * gridB, int & inner
 	//return shared_ptr<CommGrid>( new CommGrid(world, gridA->grrows, gridB->grcols) );
     return shared_ptr<CommGrid>( new CommGrid(*gridA) );
 }
-
-
-
+}

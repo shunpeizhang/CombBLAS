@@ -102,6 +102,8 @@
 #define PUPSIZE 141
 #define PUPDATA 142
 
+namespace combblas {
+
 extern int cblas_splits;
 
 enum Dim
@@ -123,5 +125,7 @@ Row
 #ifndef MEMORYINBYTES
 #define MEMORYINBYTES  (196 * 1048576)	// 196 MB, it is advised to define MEMORYINBYTES to be "at most" (1/4)th of available memory per core
 #endif
+
+}
 
 #endif

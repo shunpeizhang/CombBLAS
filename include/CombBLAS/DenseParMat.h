@@ -38,6 +38,8 @@
 #include "DenseParVec.h"
 #include "CombBLAS.h"
 
+namespace combblas {
+
 template <class IU, class NU, class DER>
 class SpParMat;
 
@@ -102,6 +104,7 @@ private:
 	template <class IU, class NU, class DER>
 	friend class SpParMat;
 };
+}
 
 #include "DenseParMat.cpp"
 #endif

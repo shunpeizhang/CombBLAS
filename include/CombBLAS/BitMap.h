@@ -31,7 +31,7 @@
 #define BITMAP_H
 
 #include <stdint.h>
-
+namespace combblas {
 #define WORD_OFFSET(n) (n/64)
 #define BIT_OFFSET(n) (n & 0x3f)
 
@@ -156,5 +156,6 @@ class BitMap {
   uint64_t *start;
   uint64_t *end;
 };
+}
 
 #endif // BITMAP_H

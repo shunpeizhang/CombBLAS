@@ -28,7 +28,7 @@
 
 #ifndef _ISECT_H
 #define _ISECT_H
-
+namespace combblas {
 /**
   * Carries information about the intersecting col(A) and row(B) indices of matrix operands
   **/
@@ -49,6 +49,7 @@ public:
 	{ return (index == rhs.index); }
 };
 
+}
 
 #endif
 

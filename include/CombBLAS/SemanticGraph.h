@@ -50,9 +50,7 @@
 #include "FullyDistVec.h"
 #include "Friends.h"
 #include "Operations.h"
-
-using namespace std;
-using namespace std::tr1;
+namespace combblas {
 
 template <class IT, class NT, class DER>
 class SemanticGraph
@@ -65,6 +63,7 @@ public:
 private:
 	PSpMat SemMat;
 	PVec SemVec;
+}
 }
 
 

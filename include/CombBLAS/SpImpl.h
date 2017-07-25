@@ -31,7 +31,8 @@
 
 #include <iostream>
 #include <vector>
-using namespace std;
+
+namespace combblas {
 
 template <class IT, class NT>
 class Dcsc;
@@ -139,6 +140,7 @@ struct SpImpl<SR, IT, bool, IVT, OVT>  // specialization
                                    int32_t veclen, vector<int32_t>& indy,
                                    vector<OVT>& numy, int32_t offset);
 };
+}
 
 #include "SpImpl.cpp"
 #endif

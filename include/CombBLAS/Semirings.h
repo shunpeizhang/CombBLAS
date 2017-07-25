@@ -34,6 +34,8 @@
 #include <cmath>
 #include "promote.h"
 
+namespace combblas {
+
 template <typename T>
 struct inf_plus{
   T operator()(const T& a, const T& b) const {
@@ -252,6 +254,7 @@ struct MinPlusSRing
 		y = std::min(y, multiply(a, x));
 	}
 };
+}
 
 
 #endif

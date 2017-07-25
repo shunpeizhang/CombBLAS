@@ -2,7 +2,7 @@
 #define PAPI_COMBBLAS_GLOBALS_
 
 #include <papi.h>
-
+namespace combblas {
 
 char spmv_errorstring[PAPI_MAX_STR_LEN+1];
 string bfs_papi_labels = {"SpMV", "fringe_updt", "parents_updt"};
@@ -23,6 +23,7 @@ int combblas_papi_num_events = 4;
 vector< vector< vector<long long> > > bfs_counters;
 vector< vector< vector<long long> > > spmv_counters;
 
+}
 
 
 #endif

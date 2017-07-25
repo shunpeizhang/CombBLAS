@@ -29,7 +29,7 @@
 #ifndef _OPT_BUF_H
 #define _OPT_BUF_H
 #include "BitMap.h"
-
+namespace combblas {
 /**
   * This special data structure is used for optimizing BFS iterations
   * by providing a fixed sized buffer for communication
@@ -128,6 +128,7 @@ public:
 	int totmax;
 	int localm;
 };
+}
 
 #endif
 

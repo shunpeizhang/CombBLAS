@@ -38,7 +38,8 @@
 #include "SpDefs.h"
 #include "StackEntry.h"
 #include "Compare.h"
-using namespace std;
+
+namespace combblas {
 
 template <class IU, class NU>
 class SpDCCols;
@@ -314,5 +315,6 @@ template <> struct promote_trait< SpTuples<int64_t,float> , SpTuples<int64_t,boo
     {
         typedef SpTuples<int64_t,float> T_promote;
     };
+    }
 #include "SpTuples.cpp"
 #endif

@@ -36,8 +36,7 @@
 #include "MPIType.h"
 #include "Friends.h"
 
-using namespace std;
-
+namespace combblas {
 template <class IT, class NT, class DER>
 class SpParMat;
 
@@ -951,6 +950,7 @@ SpParVec<IU,typename promote_trait<NUM,NUV>::T_promote>  SpMV
 		MPI_Gatherv(SpHelper::p2a(numy), mysize, MPIType<T_promote>(), NULL, NULL, NULL, MPIType<T_promote>(), diaginrow, RowWorld);
 	}
 	return y;
+}
 }
 
 #endif

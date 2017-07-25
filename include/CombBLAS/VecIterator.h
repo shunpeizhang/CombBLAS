@@ -31,7 +31,7 @@
 
 #include "FullyDistVec.h"
 #include "FullyDistSpVec.h"
-
+namespace combblas {
 template <class IT, class NT>
 class VectorLocalIterator
 {
@@ -236,6 +236,7 @@ class SparseVectorLocalIterator: public VectorLocalIterator<IT, NT>
 		v.num.push_back(val);
 	}
 };
+}
 
 #include "VecIterator.cpp"
 #endif

@@ -37,7 +37,7 @@
 #include "promote.h"
 #include "LocArr.h"
 
-
+namespace combblas {
 // Forward declaration (required since a friend function returns a SpTuples object)
 template <class IU, class NU>
 class SpTuples;
@@ -130,6 +130,7 @@ protected:
 
 };
 
+}
 #include "SpMat.cpp"
 #endif
 

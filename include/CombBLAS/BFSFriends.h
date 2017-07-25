@@ -41,7 +41,8 @@
 #include "BitMap.h"
 #include "BitMapCarousel.h"
 #include "BitMapFringe.h"
-using namespace std;
+
+namespace combblas {
 
 template <class IT, class NT, class DER>
 class SpParMat;
@@ -575,6 +576,7 @@ void BottomUpStep(SpParMat<IT,bool,UDER> & A, FullyDistSpVec<IT,VT> & x, BitMapF
 		delete[] local_update_heads[t];
 #endif
 	delete[] parent_updates;
+}
 }
 
 #endif

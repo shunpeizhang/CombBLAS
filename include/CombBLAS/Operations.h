@@ -39,12 +39,11 @@
 #include <limits>
 #include "psort-1.0/driver/MersenneTwister.h"
 
-using namespace std;
-
+namespace combblas {
 template<typename T1, typename T2>
 struct equal_first
 {
-    bool operator()(pair<T1,T2> & lhs, pair<T1,T2> & rhs){
+    bool operator()(std::pair<T1,T2> & lhs, std::pair<T1,T2> & rhs){
         return lhs.first == rhs.first;
     }
 };
@@ -294,6 +293,7 @@ struct bitwise_xor : public std::binary_function<T, T, T>
 
 
 
+}
 #endif
 
 

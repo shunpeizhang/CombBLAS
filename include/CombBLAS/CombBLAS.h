@@ -45,31 +45,26 @@
 	#include <boost/tr1/memory.hpp>
 	#include <boost/tr1/unordered_map.hpp>
 	#include <boost/tr1/tuple.hpp>
- 	using namespace boost;
 	#define joker boost	// namespace
 #elif defined(COMBBLAS_TR1)
 	#include <tr1/memory>
 	#include <tr1/unordered_map>
 	#include <tr1/tuple>
  	#include <tr1/type_traits>
-	using namespace std::tr1;
 	#define joker std::tr1
 #elif defined(_MSC_VER) && (_MSC_VER < 1600)
 	#include <memory>
 	#include <unordered_map>
 	#include <tuple>
 	#include <type_traits>
-	using namespace std::tr1;
 	#define joker std::tr1
 #else // C++11
 	#include <memory>
 	#include <unordered_map>
 	#include <tuple>
 	#include <type_traits>
-	using namespace std;
 	#define joker std
 #endif
-using namespace std;
 // for VC2008
 
 
@@ -84,10 +79,29 @@ using namespace std;
 	#include <omp.h>
 #endif
 
+#include "SpDefs.h"
+#include "BitMap.h"
+#include "SpTuples.h"
+#include "SpDCCols.h"
+#include "SpParMat.h"
+#include "FullyDistVec.h"
+#include "FullyDistSpVec.h"
+#include "VecIterator.h"
+#include "ParFriends.h"
+#include "ParFriendsExt.h"
+#include "BFSFriends.h"
+#include "DistEdgeList.h"
+#include "Semirings.h"
+#include "Operations.h"
+#include "MPIOp.h"
+#include "MPIType.h"
+
 
 //#ifdef _MSC_VER
 //#pragma warning( disable : 4244 ) // conversion from 'int64_t' to 'double', possible loss of data
 //#endif
+
+namespace combblas {
 
 extern int cblas_splits;
 extern double cblas_alltoalltime;
@@ -111,21 +125,7 @@ class EWiseExtToPlainAdapter
 	}
 };
 
-#include "SpDefs.h"
-#include "BitMap.h"
-#include "SpTuples.h"
-#include "SpDCCols.h"
-#include "SpParMat.h"
-#include "FullyDistVec.h"
-#include "FullyDistSpVec.h"
-#include "VecIterator.h"
-#include "ParFriends.h"
-#include "ParFriendsExt.h"
-#include "BFSFriends.h"
-#include "DistEdgeList.h"
-#include "Semirings.h"
-#include "Operations.h"
-#include "MPIOp.h"
-#include "MPIType.h"
+}
+
 
 #endif

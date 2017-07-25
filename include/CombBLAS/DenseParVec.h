@@ -37,6 +37,8 @@
 #include "CombBLAS.h"
 #include "CommGrid.h"
 
+namespace combblas {
+
 template <class IT, class NT>
 class SpParVec;
 
@@ -179,6 +181,7 @@ private:
 	template <typename IU>
 	friend void RenameVertices(DistEdgeList<IU> & DEL);
 };
+}
 
 #include "DenseParVec.cpp"
 #endif

@@ -39,6 +39,8 @@
 #include "FullyDist.h"
 #include "Exception.h"
 
+namespace combblas {
+
 template <class IT, class NT>
 class FullyDistSpVec;
 
@@ -320,6 +322,7 @@ private:
     friend void maximumMatching(SpParMat < int64_t, bool, SpDCCols<int32_t,bool> > & A, FullyDistVec<int64_t, int64_t>& mateRow2Col,FullyDistVec<int64_t, int64_t>& mateCol2Row);
 };
 
+}
 #include "FullyDistVec.cpp"
 #endif
 

@@ -28,7 +28,7 @@
 
 #ifndef _LOC_ARR_H_
 #define _LOC_ARR_H_
-
+namespace combblas {
 
 template<class V, class C>
 struct LocArr
@@ -54,6 +54,7 @@ struct Arr
 
 	IT totalsize() { return indarrs.size() + numarrs.size(); }
 };
+}
 
 #endif
 

@@ -37,8 +37,7 @@
 #include "SpParHelper.h"
 #include "SpParMat.h"
 #include "mpi.h"
-
-using namespace std;
+namespace combblas {
 
 template <class IT, class NT, class DER>
 class SpParMat;
@@ -1640,6 +1639,7 @@ FullyDistSpVec<IU, RET> EWiseApply(const FullyDistSpVec<IU, NU1>& V,
       V, W, EWiseExtToPlainAdapter<RET, NU1, NU2, _BinaryOperation>(_binary_op),
       EWiseExtToPlainAdapter<bool, NU1, NU2, _BinaryPredicate>(_doOp),
       allowVNulls, allowWNulls, Vzero, Wzero, allowIntersect, true);
+}
 }
 
 #endif

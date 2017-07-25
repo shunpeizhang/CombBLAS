@@ -28,7 +28,7 @@
 
 #ifndef _SP_CCOLS_H_
 #define _SP_CCOLS_H_
-
+namespace combblas {
 template <class IT, class NT>
 class SpCCols: public SpMat<IT, NT, SpCCols<IT, NT> >
 {
@@ -79,6 +79,7 @@ private:
                                      int32_t * & sendindbuf, OVT * & sendnumbuf, int * & sdispls, int p_c);  //!< sparse vector
 }
 
+}
 #include "SpCCols.cpp"
 #endif
 

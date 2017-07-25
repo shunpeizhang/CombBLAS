@@ -80,7 +80,7 @@
  * rather than being chosen randomly. */
 #define SPK_NOISE_LEVEL 0
 /* #define SPK_NOISE_LEVEL 1000 -- in INITIATOR_DENOMINATOR units */
-
+namespace combblas {
 
 class RefGen21
 {
@@ -314,5 +314,6 @@ public:
 		return seed;
 	}
 };
+}
 
 #endif

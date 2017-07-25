@@ -35,8 +35,7 @@
 #include <mpi.h>
 #include <stdint.h>
 
-using namespace std;
-
+namespace combblas {
 
 // A datatype cache inspired by (mostly copied from) Boost http://www.boost.org/LICENSE_1_0.txt)
 
@@ -129,6 +128,7 @@ template<> MPI_Datatype MPIType< double >( void );
 template<> MPI_Datatype MPIType< long double >( void );
 template<> MPI_Datatype MPIType< bool >( void );
 
+}
 
 
 #endif

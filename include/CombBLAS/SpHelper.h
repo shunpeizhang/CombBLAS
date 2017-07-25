@@ -37,8 +37,7 @@
 #include "Isect.h"
 #include "HeapEntry.h"
 #include "SpImpl.h"
-
-using namespace std;
+namespace combblas {
 
 template <class IT, class NT>
 class Dcsc;
@@ -454,6 +453,7 @@ IT SpHelper::SpColByCol(const Dcsc<IT,NT1> & Adcsc, const Dcsc<IT,NT2> & Bdcsc, 
 	}
 	delete [] aux;
 	return cnz;
+}
 }
 
 
