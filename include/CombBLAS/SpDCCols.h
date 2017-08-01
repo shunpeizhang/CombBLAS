@@ -41,7 +41,7 @@
 #include "MemoryPool.h"
 #include "LocArr.h"
 #include "Friends.h"
-#include "combblas.h"
+#include "CombBLAS.h"
 #include "FullyDist.h"
 namespace combblas {
 
