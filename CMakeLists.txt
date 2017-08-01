@@ -20,7 +20,7 @@ endif (MPI_FOUND)
 find_package(OpenMP REQUIRED)
 
 # include_directories(third-party)
-add_library(CombBLAS src/Commgrid.cpp src/mmio.c src/MPIType.cpp src/MPIOp.cpp src/MemoryPool.cpp src/hash.cpp)
+add_library(CombBLAS src/CommGrid.cpp src/mmio.c src/MPIType.cpp src/MPIOp.cpp src/MemoryPool.cpp src/hash.cpp)
 generate_export_header(CombBLAS)
 set_property(TARGET CombBLAS PROPERTY VERSION ${CombBLAS_VERSION})
 set_property(TARGET CombBLAS PROPERTY SOVERSION 3)
