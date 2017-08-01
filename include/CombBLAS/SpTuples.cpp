@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -30,6 +30,7 @@
 #include "SpParHelper.h"
 #include <iomanip>
 
+namespace combblas {
 
 template <class IT,class NT>
 SpTuples<IT,NT>::SpTuples(int64_t size, IT nRow, IT nCol)
@@ -37,7 +38,7 @@ SpTuples<IT,NT>::SpTuples(int64_t size, IT nRow, IT nCol)
 {
 	if(nnz > 0)
 	{
-		tuples  = new tuple<IT, IT, NT>[nnz];
+		tuples  = new std::tuple<IT, IT, NT>[nnz];
 	}
 	else
 	{
@@ -46,7 +47,7 @@ SpTuples<IT,NT>::SpTuples(int64_t size, IT nRow, IT nCol)
 }
 
 template <class IT,class NT>
-SpTuples<IT,NT>::SpTuples (int64_t size, IT nRow, IT nCol, tuple<IT, IT, NT> * mytuples, bool sorted)
+SpTuples<IT,NT>::SpTuples (int64_t size, IT nRow, IT nCol, std::tuple<IT, IT, NT> * mytuples, bool sorted)
 :tuples(mytuples), m(nRow), n(nCol), nnz(size)
 {
     if(!sorted)
@@ -64,11 +65,11 @@ SpTuples<IT,NT>::SpTuples (int64_t size, IT nRow, IT nCol, tuple<IT, IT, NT> * m
   * NT='countable' (such as short,int): duplicated as summed to keep count
  **/
 template <class IT, class NT>
-SpTuples<IT,NT>::SpTuples (int64_t maxnnz, IT nRow, IT nCol, vector<IT> & edges, bool removeloops):m(nRow), n(nCol)
+SpTuples<IT,NT>::SpTuples (int64_t maxnnz, IT nRow, IT nCol, std::vector<IT> & edges, bool removeloops):m(nRow), n(nCol)
 {
 	if(maxnnz > 0)
 	{
-		tuples  = new tuple<IT, IT, NT>[maxnnz];
+		tuples  = new std::tuple<IT, IT, NT>[maxnnz];
 	}
 	for(int64_t i=0; i<maxnnz; ++i)
 	{
@@ -76,7 +77,7 @@ SpTuples<IT,NT>::SpTuples (int64_t maxnnz, IT nRow, IT nCol, vector<IT> & edges,
 		colindex(i) = edges[2*i+1];
 		numvalue(i) = (NT) 1;
 	}
-	vector<IT>().swap(edges);	// free memory for edges
+	std::vector<IT>().swap(edges);	// free memory for edges
 
 	nnz = maxnnz;	// for now (to sort)
 	SortColBased();
@@ -103,7 +104,7 @@ SpTuples<IT,NT>::SpTuples (int64_t maxnnz, IT nRow, IT nCol, vector<IT> & edges,
 		cnz = j;
 	}
 
-	tuple<IT, IT, NT> * ntuples = new tuple<IT,IT,NT>[nnz];
+	std::tuple<IT, IT, NT> * ntuples = new std::tuple<IT,IT,NT>[nnz];
 	int64_t j = 0;
 	for(int64_t i=0; i<maxnnz; ++i)
 	{
@@ -120,16 +121,16 @@ SpTuples<IT,NT>::SpTuples (int64_t maxnnz, IT nRow, IT nCol, vector<IT> & edges,
 
 /**
   * Generate a SpTuples object from StackEntry array, then delete that array
-  * @param[in] multstack {value-key pairs where keys are pair<col_ind, row_ind> sorted lexicographically}
+  * @param[in] multstack {value-key std::pairs where keys are std::pair<col_ind, row_ind> sorted lexicographically}
   * \remark Since input is column sorted, the tuples are automatically generated in that way too
  **/
 template <class IT, class NT>
-SpTuples<IT,NT>::SpTuples (int64_t size, IT nRow, IT nCol, StackEntry<NT, pair<IT,IT> > * & multstack)
+SpTuples<IT,NT>::SpTuples (int64_t size, IT nRow, IT nCol, StackEntry<NT, std::pair<IT,IT> > * & multstack)
 :m(nRow), n(nCol), nnz(size)
 {
 	if(nnz > 0)
 	{
-		tuples  = new tuple<IT, IT, NT>[nnz];
+		tuples  = new std::tuple<IT, IT, NT>[nnz];
 	}
 	for(int64_t i=0; i<nnz; ++i)
 	{
@@ -152,14 +153,14 @@ SpTuples<IT,NT>::~SpTuples()
 }
 
 /**
-  * Hint1: copy constructor (constructs a new object. i.e. this is NEVER called on an existing object)
+  * Hint1: std::copy constructor (constructs a new object. i.e. this is NEVER called on an existing object)
   * Hint2: Base's default constructor is called under the covers
-  *	  Normally Base's copy constructor should be invoked but it doesn't matter here as Base has no data members
+  *	  Normally Base's std::copy constructor should be invoked but it doesn't matter here as Base has no data members
   */
 template <class IT,class NT>
 SpTuples<IT,NT>::SpTuples(const SpTuples<IT,NT> & rhs): m(rhs.m), n(rhs.n), nnz(rhs.nnz)
 {
-	tuples  = new tuple<IT, IT, NT>[nnz];
+	tuples  = new std::tuple<IT, IT, NT>[nnz];
 	for(IT i=0; i< nnz; ++i)
 	{
 		tuples[i] = rhs.tuples[i];
@@ -179,7 +180,7 @@ SpTuples<IT,NT>::SpTuples (const SpDCCols<IT,NT> & rhs):  m(rhs.m), n(rhs.n), nn
 template <class IT,class NT>
 inline void SpTuples<IT,NT>::FillTuples (Dcsc<IT,NT> * mydcsc)
 {
-	tuples  = new tuple<IT, IT, NT>[nnz];
+	tuples  = new std::tuple<IT, IT, NT>[nnz];
 
 	IT k = 0;
 	for(IT i = 0; i< mydcsc->nzc; ++i)
@@ -213,7 +214,7 @@ SpTuples<IT,NT> & SpTuples<IT,NT>::operator=(const SpTuples<IT,NT> & rhs)
 
 		if(nnz> 0)
 		{
-			tuples  = new tuple<IT, IT, NT>[nnz];
+			tuples  = new std::tuple<IT, IT, NT>[nnz];
 
 			for(IT i=0; i< nnz; ++i)
 			{
@@ -233,14 +234,14 @@ void SpTuples<IT,NT>::RemoveDuplicates(BINFUNC BinOp)
 {
 	if(nnz > 0)
 	{
-		vector< tuple<IT, IT, NT> > summed;
+		std::vector< std::tuple<IT, IT, NT> > summed;
 		summed.push_back(tuples[0]);
 
 		for(IT i=1; i< nnz; ++i)
         	{
-                if((joker::get<0>(summed.back()) == joker::get<0>(tuples[i])) && (joker::get<1>(summed.back()) == joker::get<1>(tuples[i])))
+                if((std::get<0>(summed.back()) == std::get<0>(tuples[i])) && (std::get<1>(summed.back()) == std::get<1>(tuples[i])))
 			{
-				joker::get<2>(summed.back()) = BinOp(joker::get<2>(summed.back()), joker::get<2>(tuples[i]));
+				std::get<2>(summed.back()) = BinOp(std::get<2>(summed.back()), std::get<2>(tuples[i]));
 			}
 			else
 			{
@@ -249,8 +250,8 @@ void SpTuples<IT,NT>::RemoveDuplicates(BINFUNC BinOp)
 			}
                 }
 		delete [] tuples;
-		tuples  = new tuple<IT, IT, NT>[summed.size()];
-		copy(summed.begin(), summed.end(), tuples);
+		tuples  = new std::tuple<IT, IT, NT>[summed.size()];
+		std::copy(summed.begin(), summed.end(), tuples);
 	}
 }
 
@@ -258,9 +259,9 @@ void SpTuples<IT,NT>::RemoveDuplicates(BINFUNC BinOp)
 //! Loads a triplet matrix from infile
 //! \remarks Assumes matlab type indexing for the input (i.e. indices start from 1)
 template <class IT,class NT>
-ifstream& SpTuples<IT,NT>::getstream (ifstream& infile)
+std::ifstream& SpTuples<IT,NT>::getstream (std::ifstream& infile)
 {
-	cout << "Getting... SpTuples" << endl;
+	std::cout << "Getting... SpTuples" << std::endl;
 	IT cnz = 0;
 	if (infile.is_open())
 	{
@@ -273,7 +274,7 @@ ifstream& SpTuples<IT,NT>::getstream (ifstream& infile)
 
 			if((rowindex(cnz) > m) || (colindex(cnz)  > n))
 			{
-				cerr << "supplied matrix indices are beyond specified boundaries, aborting..." << endl;
+				std::cerr << "supplied matrix indices are beyond specified boundaries, aborting..." << std::endl;
 			}
 			++cnz;
 		}
@@ -281,7 +282,7 @@ ifstream& SpTuples<IT,NT>::getstream (ifstream& infile)
 	}
 	else
 	{
-		cerr << "input file is not open!" << endl;
+		std::cerr << "input file is not open!" << std::endl;
 	}
 	return infile;
 }
@@ -289,13 +290,13 @@ ifstream& SpTuples<IT,NT>::getstream (ifstream& infile)
 //! Output to a triplets file
 //! \remarks Uses matlab type indexing for the output (i.e. indices start from 1)
 template <class IT,class NT>
-ofstream& SpTuples<IT,NT>::putstream(ofstream& outfile) const
+std::ofstream& SpTuples<IT,NT>::putstream(std::ofstream& outfile) const
 {
-	outfile << m <<"\t"<< n <<"\t"<< nnz<<endl;
+	outfile << m <<"\t"<< n <<"\t"<< nnz<<std::endl;
 	for (IT i = 0; i < nnz; ++i)
 	{
 		outfile << rowindex(i)+1  <<"\t"<< colindex(i)+1 <<"\t"
-			<< numvalue(i) << endl;
+			<< numvalue(i) << std::endl;
 	}
 	return outfile;
 }
@@ -303,22 +304,22 @@ ofstream& SpTuples<IT,NT>::putstream(ofstream& outfile) const
 template <class IT,class NT>
 void SpTuples<IT,NT>::PrintInfo()
 {
-	cout << "This is a SpTuples class" << endl;
+	std::cout << "This is a SpTuples class" << std::endl;
 
-	cout << "m: " << m ;
-	cout << ", n: " << n ;
-	cout << ", nnz: "<< nnz << endl;
+	std::cout << "m: " << m ;
+	std::cout << ", n: " << n ;
+	std::cout << ", nnz: "<< nnz << std::endl;
 
 	for(IT i=0; i< nnz; ++i)
 	{
 		if(rowindex(i) < 0 || colindex(i) < 0)
 		{
-			cout << "Negative index at " << i << endl;
+			std::cout << "Negative index at " << i << std::endl;
 			return;
 		}
 		else if(rowindex(i) >= m || colindex(i) >= n)
 		{
-			cout << "Index " << i << " too big with values (" << rowindex(i) << ","<< colindex(i) << ")" << endl;
+			std::cout << "Index " << i << " too big with values (" << rowindex(i) << ","<< colindex(i) << ")" << std::endl;
 		}
 	}
 
@@ -337,11 +338,13 @@ void SpTuples<IT,NT>::PrintInfo()
 		{
                         for(IT j=0; j<n; ++j)
 			{
-                                cout << setiosflags(ios::fixed) << setprecision(2) << A[i][j];
-				cout << " ";
+                                std::cout << setiosflags(std::ios::fixed) << std::setprecision(2) << A[i][j];
+				std::cout << " ";
 			}
-			cout << endl;
+			std::cout << std::endl;
 		}
 		SpHelper::deallocate2D(A,m);
 	}
+}
+
 }

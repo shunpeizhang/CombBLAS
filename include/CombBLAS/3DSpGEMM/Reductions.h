@@ -4,12 +4,12 @@
 
 #include <mpi.h>
 #include <sys/time.h>
-#include <iostream>
+#include<iostream>
 #include <iomanip>
 #include <functional>
 #include <algorithm>
-#include <vector>
-#include <string>
+#include<vector>
+#include<string>
 #include <sstream>
 
 
@@ -47,12 +47,12 @@ SpTuples<IT,NT> * ParallelReduce_Alltoall_threaded(MPI_Comm & fibWorld, SpTuples
     }
     
     
-    // ------------ find splitters to distributed across layers -----------
+    // ------------ std::find splitters to distributed across layers -----------
     comp_begin = MPI_Wtime();
-    vector<int> send_sizes(fprocs);
-    vector<int> recv_sizes(fprocs);
-    vector<int> recv_offsets(fprocs);
-    vector<int> send_offsets = findColSplitters<int>(localmerged, fprocs);
+    std::vector<int> send_sizes(fprocs);
+    std::vector<int> recv_sizes(fprocs);
+    std::vector<int> recv_offsets(fprocs);
+    std::vector<int> send_offsets = findColSplitters<int>(localmerged, fprocs);
     for(int i=0; i<fprocs; i++)
     {
         send_sizes[i] = send_offsets[i+1] - send_offsets[i];
@@ -65,7 +65,7 @@ SpTuples<IT,NT> * ParallelReduce_Alltoall_threaded(MPI_Comm & fibWorld, SpTuples
     MPI_Alltoall( send_sizes.data(), 1, MPI_INT, recv_sizes.data(), 1, MPI_INT,fibWorld);
     comm_time += (MPI_Wtime() - comm_begin);
     MPI_Datatype MPI_triple;
-    MPI_Type_contiguous(sizeof(tuple<IT,IT,NT>), MPI_CHAR, &MPI_triple);
+    MPI_Type_contiguous(sizeof(std::tuple<IT,IT,NT>), MPI_CHAR, &MPI_triple);
     MPI_Type_commit(&MPI_triple);
     
     
@@ -76,7 +76,7 @@ SpTuples<IT,NT> * ParallelReduce_Alltoall_threaded(MPI_Comm & fibWorld, SpTuples
     {
         recv_count += recv_sizes[i];
     }
-    tuple<IT,IT,NT> * recvbuf = static_cast<tuple<IT, IT, NT>*> (::operator new (sizeof(tuple<IT, IT, NT>[recv_count])));
+    std::tuple<IT,IT,NT> * recvbuf = static_cast<std::tuple<IT, IT, NT>*> (::operator new (sizeof(std::tuple<IT, IT, NT>[recv_count])));
     
     recv_offsets[0] = 0;
     for( int i = 1; i < fprocs; i++ )
@@ -106,8 +106,8 @@ SpTuples<IT,NT> * ParallelReduce_Alltoall_threaded(MPI_Comm & fibWorld, SpTuples
     }
     
     
-    // -------- create vector of SpTuples for MultiwayMerge ----------
-    vector< SpTuples<IT,NT>* > lists;
+    // -------- create std::vector of SpTuples for MultiwayMerge ----------
+    std::vector< SpTuples<IT,NT>* > lists;
     for(int i=0; i< fprocs; ++i)
     {
         SpTuples<IT, NT>* spTuples = new SpTuples<IT, NT> (recv_sizes[i], mdim, ndimSplit, &recvbuf[recv_offsets[i]], true); // If needed pass an empty object of proper dimension
@@ -130,7 +130,7 @@ SpTuples<IT,NT> * ParallelReduce_Alltoall_threaded(MPI_Comm & fibWorld, SpTuples
 
 
 template <typename NT, typename IT>
-SpDCCols<IT,NT> * ReduceAll_threaded(vector< SpTuples<IT,NT>* > & unreducedC, CCGrid & CMG)
+SpDCCols<IT,NT> * ReduceAll_threaded(std::vector< SpTuples<IT,NT>* > & unreducedC, CCGrid & CMG)
 {
 	typedef PlusTimesSRing<double, double> PTDD;
     IT mdim = unreducedC[0]->getnrow();

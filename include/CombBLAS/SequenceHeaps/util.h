@@ -8,8 +8,7 @@
 // some little utilities for debugging adapted
 // to the paros conventions
 
-#include <iostream>
-using namespace std;
+#include<iostream>
 
 #ifndef UTIL
 #define UTIL
@@ -22,41 +21,41 @@ using namespace std;
 #if DEBUGLEVEL >= 0
 #define Debug0(A) A
 #else
-#define Debug0(A) 
+#define Debug0(A)
 #endif
 #if DEBUGLEVEL >= 1
 #define Debug1(A) A
 #else
-#define Debug1(A) 
+#define Debug1(A)
 #endif
 #if DEBUGLEVEL >= 2
 #define Debug2(A) A
 #else
-#define Debug2(A) 
+#define Debug2(A)
 #endif
 #if DEBUGLEVEL >= 3
 #define Debug3(A) A
 #else
-#define Debug3(A) 
+#define Debug3(A)
 #endif
 #if DEBUGLEVEL >= 4
 #define Debug4(A) A
 #else
-#define Debug4(A) 
+#define Debug4(A)
 #endif
 #if DEBUGLEVEL >= 5
 #define Debug5(A) A
 #else
-#define Debug5(A) 
+#define Debug5(A)
 #endif
 #if DEBUGLEVEL >= 6
 #define Debug6(A) A
 #else
-#define Debug6(A) 
+#define Debug6(A)
 #endif
 
 #define Assert(c) if(!(c))\
-  {cout << "\nAssertion violation " << __FILE__ << ":" << __LINE__ << endl;}
+  {std::cout << "\nAssertion violation " << __FILE__ << ":" << __LINE__ << std::endl;}
 #define Assert0(C) Debug0(Assert(C))
 #define Assert1(C) Debug1(Assert(C))
 #define Assert2(C) Debug2(Assert(C))
@@ -64,9 +63,9 @@ using namespace std;
 #define Assert4(C) Debug4(Assert(C))
 #define Assert5(C) Debug5(Assert(C))
 
-#define Error(s) {cout << "\nError:" << s << " " << __FILE__ << ":" << __LINE__ << endl;}
+#define Error(s) {std::cout << "\nError:" << s << " " << __FILE__ << ":" << __LINE__ << std::endl;}
 
-////////////// min, max etc. //////////////////////////////////////
+////////////// std::min, max etc. //////////////////////////////////////
 
 #ifndef Max
 #define Max(x,y) ((x)>=(y)?(x):(y))
@@ -84,7 +83,7 @@ using namespace std;
 #define PI 3.1415927
 #endif
 
-// is this the right definition of limit?
+// is this the std::right definition of limit?
 inline double limit(double x, double bound)
 {
   if      (x >  bound) { return  bound; }
@@ -101,7 +100,7 @@ inline double limit(double x, double bound)
 inline double wallClockTime()
 { // struct timespec tp;
 
-  timeval tim;            
+  timeval tim;
   gettimeofday(&tim, NULL);
   double t1=tim.tv_sec+(tim.tv_usec/1000000.0);
   return t1;

@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2015, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -30,7 +30,7 @@
 #define _DCSC_H
 
 #include <cstdlib>
-#include <vector>
+#include<vector>
 #include <limits>
 #include <cassert>
 #include "SpDefs.h"
@@ -49,10 +49,10 @@ public:
 	Dcsc ();
 	Dcsc (IT nnz, IT nzcol);
 
-	Dcsc (IT nnz, const vector<IT> & indices, bool isRow); 	//!< Create a logical matrix from (row/column) indices vector
-	Dcsc (StackEntry<NT, pair<IT,IT> > * multstack, IT mdim, IT ndim, IT nnz);
+	Dcsc (IT nnz, const std::vector<IT> & indices, bool isRow); 	//!< Create a logical matrix from (row/column) indices std::vector
+	Dcsc (StackEntry<NT, std::pair<IT,IT> > * multstack, IT mdim, IT ndim, IT nnz);
 
-	Dcsc (const Dcsc<IT,NT> & rhs);				// copy constructor
+	Dcsc (const Dcsc<IT,NT> & rhs);				// std::copy constructor
 	Dcsc<IT,NT> & operator=(const Dcsc<IT,NT> & rhs);	// assignment operator
 	Dcsc<IT,NT> & operator+=(const Dcsc<IT,NT> & rhs);	// add and assign operator
 	~Dcsc();
@@ -70,7 +70,7 @@ public:
 	template <typename _UnaryOperation>
 	void Apply(_UnaryOperation __unary_op)
 	{
-		transform(numx, numx+nz, numx, __unary_op);
+		std::transform(numx, numx+nz, numx, __unary_op);
 	}
 
 	template <typename _UnaryOperation, typename GlobalIT>
@@ -81,7 +81,7 @@ public:
 	IT AuxIndex(const IT colind, bool & found, IT * aux, IT csize) const;
 
 	void RowSplit(int numsplits);
-    void ColSplit(vector< Dcsc<IT,NT>* > & parts, vector<IT> & cuts);
+    void ColSplit(std::vector< Dcsc<IT,NT>* > & parts, std::vector<IT> & cuts);
 
 	void Split(Dcsc<IT,NT> * & A, Dcsc<IT,NT> * & B, IT cut); 	//! \todo{special case of ColSplit, to be deprecated...}
 	void Merge(const Dcsc<IT,NT> * Adcsc, const Dcsc<IT,NT> * B, IT cut);
@@ -90,9 +90,9 @@ public:
 	void Resize(IT nzcnew, IT nznew);
 
 	template<class VT>
-	void FillColInds(const VT * colnums, IT nind, vector< pair<IT,IT> > & colinds, IT * aux, IT csize) const;
+	void FillColInds(const VT * colnums, IT nind, std::vector< std::pair<IT,IT> > & colinds, IT * aux, IT csize) const;
 
-	Dcsc<IT,NT> & AddAndAssign (StackEntry<NT, pair<IT,IT> > * multstack, IT mdim, IT ndim, IT nnz);
+	Dcsc<IT,NT> & AddAndAssign (StackEntry<NT, std::pair<IT,IT> > * multstack, IT mdim, IT ndim, IT nnz);
 
 	template <typename _BinaryOperation>
 	void UpdateDense(NT ** array, _BinaryOperation __binary_op) const;	// update dense 2D array's entries with __binary_op using elements of "this"
@@ -111,7 +111,7 @@ public:
     bool memowned;
 
 private:
-	void getindices (StackEntry<NT, pair<IT,IT> > * multstack, IT & rindex, IT & cindex, IT & j, IT nnz);
+	void getindices (StackEntry<NT, std::pair<IT,IT> > * multstack, IT & rindex, IT & cindex, IT & j, IT nnz);
 };
 
 }

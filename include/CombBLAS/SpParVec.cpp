@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -30,10 +30,11 @@
 #include "SpParVec.h"
 #include "SpDefs.h"
 #include "SpHelper.h"
-using namespace std;
+
+namespace combblas {
 
 template <class IT, class NT>
-SpParVec<IT, NT>::SpParVec ( shared_ptr<CommGrid> grid): commGrid(grid), length(0), NOT_FOUND(numeric_limits<NT>::min())
+SpParVec<IT, NT>::SpParVec ( std::shared_ptr<CommGrid> grid): commGrid(grid), length(0), NOT_FOUND(std::numeric_limits<NT>::min())
 {
 	if(commGrid->GetRankInProcRow() == commGrid->GetRankInProcCol())
 		diagonal = true;
@@ -42,7 +43,7 @@ SpParVec<IT, NT>::SpParVec ( shared_ptr<CommGrid> grid): commGrid(grid), length(
 };
 
 template <class IT, class NT>
-SpParVec<IT, NT>::SpParVec ( shared_ptr<CommGrid> grid, IT loclen): commGrid(grid), NOT_FOUND(numeric_limits<NT>::min())
+SpParVec<IT, NT>::SpParVec ( std::shared_ptr<CommGrid> grid, IT loclen): commGrid(grid), NOT_FOUND(std::numeric_limits<NT>::min())
 {
 	if(commGrid->GetRankInProcRow() == commGrid->GetRankInProcCol())
 	{
@@ -57,7 +58,7 @@ SpParVec<IT, NT>::SpParVec ( shared_ptr<CommGrid> grid, IT loclen): commGrid(gri
 };
 
 template <class IT, class NT>
-SpParVec<IT, NT>::SpParVec (): length(0), NOT_FOUND(numeric_limits<NT>::min())
+SpParVec<IT, NT>::SpParVec (): length(0), NOT_FOUND(std::numeric_limits<NT>::min())
 {
 	commGrid.reset(new CommGrid(MPI_COMM_WORLD, 0, 0));
 
@@ -68,7 +69,7 @@ SpParVec<IT, NT>::SpParVec (): length(0), NOT_FOUND(numeric_limits<NT>::min())
 };
 
 template <class IT, class NT>
-SpParVec<IT, NT>::SpParVec (IT loclen): NOT_FOUND(numeric_limits<NT>::min())
+SpParVec<IT, NT>::SpParVec (IT loclen): NOT_FOUND(std::numeric_limits<NT>::min())
 {
 	commGrid.reset(new CommGrid(MPI_COMM_WORLD, 0, 0));
 	if(commGrid->GetRankInProcRow() == commGrid->GetRankInProcCol())
@@ -110,12 +111,12 @@ NT SpParVec<IT,NT>::operator[](IT indx) const
 		IT offset = dgrank * n_perproc;
 
 		IT owner = (indx) / n_perproc;
-		owner = std::min(owner, nprocs-1);	// find its owner
+		owner = std::min(owner, nprocs-1);	// std::find its owner
 		NT diagval;
 		if(owner == dgrank)
 		{
 			IT locindx = indx-offset;
-			typename vector<IT>::const_iterator it = lower_bound(ind.begin(), ind.end(), locindx);	// ind is a sorted vector
+			typename std::vector<IT>::const_iterator it = std::lower_bound(ind.begin(), ind.end(), locindx);	// ind is a sorted std::vector
 			if(it != ind.end() && locindx == (*it))	// found
 			{
 				diagval = num[it-ind.begin()];
@@ -152,7 +153,7 @@ void SpParVec<IT,NT>::SetElement (IT indx, NT numx)
 		if(owner == dgrank) // insert if this process is the owner
 		{
 			IT locindx = indx-(dgrank*n_perproc);
-			typename vector<IT>::iterator iter = lower_bound(ind.begin(), ind.end(), locindx);
+			typename std::vector<IT>::iterator iter = std::lower_bound(ind.begin(), ind.end(), locindx);
 			if(iter == ind.end())	// beyond limits, insert from back
 			{
 				ind.push_back(locindx);
@@ -193,11 +194,11 @@ SpParVec<IT,NT> SpParVec<IT,NT>::operator() (const SpParVec<IT,IT> & ri) const
 		MPI_Comm_rank(DiagWorld, &dgrank);
 		MPI_Comm_size(DiagWorld, &nprocs);
 		IT n_perproc = getTypicalLocLength();
-		vector< vector<IT> > data_req(nprocs);
+		std::vector< std::vector<IT> > data_req(nprocs);
 		for(IT i=0; i < ri.num.size(); ++i)
 		{
 			int owner = (ri.num[i]) / n_perproc;	// numerical values in ri are 0-based
-			int rec = std::min(owner, nprocs-1);	// find its owner
+			int rec = std::min(owner, nprocs-1);	// std::find its owner
 			data_req[rec].push_back(ri.num[i] - (rec * n_perproc));
 		}
 		IT * sendbuf = new IT[ri.num.size()];
@@ -217,11 +218,11 @@ SpParVec<IT,NT> SpParVec<IT,NT>::operator() (const SpParVec<IT,IT> & ri) const
 			sdispls[i+1] = sdispls[i] + sendcnt[i];
 			rdispls[i+1] = rdispls[i] + recvcnt[i];
 		}
-		IT totrecv = accumulate(recvcnt,recvcnt+nprocs,0);
+		IT totrecv = std::accumulate(recvcnt,recvcnt+nprocs,0);
 		IT * recvbuf = new IT[totrecv];
 
 		for(int i=0; i<nprocs; ++i)
-			copy(data_req[i].begin(), data_req[i].end(), sendbuf+sdispls[i]);
+			std::copy(data_req[i].begin(), data_req[i].end(), sendbuf+sdispls[i]);
 
 		MPI_Alltoallv(sendbuf, sendcnt, sdispls, MPIType<IT>(), recvbuf, recvcnt, rdispls, MPIType<IT>(), DiagWorld);  // request data
 
@@ -232,11 +233,11 @@ SpParVec<IT,NT> SpParVec<IT,NT>::operator() (const SpParVec<IT,IT> & ri) const
 		NT * databack = new NT[totrecv];
 
 		int * ddispls = new int[nprocs];
-		copy(rdispls, rdispls+nprocs, ddispls);
+		std::copy(rdispls, rdispls+nprocs, ddispls);
 		for(int i=0; i<nprocs; ++i)
 		{
-			// this is not the most efficient method because it scans ind vector nprocs = sqrt(p) times
-			IT * it = set_intersection(recvbuf+rdispls[i], recvbuf+rdispls[i]+recvcnt[i], ind.begin(), ind.end(), indsback+rdispls[i]);
+			// this is not the most efficient method because it scans ind std::vector nprocs = sqrt(p) times
+			IT * it = std::set_intersection(recvbuf+rdispls[i], recvbuf+rdispls[i]+recvcnt[i], ind.begin(), ind.end(), indsback+rdispls[i]);
 			recvcnt[i] = (it - (indsback+rdispls[i]));	// update with size of the intersection
 
 			IT vi = 0;
@@ -303,7 +304,7 @@ SpParVec<IT, IT> SpParVec<IT, NT>::sort()
 	if(DiagWorld != MPI_COMM_NULL) // Diagonal processors only
 	{
 		IT nnz = ind.size();
-		pair<IT,IT> * vecpair = new pair<IT,IT>[nnz];
+		std::pair<IT,IT> * vecpair = new std::pair<IT,IT>[nnz];
 
 		int dgrank, nprocs;
 		MPI_Comm_rank(DiagWorld, &dgrank);
@@ -312,7 +313,7 @@ SpParVec<IT, IT> SpParVec<IT, NT>::sort()
 		IT * dist = new IT[nprocs];
 		dist[dgrank] = nnz;
 		MPI_Allgather(MPI_IN_PLACE, 1, MPIType<IT>(), dist, 1, MPIType<IT>(), DiagWorld);
-		IT lengthuntil = accumulate(dist, dist+dgrank, static_cast<IT>(0));
+		IT lengthuntil = std::accumulate(dist, dist+dgrank, static_cast<IT>(0));
 		for(size_t i=0; i<nnz; ++i)
 		{
 			vecpair[i].first = num[i];	// we'll sort wrt numerical values
@@ -323,8 +324,8 @@ SpParVec<IT, IT> SpParVec<IT, NT>::sort()
     		vpsort::parallel_sort (vecpair, vecpair + nnz,  dist_in, DiagWorld);
 		DeleteAll(dist_in,dist);
 
-		vector< IT > nind(nnz);
-		vector< IT > nnum(nnz);
+		std::vector< IT > nind(nnz);
+		std::vector< IT > nnum(nnz);
 		for(size_t i=0; i<nnz; ++i)
 		{
 			num[i] = vecpair[i].first;	// sorted range
@@ -349,21 +350,21 @@ SpParVec<IT,NT> & SpParVec<IT, NT>::operator+=(const SpParVec<IT,NT> & rhs)
 		{
 			if(length != rhs.length)
 			{
-				cerr << "Vector dimensions don't match for addition\n";
+				std::cerr << "Vector dimensions don't match for addition\n";
 				return *this;
 			}
 			IT lsize = ind.size();
 			IT rsize = rhs.ind.size();
 
-			vector< IT > nind;
-			vector< NT > nnum;
+			std::vector< IT > nind;
+			std::vector< NT > nnum;
 			nind.reserve(lsize+rsize);
 			nnum.reserve(lsize+rsize);
 
 			IT i=0, j=0;
 			while(i < lsize && j < rsize)
 			{
-				// assignment won't change the size of vector, push_back is necessary
+				// assignment won't change the size of std::vector, push_back is necessary
 				if(ind[i] > rhs.ind[j])
 				{
 					nind.push_back( rhs.ind[j] );
@@ -398,7 +399,7 @@ SpParVec<IT,NT> & SpParVec<IT, NT>::operator+=(const SpParVec<IT,NT> & rhs)
 	{
 		if(diagonal)
 		{
-			typename vector<NT>::iterator it;
+			typename std::vector<NT>::iterator it;
 			for(it = num.begin(); it != num.end(); ++it)
 				(*it) *= 2;
 		}
@@ -414,21 +415,21 @@ SpParVec<IT,NT> & SpParVec<IT, NT>::operator-=(const SpParVec<IT,NT> & rhs)
 		{
 			if(length != rhs.length)
 			{
-				cerr << "Vector dimensions don't match for addition\n";
+				std::cerr << "Vector dimensions don't match for addition\n";
 				return *this;
 			}
 			IT lsize = ind.size();
 			IT rsize = rhs.ind.size();
 
-			vector< IT > nind;
-			vector< NT > nnum;
+			std::vector< IT > nind;
+			std::vector< NT > nnum;
 			nind.reserve(lsize+rsize);
 			nnum.reserve(lsize+rsize);
 
 			IT i=0, j=0;
 			while(i < lsize && j < rsize)
 			{
-				// assignment won't change the size of vector, push_back is necessary
+				// assignment won't change the size of std::vector, push_back is necessary
 				if(ind[i] > rhs.ind[j])
 				{
 					nind.push_back( rhs.ind[j] );
@@ -472,7 +473,7 @@ SpParVec<IT,NT> & SpParVec<IT, NT>::operator-=(const SpParVec<IT,NT> & rhs)
 
 //! Called on an existing object
 template <class IT, class NT>
-ifstream& SpParVec<IT,NT>::ReadDistribute (ifstream& infile, int master)
+std::ifstream& SpParVec<IT,NT>::ReadDistribute (std::ifstream& infile, int master)
 {
 	length = 0;	// will be updated for diagonal processors
 	IT total_n, total_nnz, n_perproc;
@@ -499,7 +500,7 @@ ifstream& SpParVec<IT,NT>::ReadDistribute (ifstream& infile, int master)
 			vals = new NT [ buffperneigh * neighs ];
 
 			curptrs = new int[neighs];
-			fill_n(curptrs, neighs, 0);	// fill with zero
+			std::fill_n(curptrs, neighs, 0);	// std::fill with zero
 
 			if (infile.is_open())
 			{
@@ -528,7 +529,7 @@ ifstream& SpParVec<IT,NT>::ReadDistribute (ifstream& infile, int master)
 						// first, send the receive counts ...
 						MPI_Scatter(curptrs, 1, MPI_INT, &recvcount, 1, MPI_INT, master, DiagWorld);
 
-						// generate space for own recv data ... (use arrays because vector<bool> is cripled, if NT=bool)
+						// generate space for own recv data ... (use arrays because std::vector<bool> is cripled, if NT=bool)
 						IT * tempinds = new IT[recvcount];
 						NT * tempvals = new NT[recvcount];
 
@@ -545,7 +546,7 @@ ifstream& SpParVec<IT,NT>::ReadDistribute (ifstream& infile, int master)
 						}
 
 						// reset current pointers so that we can reuse {inds,vals} buffers
-						fill_n(curptrs, neighs, 0);
+						std::fill_n(curptrs, neighs, 0);
 						DeleteAll(tempinds, tempvals);
 					}
 					++ cnz;
@@ -553,7 +554,7 @@ ifstream& SpParVec<IT,NT>::ReadDistribute (ifstream& infile, int master)
 				assert (cnz == total_nnz);
 
 				// Signal the end of file to other processors along the diagonal
-				fill_n(curptrs, neighs, numeric_limits<int>::max());
+				std::fill_n(curptrs, neighs, std::numeric_limits<int>::max());
 				MPI_Scatter(curptrs, 1, MPI_INT, &recvcount, 1, MPI_INT, master, DiagWorld);
 			}
 			else	// input file does not exist !
@@ -573,7 +574,7 @@ ifstream& SpParVec<IT,NT>::ReadDistribute (ifstream& infile, int master)
 				// first receive the receive counts ...
 				MPI_Scatter(curptrs, 1, MPI_INT, &recvcount, 1, MPI_INT, master, DiagWorld);
 
-				if( recvcount == numeric_limits<int>::max())
+				if( recvcount == std::numeric_limits<int>::max())
 					break;
 
 				// create space for incoming data ...
@@ -626,7 +627,7 @@ IT SpParVec<IT,NT>::getTypicalLocLength() const
                 n_perproc = length;
                 if (dgrank == nprocs-1 && nprocs > 1)
                 {
-                        // the local length on the last processor will be greater than the others if the vector length is not evenly divisible
+                        // the local length on the last processor will be std::greater than the others if the std::vector length is not evenly divisible
                         // but for these calculations we need that length
 			MPI_Recv(&n_perproc, 1, MPIType<IT>(), 0, 1, DiagWorld, MPI_STATUS_IGNORE);
                 }
@@ -652,7 +653,7 @@ NT SpParVec<IT,NT>::Reduce(_BinaryOperation __binary_op, NT init)
 }
 
 template <class IT, class NT>
-void SpParVec<IT,NT>::PrintInfo(string vectorname) const
+void SpParVec<IT,NT>::PrintInfo(std::string vectorname) const
 {
 	IT nznz = getnnz();
 	IT totl = getTotalLength();
@@ -660,7 +661,7 @@ void SpParVec<IT,NT>::PrintInfo(string vectorname) const
 	if(diagonal)
 	{
 		if (commGrid->GetRank() == 0)
-			cout << "As a whole, " << vectorname << " has: " << nznz << " nonzeros and length " << totl << endl;
+			std::cout << "As a whole, " << vectorname << " has: " << nznz << " nonzeros and length " << totl << std::endl;
 	}
 }
 
@@ -684,11 +685,11 @@ void SpParVec<IT,NT>::DebugPrint()
 		{
 			if (i == dgrank)
 			{
-				cout << "stored on proc " << dgrank << "," << dgrank << ":" << endl;
+				std::cout << "stored on proc " << dgrank << "," << dgrank << ":" << std::endl;
 
 				for (int j = 0; j < ind.size(); j++)
 				{
-					cout << "Element #" << (j+offset) << ": [" << (ind[j]) << "] = " << num[j] << endl;
+					std::cout << "Element #" << (j+offset) << ": [" << (ind[j]) << "] = " << num[j] << std::endl;
 				}
 			}
 			offset += all_nnzs[i];
@@ -696,6 +697,8 @@ void SpParVec<IT,NT>::DebugPrint()
 		}
 		MPI_Barrier(DiagWorld);
 		if (dgrank == 0)
-			cout << "total size: " << offset << endl;
+			std::cout << "total size: " << offset << std::endl;
 	}
+}
+
 }

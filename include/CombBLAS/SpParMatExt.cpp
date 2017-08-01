@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -34,12 +34,13 @@
 #include <fstream>
 #include <algorithm>
 #include <stdexcept>
-using namespace std;
+
+namespace combblas {
 
 /**
  * Generalized sparse matrix indexing (ri/ci are 0-based indexed)
  * Both the storage and the actual values in SpParVec should be IT
- * The index vectors are distributed on diagonal processors
+ * The index std::vectors are distributed on diagonal processors
  * We can use this function to apply a permutation like A(p,q)
  * Sequential indexing subroutine (via multiplication) is general enough.
  */
@@ -76,7 +77,7 @@ SpParMat<IT,NT,DER> SpParMat<IT,NT,DER>::operator() (const SpParVec<IT,IT> & ri,
 	MPI_Sendrecv(&mylocalrows, 1, MPIType<IT>(), diagneigh, TRROWX, &trlocalrows, 1, MPIType<IT>(), diagneigh, TRROWX, commGrid->GetWorld(), &status);
 	MPI_Sendrecv(&mylocalcols, 1, MPIType<IT>(), diagneigh, TRCOLX, &trlocalcols, 1, MPIType<IT>(), diagneigh, TRCOLX, commGrid->GetWorld(), &status);
 
-	if(ri.diagonal)		// only the diagonal processors hold vectors
+	if(ri.diagonal)		// only the diagonal processors hold std::vectors
 	{
 		// broadcast the size
 		rilen = ri.ind.size();
@@ -84,12 +85,12 @@ SpParMat<IT,NT,DER> SpParMat<IT,NT,DER>::operator() (const SpParVec<IT,IT> & ri,
 		MPI_Bcast(&rilen, 1, MPIType<IT>(), diaginrow, commGrid->rowWorld);
 		MPI_Bcast(&cilen, 1, MPIType<IT>(), diagincol, commGrid->colWorld);
 
-		vector< vector<IT> > rowdata_rowid(rowneighs);
-		vector< vector<IT> > rowdata_colid(rowneighs);
-		vector< vector<IT> > coldata_rowid(colneighs);
-		vector< vector<IT> > coldata_colid(colneighs);
+		std::vector< std::vector<IT> > rowdata_rowid(rowneighs);
+		std::vector< std::vector<IT> > rowdata_colid(rowneighs);
+		std::vector< std::vector<IT> > coldata_rowid(colneighs);
+		std::vector< std::vector<IT> > coldata_colid(colneighs);
 
-		IT locvecr = ri.ind.size();	// nnz in local vector
+		IT locvecr = ri.ind.size();	// nnz in local std::vector
 		for(IT i=0; i < locvecr; ++i)
 		{
 			// numerical values (permutation indices) are 0-based
@@ -144,16 +145,16 @@ SpParMat<IT,NT,DER> SpParMat<IT,NT,DER>::operator() (const SpParVec<IT,IT> & ri,
 		}
 		DeleteAll(pcnts, qcnts);
 
-		tuple<IT,IT,bool> * p_tuples = new tuple<IT,IT,bool>[p_nnz];
+		std::tuple<IT,IT,bool> * p_tuples = new std::tuple<IT,IT,bool>[p_nnz];
 		for(IT i=0; i< p_nnz; ++i)
 		{
-			p_tuples[i] = make_tuple(rowdata_rowid[diaginrow][i], rowdata_colid[diaginrow][i], 1);
+			p_tuples[i] = std::make_tuple(rowdata_rowid[diaginrow][i], rowdata_colid[diaginrow][i], 1);
 		}
 
-		tuple<IT,IT,bool> * q_tuples = new tuple<IT,IT,bool>[q_nnz];
+		std::tuple<IT,IT,bool> * q_tuples = new std::tuple<IT,IT,bool>[q_nnz];
 		for(IT i=0; i< q_nnz; ++i)
 		{
-			q_tuples[i] = make_tuple(coldata_rowid[diagincol][i], coldata_colid[diagincol][i], 1);
+			q_tuples[i] = std::make_tuple(coldata_rowid[diagincol][i], coldata_colid[diagincol][i], 1);
 		}
 
 		PSeq = new DER_IT();
@@ -185,16 +186,16 @@ SpParMat<IT,NT,DER> SpParMat<IT,NT,DER>::operator() (const SpParVec<IT,IT> & ri,
 		MPI_Recv(q_rows, q_nnz, MPIType<IT>(), diagincol, RFROWIDS, commGrid->colWorld);
 		MPI_Recv(q_cols, q_nnz, MPIType<IT>(), diagincol, RFCOLIDS, commGrid->colWorld);
 
-		tuple<IT,IT,bool> * p_tuples = new tuple<IT,IT,bool>[p_nnz];
+		std::tuple<IT,IT,bool> * p_tuples = new std::tuple<IT,IT,bool>[p_nnz];
 		for(IT i=0; i< p_nnz; ++i)
 		{
-			p_tuples[i] = make_tuple(p_rows[i], p_cols[i], 1);
+			p_tuples[i] = std::make_tuple(p_rows[i], p_cols[i], 1);
 		}
 
-		tuple<IT,IT,bool> * q_tuples = new tuple<IT,IT,bool>[q_nnz];
+		std::tuple<IT,IT,bool> * q_tuples = new std::tuple<IT,IT,bool>[q_nnz];
 		for(IT i=0; i< q_nnz; ++i)
 		{
-			q_tuples[i] = make_tuple(q_rows[i], q_cols[i], 1);
+			q_tuples[i] = std::make_tuple(q_rows[i], q_cols[i], 1);
 		}
 		DeleteAll(p_rows, p_cols, q_rows, q_cols);
 
@@ -216,4 +217,4 @@ SpParMat<IT,NT,DER> SpParMat<IT,NT,DER>::operator() (const SpParVec<IT,IT> & ri,
         return Mult_AnXBn_Synch<PTNTBOOL, NT, DER>(Mult_AnXBn_Synch<PTBOOLNT, NT, DER>(P, *this), Q);
 }
 
-
+}

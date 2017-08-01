@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -30,7 +30,7 @@
 #define _PAR_FRIENDS_H_
 
 #include <cstdarg>
-#include <iostream>
+#include<iostream>
 #include "Friends.h"
 #include "MPIType.h"
 #include "OptBuf.h"
@@ -51,7 +51,7 @@ class SpParMat;
  ** Concatenate all the FullyDistVec<IT,NT> objects into a single one
  **/
 template <typename IT, typename NT>
-FullyDistVec<IT, NT> Concatenate(vector<FullyDistVec<IT, NT>>& vecs) {
+FullyDistVec<IT, NT> Concatenate(std::vector<FullyDistVec<IT, NT>>& vecs) {
   if (vecs.size() < 1) {
     SpParHelper::Print("Warning: Nothing to concatenate, returning empty ");
     return FullyDistVec<IT, NT>();
@@ -59,8 +59,8 @@ FullyDistVec<IT, NT> Concatenate(vector<FullyDistVec<IT, NT>>& vecs) {
     return vecs[1];
 
   } else {
-    typename vector<FullyDistVec<IT, NT>>::iterator it = vecs.begin();
-    shared_ptr<CommGrid> commGridPtr = it->getcommgrid();
+    typename std::vector<FullyDistVec<IT, NT>>::iterator it = vecs.begin();
+    std::shared_ptr<CommGrid> commGridPtr = it->getcommgrid();
     MPI_Comm World = commGridPtr->GetWorld();
 
     IT nglen = it->TotalLength();      // new global length
@@ -78,8 +78,8 @@ FullyDistVec<IT, NT> Concatenate(vector<FullyDistVec<IT, NT>>& vecs) {
     FullyDistVec<IT, NT> ConCat(commGridPtr, nglen, NT());
     int nprocs = commGridPtr->GetSize();
 
-    vector<vector<NT>> data(nprocs);
-    vector<vector<IT>> inds(nprocs);
+    std::vector<std::vector<NT>> data(nprocs);
+    std::vector<std::vector<IT>> inds(nprocs);
     IT gloffset = 0;
     for (it = vecs.begin(); it != vecs.end(); ++it) {
       IT loclen = it->LocArrSize();
@@ -107,11 +107,11 @@ FullyDistVec<IT, NT> Concatenate(vector<FullyDistVec<IT, NT>>& vecs) {
       sdispls[i + 1] = sdispls[i] + sendcnt[i];
       rdispls[i + 1] = rdispls[i] + recvcnt[i];
     }
-    IT totrecv = accumulate(recvcnt, recvcnt + nprocs, static_cast<IT>(0));
+    IT totrecv = std::accumulate(recvcnt, recvcnt + nprocs, static_cast<IT>(0));
     NT* senddatabuf = new NT[cumloclen];
     for (int i = 0; i < nprocs; ++i) {
-      copy(data[i].begin(), data[i].end(), senddatabuf + sdispls[i]);
-      vector<NT>().swap(data[i]);  // delete data vectors
+      std::copy(data[i].begin(), data[i].end(), senddatabuf + sdispls[i]);
+      std::vector<NT>().swap(data[i]);  // delete data std::vectors
     }
     NT* recvdatabuf = new NT[totrecv];
     MPI_Alltoallv(senddatabuf, sendcnt, sdispls, MPIType<NT>(), recvdatabuf,
@@ -120,8 +120,8 @@ FullyDistVec<IT, NT> Concatenate(vector<FullyDistVec<IT, NT>>& vecs) {
 
     IT* sendindsbuf = new IT[cumloclen];
     for (int i = 0; i < nprocs; ++i) {
-      copy(inds[i].begin(), inds[i].end(), sendindsbuf + sdispls[i]);
-      vector<IT>().swap(inds[i]);  // delete inds vectors
+      std::copy(inds[i].begin(), inds[i].end(), sendindsbuf + sdispls[i]);
+      std::vector<IT>().swap(inds[i]);  // delete inds std::vectors
     }
     IT* recvindsbuf = new IT[totrecv];
     MPI_Alltoallv(sendindsbuf, sendcnt, sdispls, MPIType<IT>(), recvindsbuf,
@@ -141,18 +141,18 @@ FullyDistVec<IT, NT> Concatenate(vector<FullyDistVec<IT, NT>>& vecs) {
 template <typename MATRIXA, typename MATRIXB>
 bool CheckSpGEMMCompliance(const MATRIXA& A, const MATRIXB& B) {
   if (A.getncol() != B.getnrow()) {
-    ostringstream outs;
-    outs << "Can not multiply, dimensions does not match" << endl;
-    outs << A.getncol() << " != " << B.getnrow() << endl;
+    std::ostringstream outs;
+    outs << "Can not multiply, dimensions does not match" << std::endl;
+    outs << A.getncol() << " != " << B.getnrow() << std::endl;
     SpParHelper::Print(outs.str());
     MPI_Abort(MPI_COMM_WORLD, DIMMISMATCH);
     return false;
   }
   if ((void*)&A == (void*)&B) {
-    ostringstream outs;
-    outs << "Can not multiply, inputs alias (make a temporary copy of one of "
+    std::ostringstream outs;
+    outs << "Can not multiply, inputs alias (make a temporary std::copy of one of "
             "them first)"
-         << endl;
+         << std::endl;
     SpParHelper::Print(outs.str());
     MPI_Abort(MPI_COMM_WORLD, MATRIXALIAS);
     return false;
@@ -183,7 +183,7 @@ SpParMat<IU, NUO, UDERO> Mult_AnXBn_DoubleBuff(SpParMat<IU, NU1, UDERA>& A,
 
   int stages, dummy;  // last two parameters of ProductGrid are ignored for
                       // Synch multiplication
-  shared_ptr<CommGrid> GridC =
+  std::shared_ptr<CommGrid> GridC =
       ProductGrid((A.commGrid).get(), (B.commGrid).get(), stages, dummy, dummy);
   IU C_m = A.spSeq->getnrow();
   IU C_n = B.spSeq->getncol();
@@ -206,15 +206,15 @@ SpParMat<IU, NUO, UDERO> Mult_AnXBn_DoubleBuff(SpParMat<IU, NU1, UDERA>& A,
   // Remotely fetched matrices are stored as pointers
   UDERA* ARecv;
   UDERB* BRecv;
-  vector<SpTuples<IU, NUO>*> tomerge;
+  std::vector<SpTuples<IU, NUO>*> tomerge;
 
   int Aself = (A.commGrid)->GetRankInProcRow();
   int Bself = (B.commGrid)->GetRankInProcCol();
 
   for (int i = 0; i < stages; ++i) {
-    vector<IU> ess;
+    std::vector<IU> ess;
     if (i == Aself) {
-      ARecv = A1seq;  // shallow-copy
+      ARecv = A1seq;  // shallow-std::copy
     } else {
       ess.resize(UDERA::esscount);
       for (int j = 0; j < UDERA::esscount; ++j) {
@@ -226,7 +226,7 @@ SpParMat<IU, NUO, UDERO> Mult_AnXBn_DoubleBuff(SpParMat<IU, NU1, UDERA>& A,
                              i);  // then, receive its elements
     ess.clear();
     if (i == Bself) {
-      BRecv = B1seq;  // shallow-copy
+      BRecv = B1seq;  // shallow-std::copy
     } else {
       ess.resize(UDERB::esscount);
       for (int j = 0; j < UDERB::esscount; ++j) {
@@ -255,9 +255,9 @@ SpParMat<IU, NUO, UDERO> Mult_AnXBn_DoubleBuff(SpParMat<IU, NU1, UDERA>& A,
 
   // Start the second round
   for (int i = 0; i < stages; ++i) {
-    vector<IU> ess;
+    std::vector<IU> ess;
     if (i == Aself) {
-      ARecv = A2seq;  // shallow-copy
+      ARecv = A2seq;  // shallow-std::copy
     } else {
       ess.resize(UDERA::esscount);
       for (int j = 0; j < UDERA::esscount; ++j) {
@@ -271,7 +271,7 @@ SpParMat<IU, NUO, UDERO> Mult_AnXBn_DoubleBuff(SpParMat<IU, NU1, UDERA>& A,
     ess.clear();
 
     if (i == Bself) {
-      BRecv = B2seq;  // shallow-copy
+      BRecv = B2seq;  // shallow-std::copy
     } else {
       ess.resize(UDERB::esscount);
       for (int j = 0; j < UDERB::esscount; ++j) {
@@ -315,7 +315,7 @@ SpParMat<IU, NUO, UDERO> Mult_AnXBn_DoubleBuff(SpParMat<IU, NU1, UDERA>& A,
   }
 
   UDERO* C = new UDERO(MergeAll<SR>(tomerge, C_m, C_n, true), false);
-  // First get the result in SpTuples, then convert to UDER
+  // First std::get the result in SpTuples, then convert to UDER
   return SpParMat<IU, NUO, UDERO>(C, GridC);  // return the result object
 }
 
@@ -337,7 +337,7 @@ SpParMat<IU, NUO, UDERO> Mult_AnXBn_Synch(SpParMat<IU, NU1, UDERA>& A,
   }
   int stages, dummy;  // last two parameters of ProductGrid are ignored for
                       // Synch multiplication
-  shared_ptr<CommGrid> GridC =
+  std::shared_ptr<CommGrid> GridC =
       ProductGrid((A.commGrid).get(), (B.commGrid).get(), stages, dummy, dummy);
   IU C_m = A.spSeq->getnrow();
   IU C_n = B.spSeq->getncol();
@@ -354,15 +354,15 @@ SpParMat<IU, NUO, UDERO> Mult_AnXBn_Synch(SpParMat<IU, NU1, UDERA>& A,
   // Remotely fetched matrices are stored as pointers
   UDERA* ARecv;
   UDERB* BRecv;
-  vector<SpTuples<IU, NUO>*> tomerge;
+  std::vector<SpTuples<IU, NUO>*> tomerge;
 
   int Aself = (A.commGrid)->GetRankInProcRow();
   int Bself = (B.commGrid)->GetRankInProcCol();
 
   for (int i = 0; i < stages; ++i) {
-    vector<IU> ess;
+    std::vector<IU> ess;
     if (i == Aself) {
-      ARecv = A.spSeq;  // shallow-copy
+      ARecv = A.spSeq;  // shallow-std::copy
     } else {
       ess.resize(UDERA::esscount);
       for (int j = 0; j < UDERA::esscount; ++j) {
@@ -376,7 +376,7 @@ SpParMat<IU, NUO, UDERO> Mult_AnXBn_Synch(SpParMat<IU, NU1, UDERA>& A,
     ess.clear();
 
     if (i == Bself) {
-      BRecv = B.spSeq;  // shallow-copy
+      BRecv = B.spSeq;  // shallow-std::copy
     } else {
       ess.resize(UDERB::esscount);
       for (int j = 0; j < UDERB::esscount; ++j) {
@@ -408,7 +408,7 @@ SpParMat<IU, NUO, UDERO> Mult_AnXBn_Synch(SpParMat<IU, NU1, UDERA>& A,
   SpHelper::deallocate2D(BRecvSizes, UDERB::esscount);
 
   UDERO* C = new UDERO(MergeAll<SR>(tomerge, C_m, C_n, true), false);
-  // First get the result in SpTuples, then convert to UDER
+  // First std::get the result in SpTuples, then convert to UDER
   // the last parameter to MergeAll deletes tomerge arrays
 
   if (!clearB)
@@ -420,14 +420,14 @@ SpParMat<IU, NUO, UDERO> Mult_AnXBn_Synch(SpParMat<IU, NU1, UDERA>& A,
 template <typename MATRIX, typename VECTOR>
 void CheckSpMVCompliance(const MATRIX& A, const VECTOR& x) {
   if (A.getncol() != x.TotalLength()) {
-    ostringstream outs;
-    outs << "Can not multiply, dimensions does not match" << endl;
-    outs << A.getncol() << " != " << x.TotalLength() << endl;
+    std::ostringstream outs;
+    outs << "Can not multiply, dimensions does not match" << std::endl;
+    outs << A.getncol() << " != " << x.TotalLength() << std::endl;
     SpParHelper::Print(outs.str());
     MPI_Abort(MPI_COMM_WORLD, DIMMISMATCH);
   }
   if (!(*(A.getcommgrid()) == *(x.getcommgrid()))) {
-    cout << "Grids are not comparable for SpMV" << endl;
+    std::cout << "Grids are not comparable for SpMV" << std::endl;
     MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
   }
 }
@@ -486,8 +486,8 @@ void TransposeVector(MPI_Comm& World, const FullyDistSpVec<IU, NV>& x,
                  diagneigh, TRX, trxnums, trxlocnz, MPIType<NV>(), diagneigh,
                  TRX, World, &status);
   }
-  transform(trxinds, trxinds + trxlocnz, trxinds,
-            bind2nd(plus<int32_t>(), roffset));  // fullydist indexing (p
+  std::transform(trxinds, trxinds + trxlocnz, trxinds,
+            bind2nd(std::plus<int32_t>(), roffset));  // fullydist indexing (p
                                                  // pieces) -> matrix indexing
                                                  // (sqrt(p) pieces)
 }
@@ -516,7 +516,7 @@ void AllGatherVector(MPI_Comm& ColWorld, int trxlocnz, IU lenuntil,
   numacc = new NV[accnz];
 
 // ABAB: Future issues here, colnz is of type int (MPI limitation)
-// What if the aggregate vector size along the processor row/column is not
+// What if the aggregate std::vector size along the processor row/column is not
 // 32-bit addressible?
 // This will happen when n/sqrt(p) > 2^31
 // Currently we can solve a small problem (scale 32) with 4096 processor
@@ -535,7 +535,7 @@ void AllGatherVector(MPI_Comm& ColWorld, int trxlocnz, IU lenuntil,
     IU lenuntilcol;
     if (colrank == 0) lenuntilcol = lenuntil;
     MPI_Bcast(&lenuntilcol, 1, MPIType<IU>(), 0, ColWorld);
-    for (int i = 0; i < accnz; ++i)  // fill numerical values from indices
+    for (int i = 0; i < accnz; ++i)  // std::fill numerical values from indices
     {
       numacc[i] = indacc[i] + lenuntilcol;
     }
@@ -554,10 +554,10 @@ void AllGatherVector(MPI_Comm& ColWorld, int trxlocnz, IU lenuntil,
 /**
   * Step 3 of the sparse SpMV algorithm, with the semiring
   * @param[in,out] optbuf {scratch space for all-to-all (fold) communication}
-  * @param[in,out] indacc, numacc {index and values of the input vector, deleted
+  * @param[in,out] indacc, numacc {index and values of the input std::vector, deleted
   *upon exit}
   * @param[in,out] sendindbuf, sendnumbuf {index and values of the output
-  *vector, created}
+  *std::vector, created}
  **/
 template <typename SR, typename IVT, typename OVT, typename IU, typename NUM,
           typename UDER>
@@ -592,9 +592,9 @@ void LocalSpMV(const SpParMat<IU, NUM, UDER>& A, int rowneighs,
         sendcnt[i] = sdispls[i + 1] - sdispls[i];
       sendcnt[rowneighs - 1] = totalsent - sdispls[rowneighs - 1];
     } else {
-      // serial SpMV with sparse vector
-      vector<int32_t> indy;
-      vector<OVT> numy;
+      // serial SpMV with sparse std::vector
+      std::vector<int32_t> indy;
+      std::vector<OVT> numy;
 
       dcsc_gespmv<SR>(*(A.spSeq), indacc, numacc, accnz, indy,
                       numy);  // actual multiplication
@@ -617,7 +617,7 @@ void LocalSpMV(const SpParMat<IU, NUM, UDER>& A, int rowneighs,
         }
       }
       sdispls = new int[rowneighs]();
-      partial_sum(sendcnt, sendcnt + rowneighs - 1, sdispls + 1);
+      std::partial_sum(sendcnt, sendcnt + rowneighs - 1, sdispls + 1);
     }
   }
 }
@@ -627,14 +627,14 @@ void MergeContributions(FullyDistSpVec<IU, OVT>& y, int*& recvcnt,
                         int*& rdispls, int32_t*& recvindbuf, OVT*& recvnumbuf,
                         int rowneighs) {
   // free memory of y, in case it was aliased
-  vector<IU>().swap(y.ind);
-  vector<OVT>().swap(y.num);
+  std::vector<IU>().swap(y.ind);
+  std::vector<OVT>().swap(y.num);
 
 #ifndef HEAPMERGE
   IU ysize = y.MyLocLength();  // my local length is only O(n/p)
   bool* isthere = new bool[ysize];
-  vector<pair<IU, OVT>> ts_pairs;
-  fill_n(isthere, ysize, false);
+  std::vector<std::pair<IU, OVT>> ts_pairs;
+  std::fill_n(isthere, ysize, false);
 
   // We don't need to keep a "merger" because minimum will always come from the
   // processor
@@ -644,7 +644,7 @@ void MergeContributions(FullyDistSpVec<IU, OVT>& y, int*& recvcnt,
     for (int j = 0; j < recvcnt[i]; ++j) {
       int32_t index = recvindbuf[rdispls[i] + j];
       if (!isthere[index])
-        ts_pairs.push_back(make_pair(index, recvnumbuf[rdispls[i] + j]));
+        ts_pairs.push_back(std::make_pair(index, recvnumbuf[rdispls[i] + j]));
     }
   }
   DeleteAll(recvcnt, rdispls);
@@ -660,8 +660,8 @@ void MergeContributions(FullyDistSpVec<IU, OVT>& y, int*& recvcnt,
 #else
   // Alternative 2: Heap-merge
   int32_t hsize = 0;
-  int32_t inf = numeric_limits<int32_t>::min();
-  int32_t sup = numeric_limits<int32_t>::max();
+  int32_t inf = std::numeric_limits<int32_t>::min();
+  int32_t sup = std::numeric_limits<int32_t>::max();
   KNHeap<int32_t, int32_t> sHeap(sup, inf);
   int* processed = new int[rowneighs]();
   for (int i = 0; i < rowneighs; ++i) {
@@ -690,7 +690,7 @@ void MergeContributions(FullyDistSpVec<IU, OVT>& y, int*& recvcnt,
       y.num.back() = SR::add(y.num.back(), recvnumbuf[deref]);
       // ABAB: Benchmark actually allows us to be non-deterministic in terms of
       // parent selection
-      // We can just skip this addition operator (if it's a max/min select)
+      // We can just skip this addition operator (if it's a max/std::min select)
     } else {
       y.ind.push_back(static_cast<IU>(key));
       y.num.push_back(recvnumbuf[deref]);
@@ -707,12 +707,12 @@ void MergeContributions(FullyDistSpVec<IU, OVT>& y, int*& recvcnt,
 }
 
 /**
-  * This version is the most flexible sparse matrix X sparse vector [Used in
+  * This version is the most flexible sparse matrix X sparse std::vector [Used in
  * KDT]
-  * It accepts different types for the matrix (NUM), the input vector (IVT) and
- * the output vector (OVT)
+  * It accepts different types for the matrix (NUM), the input std::vector (IVT) and
+ * the output std::vector (OVT)
   * without relying on automatic type promotion
-  * Input (x) and output (y) vectors can be ALIASED because y is not written
+  * Input (x) and output (y) std::vectors can be ALIASED because y is not written
  * until the algorithm is done with x.
   */
 template <typename SR, typename IVT, typename OVT, typename IU, typename NUM,
@@ -735,7 +735,7 @@ void SpMV(const SpParMat<IU, NUM, UDER>& A, const FullyDistSpVec<IU, IVT>& x,
 
   /* char errorstring[PAPI_MAX_STR_LEN+1];
    int Events2Add [] = {PAPI_TOT_INS, PAPI_L1_TCM, PAPI_L2_TCM, PAPI_L3_TCM};
-   string EventNames [] = {"PAPI_TOT_INS", "PAPI_L1_TCM", "PAPI_L2_TCM",
+   std::string EventNames [] = {"PAPI_TOT_INS", "PAPI_L1_TCM", "PAPI_L2_TCM",
   "PAPI_L3_TCM"};
    int arraysize = sizeof(Events2Add) / sizeof(int);
    long long ptr2values[arraysize];
@@ -781,7 +781,7 @@ void SpMV(const SpParMat<IU, NUM, UDER>& A, const FullyDistSpVec<IU, IVT>& x,
   for (int i = 0; i < rowneighs - 1; ++i) {
     rdispls[i + 1] = rdispls[i] + recvcnt[i];
   }
-  int totrecv = accumulate(recvcnt, recvcnt + rowneighs, 0);
+  int totrecv = std::accumulate(recvcnt, recvcnt + rowneighs, 0);
   int32_t* recvindbuf = new int32_t[totrecv];
   OVT* recvnumbuf = new OVT[totrecv];
 
@@ -797,19 +797,19 @@ void SpMV(const SpParMat<IU, NUM, UDER>& A, const FullyDistSpVec<IU, IVT>& x,
 
     delete[] sendcnt;
   } else {
-    /*		ofstream oput;
+    /*		std::ofstream oput;
     x.commGrid->OpenDebugFile("Send", oput);
-    oput << "To displacements: "; copy(sdispls, sdispls+rowneighs,
-    ostream_iterator<int>(oput, " ")); oput << endl;
-    oput << "To counts: "; copy(sendcnt, sendcnt+rowneighs,
-    ostream_iterator<int>(oput, " ")); oput << endl;
+    oput << "To displacements: "; std::copy(sdispls, sdispls+rowneighs,
+    std::ostream_iterator<int>(oput, " ")); oput << std::endl;
+    oput << "To counts: "; std::copy(sendcnt, sendcnt+rowneighs,
+    std::ostream_iterator<int>(oput, " ")); oput << std::endl;
     for(int i=0; i< rowneighs; ++i)
     {
-    oput << "To neighbor: " << i << endl;
-    copy(sendindbuf+sdispls[i], sendindbuf+sdispls[i]+sendcnt[i],
-    ostream_iterator<int32_t>(oput, " ")); oput << endl;
-    copy(sendnumbuf+sdispls[i], sendnumbuf+sdispls[i]+sendcnt[i],
-    ostream_iterator<OVT>(oput, " ")); oput << endl;
+    oput << "To neighbor: " << i << std::endl;
+    std::copy(sendindbuf+sdispls[i], sendindbuf+sdispls[i]+sendcnt[i],
+    std::ostream_iterator<int32_t>(oput, " ")); oput << std::endl;
+    std::copy(sendnumbuf+sdispls[i], sendnumbuf+sdispls[i]+sendcnt[i],
+    std::ostream_iterator<OVT>(oput, " ")); oput << std::endl;
     }
     oput.close(); */
 
@@ -826,10 +826,10 @@ void SpMV(const SpParMat<IU, NUM, UDER>& A, const FullyDistSpVec<IU, IVT>& x,
   cblas_alltoalltime += (t3 - t2);
 #endif
 
-  //	ofstream output;
+  //	std::ofstream output;
   //	A.commGrid->OpenDebugFile("Recv", output);
-  //	copy(recvindbuf, recvindbuf+totrecv, ostream_iterator<IU>(output," "));
-  //output << endl;
+  //	std::copy(recvindbuf, recvindbuf+totrecv, std::ostream_iterator<IU>(output," "));
+  //output << std::endl;
   //	output.close();
 
   MergeContributions<SR>(y, recvcnt, rdispls, recvindbuf, recvnumbuf,
@@ -848,7 +848,7 @@ void SpMV(const SpParMat<IU, NUM, UDER>& A, const FullyDistSpVec<IU, IVT>& x,
  * Automatic type promotion is ONLY done here, all the callee functions (in
  *Friends.h and below) are initialized with the promoted type
  * If indexisvalues = true, then we do not need to transfer values for x
- *(happens for BFS iterations with boolean matrices and integer rhs vectors)
+ *(happens for BFS iterations with boolean matrices and integer rhs std::vectors)
  **/
 template <typename SR, typename IU, typename NUM, typename UDER>
 FullyDistSpVec<IU, typename promote_trait<NUM, IU>::T_promote> SpMV(
@@ -858,7 +858,7 @@ FullyDistSpVec<IU, typename promote_trait<NUM, IU>::T_promote> SpMV(
   typedef typename promote_trait<NUM, IU>::T_promote T_promote;
   FullyDistSpVec<IU, T_promote> y(
       x.getcommgrid(),
-      A.getnrow());  // identity doesn't matter for sparse vectors
+      A.getnrow());  // identity doesn't matter for sparse std::vectors
   SpMV<SR>(A, x, y, indexisvalue, optbuf);
   return y;
 }
@@ -904,16 +904,16 @@ FullyDistVec<IU, typename promote_trait<NUM, NUV>::T_promote> SpMV(
                  MPIType<NUV>(), ColWorld);
   delete[] trxnums;
 
-  // serial SpMV with dense vector
+  // serial SpMV with dense std::vector
   T_promote id = SR::id();
   IU ysize = A.getlocalrows();
   T_promote* localy = new T_promote[ysize];
-  fill_n(localy, ysize, id);
+  std::fill_n(localy, ysize, id);
   dcsc_gespmv<SR>(*(A.spSeq), numacc, localy);
 
   DeleteAll(numacc, colsize, dpls);
 
-  // FullyDistVec<IT,NT>(shared_ptr<CommGrid> grid, IT globallen, NT initval, NT
+  // FullyDistVec<IT,NT>(std::shared_ptr<CommGrid> grid, IT globallen, NT initval, NT
   // id)
   FullyDistVec<IU, T_promote> y(x.commGrid, A.getnrow(), id);
 
@@ -970,8 +970,8 @@ FullyDistSpVec<IU, typename promote_trait<NUM, NUV>::T_promote> SpMV(
   MPI_Sendrecv(const_cast<NUV*>(SpHelper::p2a(x.num)), xlocnz, MPIType<NUV>(),
                diagneigh, TRX, trxnums, trxlocnz, MPIType<NUV>(), diagneigh,
                TRX, World, &status);
-  transform(trxinds, trxinds + trxlocnz, trxinds,
-            bind2nd(plus<IU>(), offset));  // fullydist indexing (n pieces) ->
+  std::transform(trxinds, trxinds + trxlocnz, trxinds,
+            bind2nd(std::plus<IU>(), offset));  // fullydist indexing (n pieces) ->
                                            // matrix indexing (sqrt(p) pieces)
 
   int colneighs, colrank;
@@ -987,7 +987,7 @@ FullyDistSpVec<IU, typename promote_trait<NUM, NUV>::T_promote> SpMV(
   NUV* numacc = new NUV[accnz];
 
   // ABAB: Future issues here, colnz is of type int (MPI limitation)
-  // What if the aggregate vector size along the processor row/column is not
+  // What if the aggregate std::vector size along the processor row/column is not
   // 32-bit addressible?
   MPI_Allgatherv(trxinds, trxlocnz, MPIType<IU>(), indacc, colnz, dpls,
                  MPIType<IU>(), ColWorld);
@@ -995,9 +995,9 @@ FullyDistSpVec<IU, typename promote_trait<NUM, NUV>::T_promote> SpMV(
                  MPIType<NUV>(), ColWorld);
   DeleteAll(trxinds, trxnums);
 
-  // serial SpMV with sparse vector
-  vector<int32_t> indy;
-  vector<T_promote> numy;
+  // serial SpMV with sparse std::vector
+  std::vector<int32_t> indy;
+  std::vector<T_promote> numy;
 
   int32_t* tmpindacc = new int32_t[accnz];
   for (int i = 0; i < accnz; ++i) tmpindacc[i] = indacc[i];
@@ -1010,15 +1010,15 @@ FullyDistSpVec<IU, typename promote_trait<NUM, NUV>::T_promote> SpMV(
   DeleteAll(colnz, dpls);
 
   FullyDistSpVec<IU, T_promote> y(
-      x.commGrid, A.getnrow());  // identity doesn't matter for sparse vectors
+      x.commGrid, A.getnrow());  // identity doesn't matter for sparse std::vectors
   IU yintlen = y.MyRowLength();
 
   int rowneighs;
   MPI_Comm_size(RowWorld, &rowneighs);
-  vector<vector<IU>> sendind(rowneighs);
-  vector<vector<T_promote>> sendnum(rowneighs);
-  typename vector<int32_t>::size_type outnz = indy.size();
-  for (typename vector<IU>::size_type i = 0; i < outnz; ++i) {
+  std::vector<std::vector<IU>> sendind(rowneighs);
+  std::vector<std::vector<T_promote>> sendnum(rowneighs);
+  typename std::vector<int32_t>::size_type outnz = indy.size();
+  for (typename std::vector<IU>::size_type i = 0; i < outnz; ++i) {
     IU locind;
     int rown = y.OwnerWithinRow(yintlen, static_cast<IU>(indy[i]), locind);
     sendind[rown].push_back(locind);
@@ -1042,17 +1042,17 @@ FullyDistSpVec<IU, typename promote_trait<NUM, NUV>::T_promote> SpMV(
     sdispls[i + 1] = sdispls[i] + sendcnt[i];
     rdispls[i + 1] = rdispls[i] + recvcnt[i];
   }
-  int totrecv = accumulate(recvcnt, recvcnt + rowneighs, 0);
+  int totrecv = std::accumulate(recvcnt, recvcnt + rowneighs, 0);
   IU* recvindbuf = new IU[totrecv];
   T_promote* recvnumbuf = new T_promote[totrecv];
 
   for (int i = 0; i < rowneighs; ++i) {
-    copy(sendind[i].begin(), sendind[i].end(), sendindbuf + sdispls[i]);
-    vector<IU>().swap(sendind[i]);
+    std::copy(sendind[i].begin(), sendind[i].end(), sendindbuf + sdispls[i]);
+    std::vector<IU>().swap(sendind[i]);
   }
   for (int i = 0; i < rowneighs; ++i) {
-    copy(sendnum[i].begin(), sendnum[i].end(), sendnumbuf + sdispls[i]);
-    vector<T_promote>().swap(sendnum[i]);
+    std::copy(sendnum[i].begin(), sendnum[i].end(), sendnumbuf + sdispls[i]);
+    std::vector<T_promote>().swap(sendnum[i]);
   }
   MPI_Alltoallv(sendindbuf, sendcnt, sdispls, MPIType<IU>(), recvindbuf,
                 recvcnt, rdispls, MPIType<IU>(), RowWorld);
@@ -1066,8 +1066,8 @@ FullyDistSpVec<IU, typename promote_trait<NUM, NUV>::T_promote> SpMV(
   IU ysize = y.MyLocLength();
   T_promote* localy = new T_promote[ysize];
   bool* isthere = new bool[ysize];
-  vector<IU> nzinds;  // nonzero indices
-  fill_n(isthere, ysize, false);
+  std::vector<IU> nzinds;  // nonzero indices
+  std::fill_n(isthere, ysize, false);
 
   for (int i = 0; i < totrecv; ++i) {
     if (!isthere[recvindbuf[i]]) {
@@ -1105,7 +1105,7 @@ EWiseMult(const SpParMat<IU, NU1, UDERA>& A, const SpParMat<IU, NU2, UDERB>& B,
         new DER_promote(EWiseMult(*(A.spSeq), *(B.spSeq), exclude));
     return SpParMat<IU, N_promote, DER_promote>(result, A.commGrid);
   } else {
-    cout << "Grids are not comparable elementwise multiplication" << endl;
+    std::cout << "Grids are not comparable elementwise multiplication" << std::endl;
     MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
     return SpParMat<IU, N_promote, DER_promote>();
   }
@@ -1123,7 +1123,7 @@ SpParMat<IU, RETT, RETDER> EWiseApply(const SpParMat<IU, NU1, UDERA>& A,
         *(A.spSeq), *(B.spSeq), __binary_op, notB, defaultBVal));
     return SpParMat<IU, RETT, RETDER>(result, A.commGrid);
   } else {
-    cout << "Grids are not comparable elementwise apply" << endl;
+    std::cout << "Grids are not comparable elementwise apply" << std::endl;
     MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
     return SpParMat<IU, RETT, RETDER>();
   }
@@ -1143,7 +1143,7 @@ SpParMat<IU, RETT, RETDER> EWiseApply(
         ANullVal, BNullVal, allowIntersect));
     return SpParMat<IU, RETT, RETDER>(result, A.commGrid);
   } else {
-    cout << "Grids are not comparable elementwise apply" << endl;
+    std::cout << "Grids are not comparable elementwise apply" << std::endl;
     MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
     return SpParMat<IU, RETT, RETDER>();
   }
@@ -1206,7 +1206,7 @@ SpParVec<IU, typename promote_trait<NU1, NU2>::T_promote> EWiseMult(
     }
     return Product;
   } else {
-    cout << "Grids are not comparable elementwise multiplication" << endl;
+    std::cout << "Grids are not comparable elementwise multiplication" << std::endl;
     MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
     return SpParVec<IU, T_promote>();
   }
@@ -1225,7 +1225,7 @@ FullyDistSpVec<IU, typename promote_trait<NU1, NU2>::T_promote> EWiseMult(
   if (*(V.commGrid) == *(W.commGrid)) {
     FullyDistSpVec<IU, T_promote> Product(V.commGrid);
     if (V.glen != W.glen) {
-      cerr << "Vector dimensions don't match for EWiseMult\n";
+      std::cerr << "Vector dimensions don't match for EWiseMult\n";
       MPI_Abort(MPI_COMM_WORLD, DIMMISMATCH);
     } else {
       Product.glen = V.glen;
@@ -1233,9 +1233,9 @@ FullyDistSpVec<IU, typename promote_trait<NU1, NU2>::T_promote> EWiseMult(
       if (exclude) {
 #if defined(_OPENMP) && defined(CBLAS_EXPERIMENTAL)  // not faster than serial
         int actual_splits = cblas_splits * 1;  // 1 is the parallel slackness
-        vector<IU> tlosizes(actual_splits, 0);
-        vector<vector<IU>> tlinds(actual_splits);
-        vector<vector<T_promote>> tlnums(actual_splits);
+        std::vector<IU> tlosizes(actual_splits, 0);
+        std::vector<std::vector<IU>> tlinds(actual_splits);
+        std::vector<std::vector<T_promote>> tlnums(actual_splits);
         IU tlsize = size / actual_splits;
 #pragma omp parallel for  // schedule(dynamic, 1)
         for (IU t = 0; t < actual_splits; ++t) {
@@ -1250,16 +1250,16 @@ FullyDistSpVec<IU, typename promote_trait<NU1, NU2>::T_promote> EWiseMult(
             }
           }
         }
-        vector<IU> prefix_sum(actual_splits + 1, 0);
-        partial_sum(tlosizes.begin(), tlosizes.end(), prefix_sum.begin() + 1);
+        std::vector<IU> prefix_sum(actual_splits + 1, 0);
+        std::partial_sum(tlosizes.begin(), tlosizes.end(), prefix_sum.begin() + 1);
         Product.ind.resize(prefix_sum[actual_splits]);
         Product.num.resize(prefix_sum[actual_splits]);
 
 #pragma omp parallel for  // schedule(dynamic, 1)
         for (IU t = 0; t < actual_splits; ++t) {
-          copy(tlinds[t].begin(), tlinds[t].end(),
+          std::copy(tlinds[t].begin(), tlinds[t].end(),
                Product.ind.begin() + prefix_sum[t]);
-          copy(tlnums[t].begin(), tlnums[t].end(),
+          std::copy(tlnums[t].begin(), tlnums[t].end(),
                Product.num.begin() + prefix_sum[t]);
         }
 #else
@@ -1283,7 +1283,7 @@ FullyDistSpVec<IU, typename promote_trait<NU1, NU2>::T_promote> EWiseMult(
     }
     return Product;
   } else {
-    cout << "Grids are not comparable elementwise multiplication" << endl;
+    std::cout << "Grids are not comparable elementwise multiplication" << std::endl;
     MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
     return FullyDistSpVec<IU, T_promote>();
   }
@@ -1305,7 +1305,7 @@ FullyDistSpVec<IU, RET> EWiseApply_threaded(const FullyDistSpVec<IU, NU1>& V,
   if (*(V.commGrid) == *(W.commGrid)) {
     FullyDistSpVec<IU, T_promote> Product(V.commGrid);
     if (V.TotalLength() != W.TotalLength()) {
-      ostringstream outs;
+      std::ostringstream outs;
       outs << "Vector dimensions don't match (" << V.TotalLength() << " vs "
            << W.TotalLength() << ") for EWiseApply (short version)\n";
       SpParHelper::Print(outs.str());
@@ -1319,9 +1319,9 @@ FullyDistSpVec<IU, RET> EWiseApply_threaded(const FullyDistSpVec<IU, NU1>& V,
       IU size = W.LocArrSize();
       IU spsize = V.getlocnnz();
 
-      // temporary result vectors per thread
-      vector<vector<IU>> tProductInd(nthreads);
-      vector<vector<T_promote>> tProductVal(nthreads);
+      // temporary result std::vectors per thread
+      std::vector<std::vector<IU>> tProductInd(nthreads);
+      std::vector<std::vector<T_promote>> tProductVal(nthreads);
       IU perthread;  // chunk of tProductInd or tProductVal allocated to each
                      // thread
       if (allowVNulls)
@@ -1338,11 +1338,11 @@ FullyDistSpVec<IU, RET> EWiseApply_threaded(const FullyDistSpVec<IU, NU1>& V,
         if (allowVNulls) {
           if (curthread == nthreads - 1) tNextIdx = size;
 
-          // get sparse part for the current thread
+          // std::get sparse part for the current thread
           auto it = std::lower_bound(V.ind.begin(), V.ind.end(), tStartIdx);
           IU tSpIdx = (IU)std::distance(V.ind.begin(), it);
 
-          // iterate over the dense vector
+          // iterate over the dense std::vector
           for (IU tIdx = tStartIdx; tIdx < tNextIdx; ++tIdx) {
             if (tSpIdx < spsize && V.ind[tSpIdx] < tNextIdx &&
                 V.ind[tSpIdx] == tIdx) {
@@ -1360,7 +1360,7 @@ FullyDistSpVec<IU, RET> EWiseApply_threaded(const FullyDistSpVec<IU, NU1>& V,
               }
             }
           }
-        } else  // iterate over the sparse vector
+        } else  // iterate over the sparse std::vector
         {
           if (curthread == nthreads - 1) tNextIdx = spsize;
           for (IU tSpIdx = tStartIdx; tSpIdx < tNextIdx; ++tSpIdx) {
@@ -1373,13 +1373,13 @@ FullyDistSpVec<IU, RET> EWiseApply_threaded(const FullyDistSpVec<IU, NU1>& V,
         }
       }
 
-      vector<IU> tdisp(nthreads + 1);
+      std::vector<IU> tdisp(nthreads + 1);
       tdisp[0] = 0;
       for (int i = 0; i < nthreads; ++i) {
         tdisp[i + 1] = tdisp[i] + tProductInd[i].size();
       }
 
-      // copy results from temporary vectors
+      // std::copy results from temporary std::vectors
       Product.ind.resize(tdisp[nthreads]);
       Product.num.resize(tdisp[nthreads]);
 #pragma omp parallel
@@ -1393,7 +1393,7 @@ FullyDistSpVec<IU, RET> EWiseApply_threaded(const FullyDistSpVec<IU, NU1>& V,
     }
     return Product;
   } else {
-    cout << "Grids are not comparable for EWiseApply" << endl;
+    std::cout << "Grids are not comparable for EWiseApply" << std::endl;
     MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
     return FullyDistSpVec<IU, T_promote>();
   }
@@ -1401,7 +1401,7 @@ FullyDistSpVec<IU, RET> EWiseApply_threaded(const FullyDistSpVec<IU, NU1>& V,
 
 /**
  * Performs an arbitrary binary operation _binary_op on the corresponding
- *elements of two vectors with the result stored in a return vector ret.
+ *elements of two std::vectors with the result stored in a return std::vector ret.
  * The binary operatiation is only performed if the binary predicate _doOp
  *returns true for those elements. Otherwise the binary operation is not
  * performed and ret does not contain an element at that position.
@@ -1410,7 +1410,7 @@ FullyDistSpVec<IU, RET> EWiseApply_threaded(const FullyDistSpVec<IU, NU1>& V,
  *    ret[i] = _binary_op(V[i], W[i])
  * else
  *    // ret[i] is not set
- * Hence _doOp can be used to implement a filter on either of the vectors.
+ * Hence _doOp can be used to implement a filter on either of the std::vectors.
  *
  * The above is only defined if both V[i] and W[i] exist (i.e. an intersection).
  *To allow a union operation (ex. when V[i] doesn't exist but W[i] does)
@@ -1420,7 +1420,7 @@ FullyDistSpVec<IU, RET> EWiseApply_threaded(const FullyDistSpVec<IU, NU1>& V,
  * The type of each element of ret must not necessarily be related to the types
  *of V or W, so the return type must be explicitly specified as a template
  *parameter:
- * FullyDistSpVec<int, double> r = EWiseApply<double>(V, W, plus, retTrue,
+ * FullyDistSpVec<int, double> r = EWiseApply<double>(V, W, std::plus, retTrue,
  *false, 0)
  **/
 template <typename RET, typename IU, typename NU1, typename NU2,
@@ -1437,7 +1437,7 @@ FullyDistSpVec<IU, RET> EWiseApply(const FullyDistSpVec<IU, NU1>& V,
     // FullyDistVec< IU, NU1> DV (V); // Ariful: I am not sure why it was
     // there??
     if (V.TotalLength() != W.TotalLength()) {
-      ostringstream outs;
+      std::ostringstream outs;
       outs << "Vector dimensions don't match (" << V.TotalLength() << " vs "
            << W.TotalLength() << ") for EWiseApply (short version)\n";
       SpParHelper::Print(outs.str());
@@ -1448,7 +1448,7 @@ FullyDistSpVec<IU, RET> EWiseApply(const FullyDistSpVec<IU, NU1>& V,
       IU spsize = V.getlocnnz();
       IU sp_iter = 0;
       if (allowVNulls) {
-        // iterate over the dense vector
+        // iterate over the dense std::vector
         for (IU i = 0; i < size; ++i) {
           if (sp_iter < spsize && V.ind[sp_iter] == i) {
             if (_doOp(V.num[sp_iter], W.arr[i], false, false)) {
@@ -1465,7 +1465,7 @@ FullyDistSpVec<IU, RET> EWiseApply(const FullyDistSpVec<IU, NU1>& V,
           }
         }
       } else {
-        // iterate over the sparse vector
+        // iterate over the sparse std::vector
         for (sp_iter = 0; sp_iter < spsize; ++sp_iter) {
           if (_doOp(V.num[sp_iter], W.arr[V.ind[sp_iter]], false, false)) {
             Product.ind.push_back(V.ind[sp_iter]);
@@ -1477,7 +1477,7 @@ FullyDistSpVec<IU, RET> EWiseApply(const FullyDistSpVec<IU, NU1>& V,
     }
     return Product;
   } else {
-    cout << "Grids are not comparable for EWiseApply" << endl;
+    std::cout << "Grids are not comparable for EWiseApply" << std::endl;
     MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
     return FullyDistSpVec<IU, T_promote>();
   }
@@ -1485,7 +1485,7 @@ FullyDistSpVec<IU, RET> EWiseApply(const FullyDistSpVec<IU, NU1>& V,
 
 /**
  * Performs an arbitrary binary operation _binary_op on the corresponding
- *elements of two vectors with the result stored in a return vector ret.
+ *elements of two std::vectors with the result stored in a return std::vector ret.
  * The binary operatiation is only performed if the binary predicate _doOp
  *returns true for those elements. Otherwise the binary operation is not
  * performed and ret does not contain an element at that position.
@@ -1494,7 +1494,7 @@ FullyDistSpVec<IU, RET> EWiseApply(const FullyDistSpVec<IU, NU1>& V,
  *    ret[i] = _binary_op(V[i], W[i])
  * else
  *    // ret[i] is not set
- * Hence _doOp can be used to implement a filter on either of the vectors.
+ * Hence _doOp can be used to implement a filter on either of the std::vectors.
  *
  * The above is only defined if both V[i] and W[i] exist (i.e. an intersection).
  *To allow a union operation (ex. when V[i] doesn't exist but W[i] does)
@@ -1508,7 +1508,7 @@ FullyDistSpVec<IU, RET> EWiseApply(const FullyDistSpVec<IU, NU1>& V,
  * The type of each element of ret must not necessarily be related to the types
  *of V or W, so the return type must be explicitly specified as a template
  *parameter:
- * FullyDistSpVec<int, double> r = EWiseApply<double>(V, W, plus, ...)
+ * FullyDistSpVec<int, double> r = EWiseApply<double>(V, W, std::plus, ...)
  * For intersection, Vzero and Wzero are irrelevant
  * ABAB: \todo: Should allowIntersect be "false" for all SetDifference uses?
 **/
@@ -1526,17 +1526,17 @@ FullyDistSpVec<IU, RET> EWiseApply(const FullyDistSpVec<IU, NU1>& V,
   if (*(V.commGrid) == *(W.commGrid)) {
     FullyDistSpVec<IU, T_promote> Product(V.commGrid);
     if (V.glen != W.glen) {
-      ostringstream outs;
+      std::ostringstream outs;
       outs << "Vector dimensions don't match (" << V.glen << " vs " << W.glen
            << ") for EWiseApply (full version)\n";
       SpParHelper::Print(outs.str());
       MPI_Abort(MPI_COMM_WORLD, DIMMISMATCH);
     } else {
       Product.glen = V.glen;
-      typename vector<IU>::const_iterator indV = V.ind.begin();
-      typename vector<NU1>::const_iterator numV = V.num.begin();
-      typename vector<IU>::const_iterator indW = W.ind.begin();
-      typename vector<NU2>::const_iterator numW = W.num.begin();
+      typename std::vector<IU>::const_iterator indV = V.ind.begin();
+      typename std::vector<NU1>::const_iterator numV = V.num.begin();
+      typename std::vector<IU>::const_iterator indW = W.ind.begin();
+      typename std::vector<NU2>::const_iterator numW = W.num.begin();
 
       while (indV < V.ind.end() && indW < W.ind.end()) {
         if (*indV == *indW) {
@@ -1594,7 +1594,7 @@ FullyDistSpVec<IU, RET> EWiseApply(const FullyDistSpVec<IU, NU1>& V,
     }
     return Product;
   } else {
-    cout << "Grids are not comparable for EWiseApply" << endl;
+    std::cout << "Grids are not comparable for EWiseApply" << std::endl;
     MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
     return FullyDistSpVec<IU, T_promote>();
   }

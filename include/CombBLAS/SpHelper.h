@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -29,7 +29,7 @@
 #ifndef _SP_HELPER_H_
 #define _SP_HELPER_H_
 
-#include <vector>
+#include<vector>
 #include <limits>
 #include "SpDefs.h"
 #include "StackEntry.h"
@@ -47,7 +47,7 @@ class SpHelper
 public:
 
     template <typename IT1, typename NT1, typename IT2, typename NT2>
-    static void push_to_vectors(vector<IT1> & rows, vector<IT1> & cols, vector<NT1> & vals, IT2 ii, IT2 jj, NT2 vv, int symmetric)
+    static void push_to_vectors(std::vector<IT1> & rows, std::vector<IT1> & cols, std::vector<NT1> & vals, IT2 ii, IT2 jj, NT2 vv, int symmetric)
     {
         ii--;  /* adjust from 1-based to 0-based */
         jj--;
@@ -63,7 +63,7 @@ public:
     }
 
     template <typename IT1, typename NT1>
-    static void ProcessLines(vector<IT1> & rows, vector<IT1> & cols, vector<NT1> & vals, vector<string> & lines, int symmetric, int type)
+    static void ProcessLines(std::vector<IT1> & rows, std::vector<IT1> & cols, std::vector<NT1> & vals, std::vector<std::string> & lines, int symmetric, int type)
     {
         if(type == 0)   // real
         {
@@ -71,7 +71,7 @@ public:
             double vv;
             for (auto itr=lines.begin(); itr != lines.end(); ++itr)
             {
-                // string::c_str() -> Returns a pointer to an array that contains a null-terminated sequence of characters (i.e., a C-string)
+                // std::string::c_str() -> Returns a pointer to an array that contains a null-terminated sequence of characters (i.e., a C-std::string)
                 sscanf(itr->c_str(), "%lld %lld %lg", &ii, &jj, &vv);
                 SpHelper::push_to_vectors(rows, cols, vals, ii, jj, vv, symmetric);
             }
@@ -96,9 +96,9 @@ public:
         }
         else
         {
-            cout << "COMBBLAS: Unrecognized matrix market scalar type" << endl;
+            std::cout << "COMBBLAS: Unrecognized matrix market scalar type" << std::endl;
         }
-        vector<string>().swap(lines);
+        std::vector<std::string>().swap(lines);
     }
 
 
@@ -174,8 +174,8 @@ public:
 
 
 	template <typename SR, typename NT1, typename NT2, typename IT, typename OVT>
-	static IT Popping(NT1 * numA, NT2 * numB, StackEntry< OVT, pair<IT,IT> > * multstack,
-		 	IT & cnz, KNHeap< pair<IT,IT> , IT > & sHeap, Isect<IT> * isect1, Isect<IT> * isect2);
+	static IT Popping(NT1 * numA, NT2 * numB, StackEntry< OVT, std::pair<IT,IT> > * multstack,
+		 	IT & cnz, KNHeap< std::pair<IT,IT> , IT > & sHeap, Isect<IT> * isect1, Isect<IT> * isect2);
 
 	template <typename IT, typename NT1, typename NT2>
 	static void SpIntersect(const Dcsc<IT,NT1> & Adcsc, const Dcsc<IT,NT2> & Bdcsc, Isect<IT>* & cols, Isect<IT>* & rows,
@@ -183,35 +183,35 @@ public:
 
 	template <typename SR, typename IT, typename NT1, typename NT2, typename OVT>
 	static IT SpCartesian(const Dcsc<IT,NT1> & Adcsc, const Dcsc<IT,NT2> & Bdcsc, IT kisect, Isect<IT> * isect1,
-			Isect<IT> * isect2, StackEntry< OVT, pair<IT,IT> > * & multstack);
+			Isect<IT> * isect2, StackEntry< OVT, std::pair<IT,IT> > * & multstack);
 
 	template <typename SR, typename IT, typename NT1, typename NT2, typename OVT>
 	static IT SpColByCol(const Dcsc<IT,NT1> & Adcsc, const Dcsc<IT,NT2> & Bdcsc, IT nA,
-			StackEntry< OVT, pair<IT,IT> > * & multstack);
+			StackEntry< OVT, std::pair<IT,IT> > * & multstack);
 
 	template <typename NT, typename IT>
 	static void ShrinkArray(NT * & array, IT newsize)
 	{
 		NT * narray = new NT[newsize];
-		memcpy(narray, array, newsize*sizeof(NT));	// copy only a portion of the old elements
+		memcpy(narray, array, newsize*sizeof(NT));	// std::copy only a portion of the old elements
 
 		delete [] array;
 		array = narray;
 	}
 
 	template <typename NT, typename IT>
-	static void DoubleStack(StackEntry<NT, pair<IT,IT> > * & multstack, IT & cnzmax, IT add)
+	static void DoubleStack(StackEntry<NT, std::pair<IT,IT> > * & multstack, IT & cnzmax, IT add)
 	{
-		StackEntry<NT, pair<IT,IT> > * tmpstack = multstack;
-		multstack = new StackEntry<NT, pair<IT,IT> >[2* cnzmax + add];
-		memcpy(multstack, tmpstack, sizeof(StackEntry<NT, pair<IT,IT> >) * cnzmax);
+		StackEntry<NT, std::pair<IT,IT> > * tmpstack = multstack;
+		multstack = new StackEntry<NT, std::pair<IT,IT> >[2* cnzmax + add];
+		memcpy(multstack, tmpstack, sizeof(StackEntry<NT, std::pair<IT,IT> >) * cnzmax);
 
 		cnzmax = 2*cnzmax + add;
 		delete [] tmpstack;
 	}
 
 	template <typename IT>
-	static bool first_compare(pair<IT, IT> pair1, pair<IT, IT> pair2)
+	static bool first_compare(std::pair<IT, IT> pair1, std::pair<IT, IT> pair2)
 	{ return pair1.first < pair2.first; }
 
 };
@@ -222,10 +222,10 @@ public:
  * Pop an element, do the numerical semiring multiplication & insert the result into multstack
  */
 template <typename SR, typename NT1, typename NT2, typename IT, typename OVT>
-IT SpHelper::Popping(NT1 * numA, NT2 * numB, StackEntry< OVT, pair<IT,IT> > * multstack,
-			IT & cnz, KNHeap< pair<IT,IT>,IT > & sHeap, Isect<IT> * isect1, Isect<IT> * isect2)
+IT SpHelper::Popping(NT1 * numA, NT2 * numB, StackEntry< OVT, std::pair<IT,IT> > * multstack,
+			IT & cnz, KNHeap< std::pair<IT,IT>,IT > & sHeap, Isect<IT> * isect1, Isect<IT> * isect2)
 {
-	pair<IT,IT> key;
+	std::pair<IT,IT> key;
 	IT inc;
 	sHeap.deleteMin(&key, &inc);
 
@@ -282,15 +282,15 @@ void SpHelper::SpIntersect(const Dcsc<IT,NT1> & Adcsc, const Dcsc<IT,NT2> & Bdcs
 		rows[i].current = Bdcsc.cp[i];		// pointer to row indices
 	}
 
-	/* A single set_intersection would only return the elements of one sequence
+	/* A single std::set_intersection would only return the elements of one sequence
 	 * But we also want random access to the other array's elements
 	 * Thus we do the intersection twice
 	 */
-	IT mink = min(Adcsc.nzc, Bdcsc.nzc);
+	IT mink = std::min(Adcsc.nzc, Bdcsc.nzc);
 	isect1 = new Isect<IT>[mink];	// at most
 	isect2 = new Isect<IT>[mink];	// at most
-	itr1 = set_intersection(cols, cols + Adcsc.nzc, rows, rows + Bdcsc.nzc, isect1);
-	itr2 = set_intersection(rows, rows + Bdcsc.nzc, cols, cols + Adcsc.nzc, isect2);
+	itr1 = std::set_intersection(cols, cols + Adcsc.nzc, rows, rows + Bdcsc.nzc, isect1);
+	itr2 = std::set_intersection(rows, rows + Bdcsc.nzc, cols, cols + Adcsc.nzc, isect2);
 	// itr1 & itr2 are now pointing to one past the end of output sequences
 }
 
@@ -302,24 +302,24 @@ void SpHelper::SpIntersect(const Dcsc<IT,NT1> & Adcsc, const Dcsc<IT,NT2> & Bdcs
  **/
 template <typename SR, typename IT, typename NT1, typename NT2, typename OVT>
 IT SpHelper::SpCartesian(const Dcsc<IT,NT1> & Adcsc, const Dcsc<IT,NT2> & Bdcsc, IT kisect, Isect<IT> * isect1,
-		Isect<IT> * isect2, StackEntry< OVT, pair<IT,IT> > * & multstack)
+		Isect<IT> * isect2, StackEntry< OVT, std::pair<IT,IT> > * & multstack)
 {
-	pair<IT,IT> supremum(numeric_limits<IT>::max(), numeric_limits<IT>::max());
-	pair<IT,IT> infimum (numeric_limits<IT>::min(), numeric_limits<IT>::min());
+	std::pair<IT,IT> supremum(std::numeric_limits<IT>::max(), std::numeric_limits<IT>::max());
+	std::pair<IT,IT> infimum (std::numeric_limits<IT>::min(), std::numeric_limits<IT>::min());
 
-	KNHeap< pair<IT,IT> , IT > sHeapDcsc(supremum, infimum);
+	KNHeap< std::pair<IT,IT> , IT > sHeapDcsc(supremum, infimum);
 
 	// Create a sequence heap that will eventually construct DCSC of C
-	// The key to sort is pair<col_ind, row_ind> so that output is in column-major order
+	// The key to sort is std::pair<col_ind, row_ind> so that output is in column-major order
 	for(IT i=0; i< kisect; ++i)
 	{
-		pair<IT,IT> key(Bdcsc.ir[isect2[i].current], Adcsc.ir[isect1[i].current]);
+		std::pair<IT,IT> key(Bdcsc.ir[isect2[i].current], Adcsc.ir[isect1[i].current]);
 		sHeapDcsc.insert(key, i);
 	}
 
 	IT cnz = 0;
 	IT cnzmax = Adcsc.nz + Bdcsc.nz;	// estimate on the size of resulting matrix C
-	multstack = new StackEntry< OVT, pair<IT,IT> > [cnzmax];
+	multstack = new StackEntry< OVT, std::pair<IT,IT> > [cnzmax];
 
 	bool finished = false;
 	while(!finished)		// multiplication loop  (complexity O(flops * log (kisect))
@@ -336,7 +336,7 @@ IT SpHelper::SpCartesian(const Dcsc<IT,NT1> & Adcsc, const Dcsc<IT,NT2> & Bdcsc,
 
 		if(isect1[inc].current < isect1[inc].size + isect1[inc].start)
 		{
-			pair<IT,IT> key(Bdcsc.ir[isect2[inc].current], Adcsc.ir[isect1[inc].current]);
+			std::pair<IT,IT> key(Bdcsc.ir[isect2[inc].current], Adcsc.ir[isect1[inc].current]);
 			sHeapDcsc.insert(key, inc);	// push the same element with a different key [increasekey]
 			finished = false;
 		}
@@ -346,7 +346,7 @@ IT SpHelper::SpCartesian(const Dcsc<IT,NT1> & Adcsc, const Dcsc<IT,NT2> & Bdcsc,
 			isect1[inc].current = isect1[inc].start;	// wrap-around
 			isect2[inc].current++;
 
-			pair<IT,IT> key(Bdcsc.ir[isect2[inc].current], Adcsc.ir[isect1[inc].current]);
+			std::pair<IT,IT> key(Bdcsc.ir[isect2[inc].current], Adcsc.ir[isect1[inc].current]);
 			sHeapDcsc.insert(key, inc);	// push the same element with a different key [increasekey]
 			finished = false;
 		}
@@ -365,11 +365,11 @@ IT SpHelper::SpCartesian(const Dcsc<IT,NT1> & Adcsc, const Dcsc<IT,NT2> & Bdcsc,
 
 template <typename SR, typename IT, typename NT1, typename NT2, typename OVT>
 IT SpHelper::SpColByCol(const Dcsc<IT,NT1> & Adcsc, const Dcsc<IT,NT2> & Bdcsc, IT nA,
-			StackEntry< OVT, pair<IT,IT> > * & multstack)
+			StackEntry< OVT, std::pair<IT,IT> > * & multstack)
 {
 	IT cnz = 0;
 	IT cnzmax = Adcsc.nz + Bdcsc.nz;	// estimate on the size of resulting matrix C
-	multstack = new StackEntry<OVT, pair<IT,IT> >[cnzmax];
+	multstack = new StackEntry<OVT, std::pair<IT,IT> >[cnzmax];
 
 	float cf  = static_cast<float>(nA+1) / static_cast<float>(Adcsc.nzc);
 	IT csize = static_cast<IT>(ceil(cf));   // chunk size
@@ -386,13 +386,13 @@ IT SpHelper::SpColByCol(const Dcsc<IT,NT1> & Adcsc, const Dcsc<IT,NT2> & Bdcsc, 
 		// heap values are <numvalue, runrank>
 		// heap size is nnz(B(:,i)
 
-		// colnums vector keeps column numbers requested from A
-		vector<IT> colnums(nnzcol);
+		// colnums std::vector keeps column numbers requested from A
+		std::vector<IT> colnums(nnzcol);
 
-		// colinds.first vector keeps indices to A.cp, i.e. it dereferences "colnums" vector (above),
-		// colinds.second vector keeps the end indices (i.e. it gives the index to the last valid element of A.cpnack)
-		vector< pair<IT,IT> > colinds(nnzcol);
-		copy(Bdcsc.ir + Bdcsc.cp[i], Bdcsc.ir + Bdcsc.cp[i+1], colnums.begin());
+		// colinds.first std::vector keeps indices to A.cp, i.e. it dereferences "colnums" std::vector (above),
+		// colinds.second std::vector keeps the end indices (i.e. it gives the index to the last valid element of A.cpnack)
+		std::vector< std::pair<IT,IT> > colinds(nnzcol);
+		std::copy(Bdcsc.ir + Bdcsc.cp[i], Bdcsc.ir + Bdcsc.cp[i+1], colnums.begin());
 
 		Adcsc.FillColInds(&colnums[0], colnums.size(), colinds, aux, csize);
 		IT maxnnz = 0;	// max number of nonzeros in C(:,i)
@@ -406,7 +406,7 @@ IT SpHelper::SpColByCol(const Dcsc<IT,NT1> & Adcsc, const Dcsc<IT,NT2> & Bdcsc, 
 				maxnnz += colinds[j].second - colinds[j].first;
 			}
 		}
-		make_heap(wset, wset+hsize);
+		std::make_heap(wset, wset+hsize);
 
 		if (cnz + maxnnz > cnzmax)		// double the size of multstack
 		{
@@ -416,7 +416,7 @@ IT SpHelper::SpColByCol(const Dcsc<IT,NT1> & Adcsc, const Dcsc<IT,NT2> & Bdcsc, 
 		// No need to keep redefining key and hentry with each iteration of the loop
 		while(hsize > 0)
 		{
-			pop_heap(wset, wset + hsize);         // result is stored in wset[hsize-1]
+			std::pop_heap(wset, wset + hsize);         // result is stored in wset[hsize-1]
 			IT locb = wset[hsize-1].runr;	// relative location of the nonzero in B's current column
 
 			// type promotion done here:
@@ -432,7 +432,7 @@ IT SpHelper::SpColByCol(const Dcsc<IT,NT1> & Adcsc, const Dcsc<IT,NT2> & Bdcsc, 
 				else
 				{
 					multstack[cnz].value = mrhs;
-					multstack[cnz++].key = make_pair(Bdcsc.jc[i], wset[hsize-1].key);
+					multstack[cnz++].key = std::make_pair(Bdcsc.jc[i], wset[hsize-1].key);
 					// first entry is the column index, as it is in column-major order
 				}
 			}
@@ -442,7 +442,7 @@ IT SpHelper::SpColByCol(const Dcsc<IT,NT1> & Adcsc, const Dcsc<IT,NT2> & Bdcsc, 
 				// runr stays the same !
 				wset[hsize-1].key = Adcsc.ir[colinds[locb].first];
 				wset[hsize-1].num = Adcsc.numx[colinds[locb].first];
-				push_heap(wset, wset+hsize);
+				std::push_heap(wset, wset+hsize);
 			}
 			else
 			{

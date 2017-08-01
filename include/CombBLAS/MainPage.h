@@ -11,7 +11,7 @@
 * - The Combinatorial BLAS development influences the <a href="http://graphblas.org">Graph BLAS</a> standardization process.
 * - It achieves scalability via its two dimensional distribution and coarse-grained parallelism.
 * - For an illustrative overview, check out <a href="http://gauss.cs.ucsb.edu/~aydin/talks/CombBLAS_Nov11.pdf">these slides</a>.
-* - Operations among sparse matrices and vectors use arbitrary user defined semirings. Here is a semiring <a href="http://kdt.sourceforge.net/wiki/index.php/Using_Semirings">primer</a>
+* - Operations among sparse matrices and std::vectors use arbitrary user defined semirings. Here is a semiring <a href="http://kdt.sourceforge.net/wiki/index.php/Using_Semirings">primer</a>
 * - Check out the <a href="http://gauss.cs.ucsb.edu/~aydin/CombBLAS_FILES/FAQ-combblas.html">Frequently asked questions about CombBLAS</a>.
 *
 * <b>Download</b>
@@ -52,11 +52,11 @@
 * - SpParMat<int, float, SpDCCols<int,float> > A;
 *
 * The repetitions of int and float types inside the SpDCCols< > is a direct consequence of the static typing of C++
-* and is akin to some STL constructs such as vector<int, SomeAllocator<int> >. If your compiler support "auto", then you can have the compiler infer the type.
+* and is akin to some STL constructs such as std::vector<int, SomeAllocator<int> >. If your compiler support "auto", then you can have the compiler infer the type.
 *
-* Sparse and dense vectors can be distributed either along the diagonal processor or to all processor. The latter is more space efficient and provides
-* much better load balance for SpMSV (sparse matrix-sparse vector multiplication) but the former is simpler and perhaps faster for SpMV
-* (sparse matrix-dense vector multiplication)
+* Sparse and dense std::vectors can be distributed either along the diagonal processor or to all processor. The latter is more space efficient and provides
+* much better load balance for SpMSV (sparse matrix-sparse std::vector multiplication) but the former is simpler and perhaps faster for SpMV
+* (sparse matrix-dense std::vector multiplication)
 *
 * <b> New in version 1.5</b>:
 * - Fully parallel matrix market format reader (SpParMat::ParallelReadMM())
@@ -82,10 +82,10 @@
 * - Sparse matrix-matrix multiplication on a semiring SR: PSpGEMM()
 * - Elementwise multiplication of sparse matrices (A .* B and A .* not(B) in Matlab): EWiseMult()
 * - Unary operations on nonzeros: SpParMat::Apply()
-* - Matrix-matrix and matrix-vector scaling (the latter scales each row/column with the same scalar of the vector)
+* - Matrix-matrix and matrix-std::vector scaling (the latter scales each row/column with the same scalar of the std::vector)
 * - Reductions along row/column: SpParMat::Reduce()
-* - Sparse matrix-dense vector multiplication on a semiring, SpMV()
-* - Sparse matrix-sparse vector multiplication on a semiring, SpMV()
+* - Sparse matrix-dense std::vector multiplication on a semiring, SpMV()
+* - Sparse matrix-sparse std::vector multiplication on a semiring, SpMV()
 * - Generalized matrix indexing: SpParMat::operator(const FullyDistVec & ri, const FullyDistVec & ci)
 * - Generalized sparse matrix assignment: SpParMat::SpAsgn (const FullyDistVec & ri, const FullyDistVec &ci, SpParMat & B)
 * - Numeric type conversion through conversion operators
@@ -100,7 +100,7 @@
 * - operator overloading
 * - compositors (to avoid intermediate copying)
 * - standard library whenever possible
-* - Reference counting using shared_ptr for IITO (implemented in terms of) relationships
+* - Reference counting using std::shared_ptr for IITO (implemented in terms of) relationships
 * - As external code, it utilizes
 *	- sequence heaps of <a href="http://www.mpi-inf.mpg.de/~sanders/programs/"> Peter Sanders </a>.
 *	- a modified (memory efficient) version of the Viral Shah's <a href="http://www.allthingshpc.org/Publications/psort/psort.html"> PSort </a>.
@@ -115,8 +115,8 @@
 * - SpParMat		: distributed memory MPI implementation
 	\n Each processor locally stores its submatrix (block) as a sequential SpDCCols object
 	\n Uses a polyalgorithm for SpGEMM: For most systems this boils down to a BSP like Sparse SUMMA [3] algorithm.
-* - FullyDistVec	: dense vector distributed to all processors
-* - FullyDistSpVec:	: sparse vector distributed to all processors
+* - FullyDistVec	: dense std::vector distributed to all processors
+* - FullyDistSpVec:	: sparse std::vector distributed to all processors
 *
 *
 * <b> Applications </b>  implemented using Combinatorial BLAS:
@@ -138,7 +138,7 @@ recent sparse matrix indexing, assignment, and multiplication results can be fou
 * - MultTiming.cpp : Parallel SpGEMM tests
 * - IndexingTest.cpp: Various sparse matrix indexing usages
 * - SpAsgnTiming.cpp: Sparse matrix assignment usage and timing.
-* - FindSparse.cpp : Parallel find/sparse routines akin to Matlab's.
+* - FindSparse.cpp : Parallel std::find/sparse routines akin to Matlab's.
 * - GalerkinNew.cpp : Graph contraction or restriction operator (used in Algebraic Multigrid).
 *
 * <b> Citation: </b> Please cite the design paper [1] if you end up using the Combinatorial BLAS in your research.

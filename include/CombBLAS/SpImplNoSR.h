@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -50,7 +50,7 @@ void SpMXSpV(const Dcsc<IT,NUM> & Adcsc, int32_t mA, const int32_t * indx, const
 
 template <class IT, class NUM, class VT>
 void SpMXSpV_ForThreading(const Dcsc<IT,NUM> & Adcsc, int32_t mA, const int32_t * indx, const VT * numx, int32_t veclen,
-		vector<int32_t> & indy, vector< VT > & numy, int32_t offset)
+		std::vector<int32_t> & indy, std::vector< VT > & numy, int32_t offset)
 {
 	SpImplNoSR<IT,NUM,VT>::SpMXSpV_ForThreading(Adcsc, mA, indx, numx, veclen, indy, numy, offset);	// don't touch this
 };
@@ -63,19 +63,19 @@ struct SpImplNoSR
 	static void SpMXSpV(const Dcsc<IT,NUM> & Adcsc, int32_t mA, const int32_t * indx, const VT * numx, int32_t veclen,
 						int32_t * indy, VT * numy, int * cnts, int * dspls, int p_c, BitMap * isthere)
 	{
-		cout << "SpMXSpV (without a semiring) is only reserved for boolean matrices" << endl;
+		std::cout << "SpMXSpV (without a semiring) is only reserved for boolean matrices" << std::endl;
 	};
 
 	static void SpMXSpV_ForThreading(const Dcsc<IT,NUM> & Adcsc, int32_t mA, const int32_t * indx, const VT * numx, int32_t veclen,
-			vector<int32_t> & indy, vector<VT> & numy, int32_t offset)
+			std::vector<int32_t> & indy, std::vector<VT> & numy, int32_t offset)
 	{
-		cout << "SpMXSpV (without a semiring) is only reserved for boolean matrices" << endl;
+		std::cout << "SpMXSpV (without a semiring) is only reserved for boolean matrices" << std::endl;
 	};
 };
 
 
-//! Dcsc and vector index types do not need to match
-//! However, input and output vector numerical types should be identical
+//! Dcsc and std::vector index types do not need to match
+//! However, input and output std::vector numerical types should be identical
 template <class IT, class VT>
 struct SpImplNoSR<IT,bool, VT>	// specialization
 {
@@ -83,7 +83,7 @@ struct SpImplNoSR<IT,bool, VT>	// specialization
 						int32_t * indy, VT * numy, int * cnts, int * dspls, int p_c, BitMap * isthere);
 
 	static void SpMXSpV_ForThreading(const Dcsc<IT,bool> & Adcsc, int32_t mA, const int32_t * indx, const VT * numx, int32_t veclen,
-			vector<int32_t> & indy, vector<VT> & numy, int32_t offset);
+			std::vector<int32_t> & indy, std::vector<VT> & numy, int32_t offset);
 };
 
 
@@ -91,21 +91,21 @@ struct SpImplNoSR<IT,bool, VT>	// specialization
  * @param[in,out]   indy,numy,cnts 	{preallocated arrays to be filled}
  * @param[in] 		dspls	{displacements to preallocated indy,numy buffers}
  * This version determines the receiving column neighbor and adjust the indices to the receiver's local index
- * It also by passes-SPA by relying on the fact that x (rhs vector) is sorted and values are indices
+ * It also by passes-SPA by relying on the fact that x (rhs std::vector) is sorted and values are indices
  * (If they are not sorted, it'd still work but be non-deterministic)
  * Hence, Semiring operations are not needed (no add or multiply)
- * Also allows the vector's indices to be different than matrix's (for transition only) \TODO: Disable?
+ * Also allows the std::vector's indices to be different than matrix's (for transition only) \TODO: Disable?
  **/
 template <typename IT, typename VT>
 void SpImplNoSR<IT,bool,VT>::SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA, const int32_t * indx, const VT * numx, int32_t veclen,
 										   int32_t * indy, VT * numy, int * cnts, int * dspls, int p_c, BitMap * isthere)
 {
-	typedef pair<uint32_t,VT>  UPAIR;
+	typedef std::pair<uint32_t,VT>  UPAIR;
 	int32_t perproc = mA / p_c;
-	int32_t k = 0; 	// index to indx vector
+	int32_t k = 0; 	// index to indx std::vector
 	IT i = 0; 	// index to columns of matrix
 #ifndef INTEGERSORT
-	vector< vector<UPAIR> > nzinds_vals(p_c);	// nonzero indices + associated parent assignments
+	std::vector< std::vector<UPAIR> > nzinds_vals(p_c);	// nonzero indices + associated parent assignments
 	while(i< Adcsc.nzc && k < veclen)
 	{
 		if(Adcsc.jc[i] < indx[k]) ++i;
@@ -117,7 +117,7 @@ void SpImplNoSR<IT,bool,VT>::SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA, co
 				int32_t rowid = (int32_t) Adcsc.ir[j];
 				if(!isthere->get_bit(rowid))
 				{
-					int32_t owner = min(rowid / perproc, static_cast<int32_t>(p_c-1));
+					int32_t owner = std::min(rowid / perproc, static_cast<int32_t>(p_c-1));
 					nzinds_vals[owner].push_back( UPAIR(rowid, numx[k]) );
 					isthere->set_bit(rowid);
 				}	// skip existing entries
@@ -137,11 +137,11 @@ void SpImplNoSR<IT,bool,VT>::SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA, co
 		}
 	}
 #else
-	vector< UPAIR* > nzinds_vals(p_c);	// nonzero indices + associated parent assignments
-	vector< int > counts(p_c, 0);
+	std::vector< UPAIR* > nzinds_vals(p_c);	// nonzero indices + associated parent assignments
+	std::vector< int > counts(p_c, 0);
 	BitMap * tempisthere = new BitMap(*isthere);
-	vector<int32_t> matfingers;	// fingers to matrix
-	vector<int32_t> vecfingers; // fingers to vector
+	std::vector<int32_t> matfingers;	// fingers to matrix
+	std::vector<int32_t> vecfingers; // fingers to std::vector
 	while(i< Adcsc.nzc && k < veclen)
 	{
 		if(Adcsc.jc[i] < indx[k]) ++i;
@@ -155,7 +155,7 @@ void SpImplNoSR<IT,bool,VT>::SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA, co
 				int32_t rowid = (int32_t) Adcsc.ir[j];
 				if(!tempisthere->get_bit(rowid))
 				{
-					int32_t owner = min(rowid / perproc, static_cast<int32_t>(p_c-1));
+					int32_t owner = std::min(rowid / perproc, static_cast<int32_t>(p_c-1));
 					++counts[owner];
 					tempisthere->set_bit(rowid);
 				}
@@ -167,7 +167,7 @@ void SpImplNoSR<IT,bool,VT>::SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA, co
 	for(int p=0; p< p_c; ++p)
 		nzinds_vals[p] = (UPAIR*) malloc(sizeof(UPAIR) * counts[p]);
 
-	fill(counts.begin(), counts.end(), 0);	// reset counts
+	std::fill(counts.begin(), counts.end(), 0);	// reset counts
 	int fsize = matfingers.size();
 	for(int i=0; i< fsize; ++i)
 	{
@@ -177,7 +177,7 @@ void SpImplNoSR<IT,bool,VT>::SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA, co
 			int32_t rowid = (int32_t) Adcsc.ir[j];
 			if(!isthere->get_bit(rowid))
 			{
-				int32_t owner = min(rowid / perproc, static_cast<int32_t>(p_c-1));
+				int32_t owner = std::min(rowid / perproc, static_cast<int32_t>(p_c-1));
 				nzinds_vals[owner][counts[owner]++] =  UPAIR(rowid, numx[vecfingers[i]]) ;
 				isthere->set_bit(rowid);
 			}
@@ -204,15 +204,15 @@ void SpImplNoSR<IT,bool,VT>::SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA, co
 // BFS only version without any semiring parameters
 template <typename IT, typename VT>
 void SpImplNoSR<IT,bool,VT>::SpMXSpV_ForThreading(const Dcsc<IT,bool> & Adcsc, int32_t mA, const int32_t * indx, const VT * numx, int32_t veclen,
-			vector<int32_t> & indy, vector<VT> & numy, int32_t offset)
+			std::vector<int32_t> & indy, std::vector<VT> & numy, int32_t offset)
 {
 	VT * localy = new VT[mA];
 	bool * isthere = new bool[mA];
-	fill(isthere, isthere+mA, false);
-	vector<int32_t> nzinds;	// nonzero indices
+	std::fill(isthere, isthere+mA, false);
+	std::vector<int32_t> nzinds;	// nonzero indices
 
 	// The following piece of code is not general, but it's more memory efficient than FillColInds
-	int32_t k = 0; 	// index to indx vector
+	int32_t k = 0; 	// index to indx std::vector
 	IT i = 0; 	// index to columns of matrix
 	while(i< Adcsc.nzc && k < veclen)
 	{

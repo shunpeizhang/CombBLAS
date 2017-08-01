@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2015, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -38,26 +38,26 @@
 #include <parallel/numeric>
 #endif
 
-using namespace std;
+namespace combblas {
 
 template <class IT, class NT>
-FullyDistSpVec<IT, NT>::FullyDistSpVec ( shared_ptr<CommGrid> grid)
-: FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>(grid)
+FullyDistSpVec<IT, NT>::FullyDistSpVec ( std::shared_ptr<CommGrid> grid)
+: FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type>(grid)
 { };
 
 template <class IT, class NT>
-FullyDistSpVec<IT, NT>::FullyDistSpVec ( shared_ptr<CommGrid> grid, IT globallen)
-: FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>(grid,globallen)
+FullyDistSpVec<IT, NT>::FullyDistSpVec ( std::shared_ptr<CommGrid> grid, IT globallen)
+: FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type>(grid,globallen)
 { };
 
 template <class IT, class NT>
 FullyDistSpVec<IT,NT>::FullyDistSpVec ()
-: FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>()
+: FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type>()
 { };
 
 template <class IT, class NT>
 FullyDistSpVec<IT,NT>::FullyDistSpVec (IT globallen)
-: FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>(globallen)
+: FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type>(globallen)
 { }
 
 
@@ -66,7 +66,7 @@ FullyDistSpVec<IT,NT> &  FullyDistSpVec<IT,NT>::operator=(const FullyDistSpVec< 
 {
 	if(this != &rhs)
 	{
-		FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>::operator= (rhs);	// to update glen and commGrid
+		FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type>::operator= (rhs);	// to update glen and commGrid
 		ind = rhs.ind;
 		num = rhs.num;
 	}
@@ -74,22 +74,22 @@ FullyDistSpVec<IT,NT> &  FullyDistSpVec<IT,NT>::operator=(const FullyDistSpVec< 
 }
 
 template <class IT, class NT>
-FullyDistSpVec<IT,NT>::FullyDistSpVec (const FullyDistVec<IT,NT> & rhs) // Conversion copy-constructor
-: FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>(rhs.commGrid,rhs.glen)
+FullyDistSpVec<IT,NT>::FullyDistSpVec (const FullyDistVec<IT,NT> & rhs) // Conversion std::copy-constructor
+: FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type>(rhs.commGrid,rhs.glen)
 {
 	*this = rhs;
 }
 
-// Conversion copy-constructor where unary op is true
+// Conversion std::copy-constructor where unary op is true
 template <class IT, class NT>
 template <typename _UnaryOperation>
 FullyDistSpVec<IT,NT>::FullyDistSpVec (const FullyDistVec<IT,NT> & rhs, _UnaryOperation unop)
-: FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>(rhs.commGrid,rhs.glen)
+: FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type>(rhs.commGrid,rhs.glen)
 {
-	//FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>::operator= (rhs);	// to update glen and commGrid
+	//FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type>::operator= (rhs);	// to update glen and commGrid
 
-	vector<IT>().swap(ind);
-	vector<NT>().swap(num);
+	std::vector<IT>().swap(ind);
+	std::vector<NT>().swap(num);
 	IT vecsize = rhs.LocArrSize();
 	for(IT i=0; i< vecsize; ++i)
 	{
@@ -108,14 +108,14 @@ FullyDistSpVec<IT,NT>::FullyDistSpVec (const FullyDistVec<IT,NT> & rhs, _UnaryOp
 template <class IT, class NT>
 FullyDistSpVec<IT,NT> &  FullyDistSpVec<IT,NT>::operator=(const FullyDistVec< IT,NT > & rhs)		// conversion from dense
 {
-	FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>::operator= (rhs);	// to update glen and commGrid
+	FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type>::operator= (rhs);	// to update glen and commGrid
 
-	vector<IT>().swap(ind);
-	vector<NT>().swap(num);
+	std::vector<IT>().swap(ind);
+	std::vector<NT>().swap(num);
 	IT vecsize = rhs.LocArrSize();
 	for(IT i=0; i< vecsize; ++i)
 	{
-		// rhs.zero does not exist after CombBLAS 1.2
+		// rhs.zero does not exist after combblas 1.2
 		ind.push_back(i);
 		num.push_back(rhs.arr[i]);
 	}
@@ -124,7 +124,7 @@ FullyDistSpVec<IT,NT> &  FullyDistSpVec<IT,NT>::operator=(const FullyDistVec< IT
 
 
 /************************************************************************
- * Create a sparse vector from index and value vectors (dense vectors)
+ * Create a sparse std::vector from index and value std::vectors (dense std::vectors)
  * FullyDistSpVec v(globalsize, inds, vals):
  *      nnz(v) = size(inds) = size(vals)
  *      size(v) = globallen
@@ -133,7 +133,7 @@ FullyDistSpVec<IT,NT> &  FullyDistSpVec<IT,NT>::operator=(const FullyDistVec< IT
  ************************************************************************/
 template <class IT, class NT>
 FullyDistSpVec<IT,NT>::FullyDistSpVec (IT globallen, const FullyDistVec<IT,IT> & inds,  const FullyDistVec<IT,NT> & vals, bool SumDuplicates)
-: FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>(inds.commGrid,globallen)
+: FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type>(inds.commGrid,globallen)
 {
     if(*(inds.commGrid) != *(vals.commGrid))
     {
@@ -142,7 +142,7 @@ FullyDistSpVec<IT,NT>::FullyDistSpVec (IT globallen, const FullyDistVec<IT,IT> &
     }
     if(inds.TotalLength() != vals.TotalLength())
     {
-        SpParHelper::Print("Index and value vectors have different sizes, FullyDistSpVec() fails !");
+        SpParHelper::Print("Index and value std::vectors have different sizes, FullyDistSpVec() fails !");
         MPI_Abort(MPI_COMM_WORLD, DIMMISMATCH);
     }
     //commGrid = inds.commGrid;
@@ -151,7 +151,7 @@ FullyDistSpVec<IT,NT>::FullyDistSpVec (IT globallen, const FullyDistVec<IT,IT> &
     IT maxind = inds.Reduce(maximum<IT>(), (IT) 0);
     if(maxind>=globallen)
     {
-        SpParHelper::Print("At least one index is greater than globallen, FullyDistSpVec() fails !");
+        SpParHelper::Print("At least one index is std::greater than globallen, FullyDistSpVec() fails !");
         MPI_Abort(MPI_COMM_WORLD, DIMMISMATCH);
     }
 
@@ -201,7 +201,7 @@ FullyDistSpVec<IT,NT>::FullyDistSpVec (IT globallen, const FullyDistVec<IT,IT> &
         count[owner]++;
     }
     delete [] count;
-    IT totrecv = accumulate(recvcnt,recvcnt+nprocs, static_cast<IT>(0));
+    IT totrecv = std::accumulate(recvcnt,recvcnt+nprocs, static_cast<IT>(0));
 
 
     // ----- Send and receive indices and values --------
@@ -217,18 +217,18 @@ FullyDistSpVec<IT,NT>::FullyDistSpVec (IT globallen, const FullyDistVec<IT,IT> &
 
     // ------ merge and sort received data ----------
 
-    vector< pair<IT,NT> > tosort;
+    std::vector< std::pair<IT,NT> > tosort;
     tosort.resize(totrecv);
     for(int i=0; i<totrecv; ++i)
     {
-        tosort[i] = make_pair(recvindbuf[i], recvdatbuf[i]);
+        tosort[i] = std::make_pair(recvindbuf[i], recvdatbuf[i]);
     }
     DeleteAll(recvindbuf, recvdatbuf);
     DeleteAll(sdispls, rdispls, sendcnt, recvcnt);
     std::sort(tosort.begin(), tosort.end());
 
 
-    // ------ create local sparse vector ----------
+    // ------ create local sparse std::vector ----------
 
     ind.reserve(totrecv);
     num.reserve(totrecv);
@@ -249,7 +249,7 @@ FullyDistSpVec<IT,NT>::FullyDistSpVec (IT globallen, const FullyDistVec<IT,IT> &
 }
 
 
-//! Returns a dense vector of nonzero values
+//! Returns a dense std::vector of nonzero values
 //! for which the predicate is satisfied on values
 template <class IT, class NT>
 template <typename _Predicate>
@@ -272,15 +272,15 @@ FullyDistVec<IT,NT> FullyDistSpVec<IT,NT>::FindVals(_Predicate pred) const
     IT nsize = found.arr.size();
     dist[rank] = nsize;
     MPI_Allgather(MPI_IN_PLACE, 1, MPIType<IT>(), dist, 1, MPIType<IT>(), World);
-    IT lengthuntil = accumulate(dist, dist+rank, static_cast<IT>(0));
-    found.glen = accumulate(dist, dist+nprocs, static_cast<IT>(0));
+    IT lengthuntil = std::accumulate(dist, dist+rank, static_cast<IT>(0));
+    found.glen = std::accumulate(dist, dist+nprocs, static_cast<IT>(0));
 
-    // Although the found vector is not reshuffled yet, its glen and commGrid are set
+    // Although the found std::vector is not reshuffled yet, its glen and commGrid are set
     // We can call the Owner/MyLocLength/LengthUntil functions (to infer future distribution)
 
     // rebalance/redistribute
     int * sendcnt = new int[nprocs];
-    fill(sendcnt, sendcnt+nprocs, 0);
+    std::fill(sendcnt, sendcnt+nprocs, 0);
     for(IT i=0; i<nsize; ++i)
     {
         IT locind;
@@ -299,10 +299,10 @@ FullyDistVec<IT,NT> FullyDistSpVec<IT,NT>::FindVals(_Predicate pred) const
         sdispls[i+1] = sdispls[i] + sendcnt[i];
         rdispls[i+1] = rdispls[i] + recvcnt[i];
     }
-    IT totrecv = accumulate(recvcnt,recvcnt+nprocs, static_cast<IT>(0));
-    vector<NT> recvbuf(totrecv);
+    IT totrecv = std::accumulate(recvcnt,recvcnt+nprocs, static_cast<IT>(0));
+    std::vector<NT> recvbuf(totrecv);
 
-    // data is already in the right order in found.arr
+    // data is already in the std::right order in found.arr
     MPI_Alltoallv(found.arr.data(), sendcnt, sdispls, MPIType<NT>(), recvbuf.data(), recvcnt, rdispls, MPIType<NT>(), World);
     found.arr.swap(recvbuf);
     delete [] dist;
@@ -313,7 +313,7 @@ FullyDistVec<IT,NT> FullyDistSpVec<IT,NT>::FindVals(_Predicate pred) const
 
 
 
-//! Returns a dense vector of nonzero global indices
+//! Returns a dense std::vector of nonzero global indices
 //! for which the predicate is satisfied on values
 template <class IT, class NT>
 template <typename _Predicate>
@@ -337,15 +337,15 @@ FullyDistVec<IT,IT> FullyDistSpVec<IT,NT>::FindInds(_Predicate pred) const
     IT nsize = found.arr.size();
     dist[rank] = nsize;
     MPI_Allgather(MPI_IN_PLACE, 1, MPIType<IT>(), dist, 1, MPIType<IT>(), World);
-    IT lengthuntil = accumulate(dist, dist+rank, static_cast<IT>(0));
-    found.glen = accumulate(dist, dist+nprocs, static_cast<IT>(0));
+    IT lengthuntil = std::accumulate(dist, dist+rank, static_cast<IT>(0));
+    found.glen = std::accumulate(dist, dist+nprocs, static_cast<IT>(0));
 
-    // Although the found vector is not reshuffled yet, its glen and commGrid are set
+    // Although the found std::vector is not reshuffled yet, its glen and commGrid are set
     // We can call the Owner/MyLocLength/LengthUntil functions (to infer future distribution)
 
     // rebalance/redistribute
     int * sendcnt = new int[nprocs];
-    fill(sendcnt, sendcnt+nprocs, 0);
+    std::fill(sendcnt, sendcnt+nprocs, 0);
     for(IT i=0; i<nsize; ++i)
     {
         IT locind;
@@ -364,10 +364,10 @@ FullyDistVec<IT,IT> FullyDistSpVec<IT,NT>::FindInds(_Predicate pred) const
         sdispls[i+1] = sdispls[i] + sendcnt[i];
         rdispls[i+1] = rdispls[i] + recvcnt[i];
     }
-    IT totrecv = accumulate(recvcnt,recvcnt+nprocs, static_cast<IT>(0));
-    vector<IT> recvbuf(totrecv);
+    IT totrecv = std::accumulate(recvcnt,recvcnt+nprocs, static_cast<IT>(0));
+    std::vector<IT> recvbuf(totrecv);
 
-    // data is already in the right order in found.arr
+    // data is already in the std::right order in found.arr
     MPI_Alltoallv(found.arr.data(), sendcnt, sdispls, MPIType<IT>(), recvbuf.data(), recvcnt, rdispls, MPIType<IT>(), World);
     found.arr.swap(recvbuf);
     delete [] dist;
@@ -381,7 +381,7 @@ FullyDistVec<IT,IT> FullyDistSpVec<IT,NT>::FindInds(_Predicate pred) const
 template <class IT, class NT>
 void FullyDistSpVec<IT,NT>::stealFrom(FullyDistSpVec<IT,NT> & victim)
 {
-	FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>::operator= (victim);	// to update glen and commGrid
+	FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type>::operator= (victim);	// to update glen and commGrid
 	ind.swap(victim.ind);
 	num.swap(victim.num);
 }
@@ -395,7 +395,7 @@ NT FullyDistSpVec<IT,NT>::operator[](IT indx)
 	int found = 0;
 	if(commGrid->GetRank() == owner)
 	{
-		typename vector<IT>::const_iterator it = lower_bound(ind.begin(), ind.end(), locind);	// ind is a sorted vector
+		typename std::vector<IT>::const_iterator it = std::lower_bound(ind.begin(), ind.end(), locind);	// ind is a sorted std::vector
 		if(it != ind.end() && locind == (*it))	// found
 		{
 			val = num[it-ind.begin()];
@@ -420,7 +420,7 @@ NT FullyDistSpVec<IT,NT>::GetLocalElement(IT indx)
 	IT locind;
 	int owner = Owner(indx, locind);
 	int found = 0;
-	typename vector<IT>::const_iterator it = lower_bound(ind.begin(), ind.end(), locind);	// ind is a sorted vector
+	typename std::vector<IT>::const_iterator it = std::lower_bound(ind.begin(), ind.end(), locind);	// ind is a sorted std::vector
 	if(commGrid->GetRank() == owner) {
 		if(it != ind.end() && locind == (*it))	// found
 		{
@@ -437,13 +437,13 @@ template <class IT, class NT>
 void FullyDistSpVec<IT,NT>::SetElement (IT indx, NT numx)
 {
 	if(glen == 0)
-		SpParHelper::Print("WARNING: SetElement() called on a vector with zero length\n");
+		SpParHelper::Print("WARNING: SetElement() called on a std::vector with zero length\n");
 
 	IT locind;
 	int owner = Owner(indx, locind);
 	if(commGrid->GetRank() == owner)
 	{
-		typename vector<IT>::iterator iter = lower_bound(ind.begin(), ind.end(), locind);
+		typename std::vector<IT>::iterator iter = std::lower_bound(ind.begin(), ind.end(), locind);
 		if(iter == ind.end())	// beyond limits, insert from back
 		{
 			ind.push_back(locind);
@@ -470,7 +470,7 @@ void FullyDistSpVec<IT,NT>::DelElement (IT indx)
 	int owner = Owner(indx, locind);
 	if(commGrid->GetRank() == owner)
 	{
-		typename vector<IT>::iterator iter = lower_bound(ind.begin(), ind.end(), locind);
+		typename std::vector<IT>::iterator iter = std::lower_bound(ind.begin(), ind.end(), locind);
 		if(iter != ind.end() && !(locind < *iter))
 		{
 			num.erase(num.begin() + (iter-ind.begin()));
@@ -494,8 +494,8 @@ FullyDistVec<IT,NT> FullyDistSpVec<IT,NT>::operator() (const FullyDistVec<IT,IT>
 	FullyDistVec<IT,NT> Indexed(ri.commGrid, ri.glen, NT());	// NT() is the initial value
 	int nprocs;
 	MPI_Comm_size(World, &nprocs);
-	unordered_map<IT, IT> revr_map;       // inverted index that maps indices of *this to indices of output
-	vector< vector<IT> > data_req(nprocs);
+	std::unordered_map<IT, IT> revr_map;       // inverted index that maps indices of *this to indices of output
+	std::vector< std::vector<IT> > data_req(nprocs);
 	IT locnnz = ri.LocArrSize();
 
 	// ABAB: Input sanity check
@@ -519,7 +519,7 @@ FullyDistVec<IT,NT> FullyDistSpVec<IT,NT>::operator() (const FullyDistVec<IT,IT>
 		IT locind;
 		int owner = Owner(ri.arr[i], locind);	// numerical values in ri are 0-based
 		data_req[owner].push_back(locind);
-                revr_map.insert(typename unordered_map<IT, IT>::value_type(locind, i));
+                revr_map.insert(typename std::unordered_map<IT, IT>::value_type(locind, i));
 	}
 	IT * sendbuf = new IT[locnnz];
 	int * sendcnt = new int[nprocs];
@@ -538,13 +538,13 @@ FullyDistVec<IT,NT> FullyDistSpVec<IT,NT>::operator() (const FullyDistVec<IT,IT>
 		sdispls[i+1] = sdispls[i] + sendcnt[i];
 		rdispls[i+1] = rdispls[i] + recvcnt[i];
 	}
-	IT totrecv = accumulate(recvcnt,recvcnt+nprocs,0);
+	IT totrecv = std::accumulate(recvcnt,recvcnt+nprocs,0);
 	IT * recvbuf = new IT[totrecv];
 
 	for(int i=0; i<nprocs; ++i)
 	{
-		copy(data_req[i].begin(), data_req[i].end(), sendbuf+sdispls[i]);
-		vector<IT>().swap(data_req[i]);
+		std::copy(data_req[i].begin(), data_req[i].end(), sendbuf+sdispls[i]);
+		std::vector<IT>().swap(data_req[i]);
 	}
 	MPI_Alltoallv(sendbuf, sendcnt, sdispls, MPIType<IT>(), recvbuf, recvcnt, rdispls, MPIType<IT>(), World);  // request data
 
@@ -555,11 +555,11 @@ FullyDistVec<IT,NT> FullyDistSpVec<IT,NT>::operator() (const FullyDistVec<IT,IT>
 	NT * databack = new NT[totrecv];
 
 	int * ddispls = new int[nprocs];
-	copy(rdispls, rdispls+nprocs, ddispls);
+	std::copy(rdispls, rdispls+nprocs, ddispls);
 	for(int i=0; i<nprocs; ++i)
 	{
-		// this is not the most efficient method because it scans ind vector nprocs = sqrt(p) times
-		IT * it = set_intersection(recvbuf+rdispls[i], recvbuf+rdispls[i]+recvcnt[i], ind.begin(), ind.end(), indsback+rdispls[i]);
+		// this is not the most efficient method because it scans ind std::vector nprocs = sqrt(p) times
+		IT * it = std::set_intersection(recvbuf+rdispls[i], recvbuf+rdispls[i]+recvcnt[i], ind.begin(), ind.end(), indsback+rdispls[i]);
 		recvcnt[i] = (it - (indsback+rdispls[i]));	// update with size of the intersection
 
 		IT vi = 0;
@@ -589,9 +589,9 @@ FullyDistVec<IT,NT> FullyDistSpVec<IT,NT>::operator() (const FullyDistVec<IT,IT>
 		// ind owned by proc_j for j < i
 		for(int j=sdispls[i]; j< sdispls[i]+sendcnt[i]; ++j)
 		{
-			typename unordered_map<IT,IT>::iterator it = revr_map.find(sendbuf[j]);
+			typename std::unordered_map<IT,IT>::iterator it = revr_map.find(sendbuf[j]);
 			Indexed.arr[it->second] = databuf[j];
-			// cout << it->second << "(" << sendbuf[j] << "):" << databuf[j] << endl;
+			// std::cout << it->second << "(" << sendbuf[j] << "):" << databuf[j] << std::endl;
 		}
 	}
 	DeleteAll(sdispls, sendcnt, sendbuf, databuf);
@@ -620,7 +620,7 @@ FullyDistSpVec<IT, IT> FullyDistSpVec<IT, NT>::sort()
 	MPI_Comm World = commGrid->GetWorld();
 	FullyDistSpVec<IT,IT> temp(commGrid);
 	IT nnz = getlocnnz();
-	pair<NT,IT> * vecpair = new pair<NT,IT>[nnz];
+	std::pair<NT,IT> * vecpair = new std::pair<NT,IT>[nnz];
 
 	int nprocs, rank;
 	MPI_Comm_size(World, &nprocs);
@@ -637,8 +637,8 @@ FullyDistSpVec<IT, IT> FullyDistSpVec<IT, NT>::sort()
 	}
 	SpParHelper::MemoryEfficientPSort(vecpair, nnz, dist, World);
 
-	vector< IT > nind(nnz);
-	vector< IT > nnum(nnz);
+	std::vector< IT > nind(nnz);
+	std::vector< IT > nnum(nnz);
 	for(IT i=0; i< nnz; ++i)
 	{
 		num[i] = vecpair[i].first;	// sorted range (change the object itself)
@@ -661,18 +661,18 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT, NT>::UniqAll2All(_BinaryOperation __bin
     MPI_Comm World = commGrid->GetWorld();
 	int nprocs = commGrid->GetSize();
 
-    vector< vector< NT > > datsent(nprocs);
-	vector< vector< IT > > indsent(nprocs);
+    std::vector< std::vector< NT > > datsent(nprocs);
+	std::vector< std::vector< IT > > indsent(nprocs);
 
     IT locind;
-    size_t locvec = num.size();     // nnz in local vector
+    size_t locvec = num.size();     // nnz in local std::vector
     IT lenuntil = LengthUntil();    // to convert to global index
 	for(size_t i=0; i< locvec; ++i)
 	{
         uint64_t myhash;    // output of MurmurHash3_x64_64 is 64-bits regardless of the input length
         MurmurHash3_x64_64((const void*) &(num[i]),sizeof(NT), 0, &myhash);
         double range = static_cast<double>(myhash) * static_cast<double>(glen);
-        NT mapped = range / static_cast<double>(numeric_limits<uint64_t>::max());   // mapped is in range [0,n)
+        NT mapped = range / static_cast<double>(std::numeric_limits<uint64_t>::max());   // mapped is in range [0,n)
         int owner = Owner(mapped, locind);
 
         datsent[owner].push_back(num[i]);  // all identical entries will be hashed to the same value -> same processor
@@ -696,16 +696,16 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT, NT>::UniqAll2All(_BinaryOperation __bin
     NT * datbuf = new NT[locvec];
 	for(int i=0; i<nprocs; ++i)
 	{
-		copy(datsent[i].begin(), datsent[i].end(), datbuf+sdispls[i]);
-		vector<NT>().swap(datsent[i]);
+		std::copy(datsent[i].begin(), datsent[i].end(), datbuf+sdispls[i]);
+		std::vector<NT>().swap(datsent[i]);
 	}
     IT * indbuf = new IT[locvec];
     for(int i=0; i<nprocs; ++i)
 	{
-		copy(indsent[i].begin(), indsent[i].end(), indbuf+sdispls[i]);
-		vector<IT>().swap(indsent[i]);
+		std::copy(indsent[i].begin(), indsent[i].end(), indbuf+sdispls[i]);
+		std::vector<IT>().swap(indsent[i]);
 	}
-    IT totrecv = accumulate(recvcnt,recvcnt+nprocs, static_cast<IT>(0));
+    IT totrecv = std::accumulate(recvcnt,recvcnt+nprocs, static_cast<IT>(0));
 	NT * recvdatbuf = new NT[totrecv];
 	MPI_Alltoallv(datbuf, sendcnt, sdispls, MPIType<NT>(), recvdatbuf, recvcnt, rdispls, MPIType<NT>(), World);
     delete [] datbuf;
@@ -714,25 +714,25 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT, NT>::UniqAll2All(_BinaryOperation __bin
     MPI_Alltoallv(indbuf, sendcnt, sdispls, MPIType<IT>(), recvindbuf, recvcnt, rdispls, MPIType<IT>(), World);
     delete [] indbuf;
 
-    vector< pair<NT,IT> > tosort;   // in fact, tomerge would be a better name but it is unlikely to be faster
+    std::vector< std::pair<NT,IT> > tosort;   // in fact, tomerge would be a better name but it is unlikely to be faster
 
 	for(int i=0; i<nprocs; ++i)
 	{
 		for(int j = rdispls[i]; j < rdispls[i] + recvcnt[i]; ++j)	// fetch the numerical values
 		{
-            tosort.push_back(make_pair(recvdatbuf[j], recvindbuf[j]));
+            tosort.push_back(std::make_pair(recvdatbuf[j], recvindbuf[j]));
 		}
 	}
 	DeleteAll(recvindbuf, recvdatbuf);
     std::sort(tosort.begin(), tosort.end());
     //std::unique returns an iterator to the element that follows the last element not removed.
-    typename vector< pair<NT,IT> >::iterator last;
+    typename std::vector< std::pair<NT,IT> >::iterator last;
     last = std::unique (tosort.begin(), tosort.end(), equal_first<NT,IT>());
 
-    vector< vector< NT > > datback(nprocs);
-	vector< vector< IT > > indback(nprocs);
+    std::vector< std::vector< NT > > datback(nprocs);
+	std::vector< std::vector< IT > > indback(nprocs);
 
-    for(typename vector< pair<NT,IT> >::iterator itr = tosort.begin(); itr != last; ++itr)
+    for(typename std::vector< std::pair<NT,IT> >::iterator itr = tosort.begin(); itr != last; ++itr)
     {
         IT locind;
         int owner = Owner(itr->second, locind);
@@ -750,16 +750,16 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT, NT>::UniqAll2All(_BinaryOperation __bin
     datbuf = new NT[tosort.size()];
 	for(int i=0; i<nprocs; ++i)
 	{
-		copy(datback[i].begin(), datback[i].end(), datbuf+sdispls[i]);
-		vector<NT>().swap(datback[i]);
+		std::copy(datback[i].begin(), datback[i].end(), datbuf+sdispls[i]);
+		std::vector<NT>().swap(datback[i]);
 	}
     indbuf = new IT[tosort.size()];
     for(int i=0; i<nprocs; ++i)
 	{
-		copy(indback[i].begin(), indback[i].end(), indbuf+sdispls[i]);
-		vector<IT>().swap(indback[i]);
+		std::copy(indback[i].begin(), indback[i].end(), indbuf+sdispls[i]);
+		std::vector<IT>().swap(indback[i]);
 	}
-    totrecv = accumulate(recvcnt,recvcnt+nprocs, static_cast<IT>(0));   // update value
+    totrecv = std::accumulate(recvcnt,recvcnt+nprocs, static_cast<IT>(0));   // update value
 
     recvdatbuf = new NT[totrecv];
 	MPI_Alltoallv(datbuf, sendcnt, sdispls, MPIType<NT>(), recvdatbuf, recvcnt, rdispls, MPIType<NT>(), World);
@@ -771,16 +771,16 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT, NT>::UniqAll2All(_BinaryOperation __bin
 
     FullyDistSpVec<IT,NT> Indexed(commGrid, glen);	// length(Indexed) = length(glen) = length(*this)
 
-    vector< pair<IT,NT> > back2sort;
+    std::vector< std::pair<IT,NT> > back2sort;
     for(int i=0; i<nprocs; ++i)
 	{
 		for(int j = rdispls[i]; j < rdispls[i] + recvcnt[i]; ++j)	// fetch the numerical values
 		{
-            back2sort.push_back(make_pair(recvindbuf[j], recvdatbuf[j]));
+            back2sort.push_back(std::make_pair(recvindbuf[j], recvdatbuf[j]));
 		}
 	}
     std::sort(back2sort.begin(), back2sort.end());
-    for(typename vector< pair<IT,NT> >::iterator itr = back2sort.begin(); itr != back2sort.end(); ++itr)
+    for(typename std::vector< std::pair<IT,NT> >::iterator itr = back2sort.begin(); itr != back2sort.end(); ++itr)
     {
         Indexed.ind.push_back(itr->first);
         Indexed.num.push_back(itr->second);
@@ -803,33 +803,33 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT, NT>::Uniq2D(_BinaryOperation __binary_o
 	IT roffset = RowLenUntil();
 	IT rrowlen = MyRowLength();
 
-    // Get the right local dimensions
+    // Get the std::right local dimensions
 	IT diagneigh = commGrid->GetComplementRank();
 	IT ccollen;
 	MPI_Status status;
 	MPI_Sendrecv(&rrowlen, 1, MPIType<IT>(), diagneigh, TRROWX, &ccollen, 1, MPIType<IT>(), diagneigh, TRROWX, commGrid->GetWorld(), &status);
 
 
-	// We create n-by-n matrix B from length-n vector
-	// Rows(B): indices of nonzeros in vector
-    // Columns(B): values in vector
+	// We create n-by-n matrix B from length-n std::vector
+	// Rows(B): indices of nonzeros in std::vector
+    // Columns(B): values in std::vector
     // Values(B): same as Rows(B)
 
 	IT rowneighs = commGrid->GetGridCols();	// number of neighbors along this processor row (including oneself)
     IT glen = TotalLength();
 	IT m_perproccol = glen / rowneighs;
 
-	vector< vector<IT> > rowid(rowneighs);
-	vector< vector<IT> > colid(rowneighs);
+	std::vector< std::vector<IT> > rowid(rowneighs);
+	std::vector< std::vector<IT> > colid(rowneighs);
 
-	size_t locvec = num.size();	// nnz in local vector
+	size_t locvec = num.size();	// nnz in local std::vector
     IT lenuntil = LengthUntil();
 	for(size_t i=0; i< locvec; ++i)
 	{
 		// numerical values (permutation indices) are 0-based
 		IT rowrec = (m_perproccol!=0) ? std::min(num[i] / m_perproccol, rowneighs-1) : (rowneighs-1); 	// recipient along processor row
 
-		// vector's numerical values give the colids and its indices give rowids
+		// std::vector's numerical values give the colids and its indices give rowids
 		rowid[rowrec].push_back( ind[i] + roffset);
 		colid[rowrec].push_back( num[i] - (rowrec * m_perproccol));
 	}
@@ -842,9 +842,9 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT, NT>::Uniq2D(_BinaryOperation __binary_o
 	MPI_Alltoall(sendcnt, 1, MPI_INT, recvcnt, 1, MPI_INT, commGrid->GetRowWorld()); // share the counts
 	int * sdispls = new int[rowneighs]();
 	int * rdispls = new int[rowneighs]();
-	partial_sum(sendcnt, sendcnt+rowneighs-1, sdispls+1);
-	partial_sum(recvcnt, recvcnt+rowneighs-1, rdispls+1);
-	IT p_nnz = accumulate(recvcnt,recvcnt+rowneighs, static_cast<IT>(0));
+	std::partial_sum(sendcnt, sendcnt+rowneighs-1, sdispls+1);
+	std::partial_sum(recvcnt, recvcnt+rowneighs-1, rdispls+1);
+	IT p_nnz = std::accumulate(recvcnt,recvcnt+rowneighs, static_cast<IT>(0));
 
 	// create space for incoming data ...
 	IT * p_rows = new IT[p_nnz];
@@ -852,26 +852,26 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT, NT>::Uniq2D(_BinaryOperation __binary_o
   	IT * senddata = new IT[locvec];	// re-used for both rows and columns
 	for(int i=0; i<rowneighs; ++i)
 	{
-		copy(rowid[i].begin(), rowid[i].end(), senddata+sdispls[i]);
-		vector<IT>().swap(rowid[i]);	// clear memory of rowid
+		std::copy(rowid[i].begin(), rowid[i].end(), senddata+sdispls[i]);
+		std::vector<IT>().swap(rowid[i]);	// clear memory of rowid
 	}
 	MPI_Alltoallv(senddata, sendcnt, sdispls, MPIType<IT>(), p_rows, recvcnt, rdispls, MPIType<IT>(), commGrid->GetRowWorld());
 
 	for(int i=0; i<rowneighs; ++i)
 	{
-		copy(colid[i].begin(), colid[i].end(), senddata+sdispls[i]);
-		vector<IT>().swap(colid[i]);	// clear memory of colid
+		std::copy(colid[i].begin(), colid[i].end(), senddata+sdispls[i]);
+		std::vector<IT>().swap(colid[i]);	// clear memory of colid
 	}
 	MPI_Alltoallv(senddata, sendcnt, sdispls, MPIType<IT>(), p_cols, recvcnt, rdispls, MPIType<IT>(), commGrid->GetRowWorld());
 	delete [] senddata;
 
-	tuple<IT,IT,NT> * p_tuples = new tuple<IT,IT,NT>[p_nnz];
+	std::tuple<IT,IT,NT> * p_tuples = new std::tuple<IT,IT,NT>[p_nnz];
 
     int procrows = commGrid->GetGridRows();
 	int my_procrow = commGrid->GetRankInProcCol();
 	IT n_perprocrow = glen / procrows;	// length on a typical processor row
 	for(IT i=0; i< p_nnz; ++i)
-		p_tuples[i] = make_tuple(p_rows[i], p_cols[i], p_rows[i]+(n_perprocrow * my_procrow));
+		p_tuples[i] = std::make_tuple(p_rows[i], p_cols[i], p_rows[i]+(n_perprocrow * my_procrow));
 
 	DeleteAll(p_rows, p_cols);
 
@@ -887,7 +887,7 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT, NT>::Uniq2D(_BinaryOperation __binary_o
     // at this point, colmin[i] is semantically zero iff colmin[i] >= glen
     SetIfNotEqual<NT> setter(glen+1);
     B.DimApply(Column, colmin, setter); // B[i][j] to be pruned if B[i][j] >= glen
-    B.Prune(bind2nd(greater<NT>(), glen));
+    B.Prune(bind2nd(std::greater<NT>(), glen));
     //B.PrintInfo();
 
     FullyDistVec<IT,NT> colind2val;
@@ -896,10 +896,10 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT, NT>::Uniq2D(_BinaryOperation __binary_o
     //B.PrintInfo();
 
     FullyDistVec<IT,NT> pruned;
-    B.Reduce(pruned, Row, plus<NT>(), (NT) 0);
+    B.Reduce(pruned, Row, std::plus<NT>(), (NT) 0);
     //pruned.DebugPrint();
 
-    FullyDistSpVec<IT,NT> UniqInds(pruned, bind2nd(greater<NT>(), 0));    // only retain [< glen] entries
+    FullyDistSpVec<IT,NT> UniqInds(pruned, bind2nd(std::greater<NT>(), 0));    // only retain [< glen] entries
     //UniqInds.DebugPrint();
 
     return EWiseApply<NT>(UniqInds, *this, sel2nd<NT>(), bintotality<NT,NT>(), false, false, (NT) 0, (NT) 0);
@@ -936,21 +936,21 @@ FullyDistSpVec<IT,NT> & FullyDistSpVec<IT, NT>::operator+=(const FullyDistSpVec<
 	{
 		if(glen != rhs.glen)
 		{
-			cerr << "Vector dimensions don't match for addition\n";
+			std::cerr << "Vector dimensions don't match for addition\n";
 			return *this;
 		}
 		IT lsize = getlocnnz();
 		IT rsize = rhs.getlocnnz();
 
-		vector< IT > nind;
-		vector< NT > nnum;
+		std::vector< IT > nind;
+		std::vector< NT > nnum;
 		nind.reserve(lsize+rsize);
 		nnum.reserve(lsize+rsize);
 
 		IT i=0, j=0;
 		while(i < lsize && j < rsize)
 		{
-			// assignment won't change the size of vector, push_back is necessary
+			// assignment won't change the size of std::vector, push_back is necessary
 			if(ind[i] > rhs.ind[j])
 			{
 				nind.push_back( rhs.ind[j] );
@@ -982,7 +982,7 @@ FullyDistSpVec<IT,NT> & FullyDistSpVec<IT, NT>::operator+=(const FullyDistSpVec<
 	}
 	else
 	{
-		typename vector<NT>::iterator it;
+		typename std::vector<NT>::iterator it;
 		for(it = num.begin(); it != num.end(); ++it)
 			(*it) *= 2;
 	}
@@ -995,20 +995,20 @@ FullyDistSpVec<IT,NT> & FullyDistSpVec<IT, NT>::operator-=(const FullyDistSpVec<
 	{
 		if(glen != rhs.glen)
 		{
-			cerr << "Vector dimensions don't match for addition\n";
+			std::cerr << "Vector dimensions don't match for addition\n";
 			return *this;
 		}
 		IT lsize = getlocnnz();
 		IT rsize = rhs.getlocnnz();
-		vector< IT > nind;
-		vector< NT > nnum;
+		std::vector< IT > nind;
+		std::vector< NT > nnum;
 		nind.reserve(lsize+rsize);
 		nnum.reserve(lsize+rsize);
 
 		IT i=0, j=0;
 		while(i < lsize && j < rsize)
 		{
-			// assignment won't change the size of vector, push_back is necessary
+			// assignment won't change the size of std::vector, push_back is necessary
 			if(ind[i] > rhs.ind[j])
 			{
 				nind.push_back( rhs.ind[j] );
@@ -1066,8 +1066,8 @@ void FullyDistSpVec<IT,NT>::AllocateSetBuffers(IT * & myinds, NT * & myvals,  in
 
 	ccurptrs = new int[colneighs];
 	rcurptrs = new int[rowneighs];
-	fill_n(ccurptrs, colneighs, 0);	// fill with zero
-	fill_n(rcurptrs, rowneighs, 0);
+	std::fill_n(ccurptrs, colneighs, 0);	// std::fill with zero
+	std::fill_n(rcurptrs, rowneighs, 0);
 }
 
 /**
@@ -1077,7 +1077,7 @@ void FullyDistSpVec<IT,NT>::AllocateSetBuffers(IT * & myinds, NT * & myvals,  in
  * After usage, function frees the memory of temp_xxx arrays and then creates and frees memory of all the six arrays itself
  */
 template <class IT, class NT>
-void FullyDistSpVec<IT,NT>::HorizontalSend(IT * & inds, NT * & vals, IT * & tempinds, NT * & tempvals, vector < pair <IT,NT> > & localpairs,
+void FullyDistSpVec<IT,NT>::HorizontalSend(IT * & inds, NT * & vals, IT * & tempinds, NT * & tempvals, std::vector < std::pair <IT,NT> > & localpairs,
                                          int * rcurptrs, int * rdispls, IT buffperrowneigh, int recvcount, int rankinrow)
 {
     int rowneighs = commGrid->GetGridCols();	// number of neighbors along this processor row (including oneself)
@@ -1098,12 +1098,12 @@ void FullyDistSpVec<IT,NT>::HorizontalSend(IT * & inds, NT * & vals, IT * & temp
 	}
 
 #ifdef IODEBUG
-	ofstream oput;
+	std::ofstream oput;
 	commGrid->OpenDebugFile("Read", oput);
 	oput << "To row neighbors: ";
-	copy(rcurptrs, rcurptrs+rowneighs, ostream_iterator<int>(oput, " ")); oput << endl;
+	std::copy(rcurptrs, rcurptrs+rowneighs, std::ostream_iterator<int>(oput, " ")); oput << std::endl;
 	oput << "Row displacements were: ";
-	copy(rdispls, rdispls+rowneighs, ostream_iterator<int>(oput, " ")); oput << endl;
+	std::copy(rdispls, rdispls+rowneighs, std::ostream_iterator<int>(oput, " ")); oput << std::endl;
 	oput.close();
 #endif
 
@@ -1121,10 +1121,10 @@ void FullyDistSpVec<IT,NT>::HorizontalSend(IT * & inds, NT * & vals, IT * & temp
 
 	for(int i=0; i< recvcount; ++i)
 	{
-		localpairs.push_back( 	make_pair(tempinds[i], tempvals[i]) );  // no need to offset-adjust as we received the local index
+		localpairs.push_back( 	std::make_pair(tempinds[i], tempvals[i]) );  // no need to offset-adjust as we received the local index
 	}
 
-	fill_n(rcurptrs, rowneighs, 0);
+	std::fill_n(rcurptrs, rowneighs, 0);
 	DeleteAll(inds, vals, tempinds, tempvals);
 }
 
@@ -1135,7 +1135,7 @@ void FullyDistSpVec<IT,NT>::HorizontalSend(IT * & inds, NT * & vals, IT * & temp
  * @post {ccurptrs are set to zero; so that if another call is made to this function without modifying ccurptrs, no data will be send from this procesor}
  */
 template <class IT, class NT>
-void FullyDistSpVec<IT,NT>::VerticalSend(IT * & inds, NT * & vals, vector< pair<IT,NT> > & localpairs, int * rcurptrs, int * ccurptrs, int * rdispls, int * cdispls,
+void FullyDistSpVec<IT,NT>::VerticalSend(IT * & inds, NT * & vals, std::vector< std::pair<IT,NT> > & localpairs, int * rcurptrs, int * ccurptrs, int * rdispls, int * cdispls,
                                         IT buffperrowneigh, IT buffpercolneigh, int rankinrow)
 {
     int colneighs = commGrid->GetGridRows();	// number of neighbors along this processor column (including oneself)
@@ -1144,12 +1144,12 @@ void FullyDistSpVec<IT,NT>::VerticalSend(IT * & inds, NT * & vals, vector< pair<
 	int * colrecvdispls = new int[colneighs];
 	int * colrecvcounts = new int[colneighs];
 	MPI_Alltoall(ccurptrs, 1, MPI_INT, colrecvcounts, 1, MPI_INT, commGrid->GetColWorld());      // share the request counts
-	int totrecv = accumulate(colrecvcounts,colrecvcounts+colneighs,0);  // ABAB: This might overflow in 1 MPI thread to 1 node/socket world
+	int totrecv = std::accumulate(colrecvcounts,colrecvcounts+colneighs,0);  // ABAB: This might overflow in 1 MPI thread to 1 node/socket world
 	colrecvdispls[0] = 0; 		// receive displacements are exact whereas send displacements have slack
 	for(int i=0; i<colneighs-1; ++i)
 		colrecvdispls[i+1] = colrecvdispls[i] + colrecvcounts[i];
 
-	// generate space for own recv data ... (use arrays because vector<bool> is cripled, if NT=bool)
+	// generate space for own recv data ... (use arrays because std::vector<bool> is cripled, if NT=bool)
 	IT * tempinds = new IT[totrecv];
 	NT * tempvals = new NT[totrecv];
 
@@ -1158,7 +1158,7 @@ void FullyDistSpVec<IT,NT>::VerticalSend(IT * & inds, NT * & vals, vector< pair<
 	MPI_Alltoallv(vals, ccurptrs, cdispls, MPIType<NT>(), tempvals, colrecvcounts, colrecvdispls, MPIType<NT>(), commGrid->GetColWorld());
 
 	// finally, reset current pointers !
-	fill_n(ccurptrs, colneighs, 0);
+	std::fill_n(ccurptrs, colneighs, 0);
 	DeleteAll(colrecvdispls, colrecvcounts);
 	DeleteAll(inds, vals);
 
@@ -1179,7 +1179,7 @@ void FullyDistSpVec<IT,NT>::VerticalSend(IT * & inds, NT * & vals, vector< pair<
  */
 template <class IT, class NT>
 template <class HANDLER>
-void FullyDistSpVec<IT,NT>::ReadAllMine(FILE * binfile, IT * & inds, NT * & vals, vector< pair<IT,NT> > & localpairs, int * rcurptrs, int * ccurptrs, int * rdispls, int * cdispls,
+void FullyDistSpVec<IT,NT>::ReadAllMine(FILE * binfile, IT * & inds, NT * & vals, std::vector< std::pair<IT,NT> > & localpairs, int * rcurptrs, int * ccurptrs, int * rdispls, int * cdispls,
                                     IT buffperrowneigh, IT buffpercolneigh, IT entriestoread, HANDLER handler, int rankinrow)
 {
 	assert(entriestoread != 0);
@@ -1204,10 +1204,10 @@ void FullyDistSpVec<IT,NT>::ReadAllMine(FILE * binfile, IT * & inds, NT * & vals
 		if(ccurptrs[colrec] == buffpercolneigh || (cnz == (entriestoread-1)) )		// one buffer is full, or this processor's share is done !
 		{
 #ifdef IODEBUG
-			ofstream oput;
+			std::ofstream oput;
 			commGrid->OpenDebugFile("Read", oput);
 			oput << "To column neighbors: ";
-			copy(ccurptrs, ccurptrs+colneighs, ostream_iterator<int>(oput, " ")); oput << endl;
+			std::copy(ccurptrs, ccurptrs+colneighs, std::ostream_iterator<int>(oput, " ")); oput << std::endl;
 			oput.close();
 #endif
 
@@ -1220,10 +1220,10 @@ void FullyDistSpVec<IT,NT>::ReadAllMine(FILE * binfile, IT * & inds, NT * & vals
 				while(!finishedglobal)
 				{
 #ifdef DEBUG
-					ofstream oput;
+					std::ofstream oput;
 					commGrid->OpenDebugFile("Read", oput);
 					oput << "To column neighbors: ";
-					copy(ccurptrs, ccurptrs+colneighs, ostream_iterator<int>(oput, " ")); oput << endl;
+					std::copy(ccurptrs, ccurptrs+colneighs, std::ostream_iterator<int>(oput, " ")); oput << std::endl;
 					oput.close();
 #endif
 
@@ -1244,7 +1244,7 @@ void FullyDistSpVec<IT,NT>::ReadAllMine(FILE * binfile, IT * & inds, NT * & vals
 	}
 
 	// signal the end to row neighbors
-	fill_n(rcurptrs, rowneighs, numeric_limits<int>::max());
+	std::fill_n(rcurptrs, rowneighs, std::numeric_limits<int>::max());
 	int recvcount;
 	MPI_Scatter(rcurptrs, 1, MPI_INT, &recvcount, 1, MPI_INT, rankinrow, commGrid->GetRowWorld());
 }
@@ -1255,9 +1255,9 @@ void FullyDistSpVec<IT,NT>::ReadAllMine(FILE * binfile, IT * & inds, NT * & vals
 //! New generalized (parallel/binary/etc) version as of 2014
 template <class IT, class NT>
 template <class HANDLER>
-void FullyDistSpVec<IT,NT>::ReadDistribute (const string & filename, int master, HANDLER handler, bool pario)
+void FullyDistSpVec<IT,NT>::ReadDistribute (const std::string & filename, int master, HANDLER handler, bool pario)
 {
-    ifstream infile;
+    std::ifstream infile;
 	FILE * binfile = NULL;	// points to "past header" if the file is binary
 	int seeklength = 0;
 	HeaderInfo hfile;
@@ -1291,7 +1291,7 @@ void FullyDistSpVec<IT,NT>::ReadDistribute (const string & filename, int master,
 	//   	-- all data received by a given column head (by vertical communication) are headed to a single processor along the row
 	//   	-- then making sure buffperrowneigh >= buffpercolneigh guarantees that the horizontal buffer will never overflow
 	buffperrowneigh = std::max(buffperrowneigh, buffpercolneigh);
-	if(std::max(buffpercolneigh * colneighs, buffperrowneigh * rowneighs) > numeric_limits<int>::max())
+	if(std::max(buffpercolneigh * colneighs, buffperrowneigh * rowneighs) > std::numeric_limits<int>::max())
 	{
 		SpParHelper::Print("COMBBLAS: MPI doesn't support sending int64_t send/recv counts or displacements\n");
 	}
@@ -1302,9 +1302,9 @@ void FullyDistSpVec<IT,NT>::ReadDistribute (const string & filename, int master,
 	for (IT i=0; i<rowneighs; ++i)  rdispls[i] = i*buffperrowneigh;
 
 	// Note: all other column heads that initiate the horizontal communication has the same "rankinrow" with the master
-	int rankincol = commGrid->GetRankInProcCol(master);	// get master's rank in its processor column
+	int rankincol = commGrid->GetRankInProcCol(master);	// std::get master's rank in its processor column
 	int rankinrow = commGrid->GetRankInProcRow(master);
-	vector< pair<IT, NT> > localpairs;
+	std::vector< std::pair<IT, NT> > localpairs;
 
     int *ccurptrs = NULL, *rcurptrs = NULL;
     int recvcount = 0;
@@ -1336,8 +1336,8 @@ void FullyDistSpVec<IT,NT>::ReadDistribute (const string & filename, int master,
 			{
 				infile.getline(comment,256);
 			}
-			stringstream ss;
-			ss << string(comment);
+			std::stringstream ss;
+			ss << std::string(comment);
 			ss >> total_m >> total_n >> total_nnz;
 			if(pario)
 			{
@@ -1358,7 +1358,7 @@ void FullyDistSpVec<IT,NT>::ReadDistribute (const string & filename, int master,
         bool rowvector = false;
         if( total_m != 1 && total_n != 1)
         {
-            SpParHelper::Print("COMBBLAS: One of the dimensions should be 1 for this to be a vector, can't read\n");
+            SpParHelper::Print("COMBBLAS: One of the dimensions should be 1 for this to be a std::vector, can't read\n");
             return;
         }
         else if(total_m == 1)
@@ -1377,9 +1377,9 @@ void FullyDistSpVec<IT,NT>::ReadDistribute (const string & filename, int master,
 		{
 			IT entriestoread =  total_nnz / colneighs;
 #ifdef IODEBUG
-			ofstream oput;
+			std::ofstream oput;
 			commGrid->OpenDebugFile("Read", oput);
-			oput << "Total nnz: " << total_nnz << " entries to read: " << entriestoread << endl;
+			oput << "Total nnz: " << total_nnz << " entries to read: " << entriestoread << std::endl;
 			oput.close();
 #endif
 			ReadAllMine(binfile, inds, vals, localpairs, rcurptrs, ccurptrs, rdispls, cdispls,
@@ -1390,12 +1390,12 @@ void FullyDistSpVec<IT,NT>::ReadDistribute (const string & filename, int master,
 			IT tempind, temprow, tempcol;
 			NT tempval;
 			char line[1024];
-			bool nonumline = false; // ABAB: we don't support vector files without values at the moment
+			bool nonumline = false; // ABAB: we don't support std::vector files without values at the moment
 			IT cnz = 0;
 			for(; cnz < total_nnz; ++cnz)
 			{
 				size_t commonindex;
-				stringstream linestream;
+				std::stringstream linestream;
 				if( (!hfile.headerexists) && (!infile.eof()))
 				{
 					// read one line at a time so that missing numerical values can be detected
@@ -1408,7 +1408,7 @@ void FullyDistSpVec<IT,NT>::ReadDistribute (const string & filename, int master,
 					if (!nonumline)
 					{
 						// see if this line has a value
-						linestream >> skipws;
+						linestream >> std::skipws;
 						nonumline = linestream.eof();
 					}
 
@@ -1436,7 +1436,7 @@ void FullyDistSpVec<IT,NT>::ReadDistribute (const string & filename, int master,
 				{
 					MPI_Scatter(ccurptrs, 1, MPI_INT, &recvcount, 1, MPI_INT, rankincol, commGrid->GetColWorld()); // first, send the receive counts
 
-					// generate space for own recv data ... (use arrays because vector<bool> is cripled, if NT=bool)
+					// generate space for own recv data ... (use arrays because std::vector<bool> is cripled, if NT=bool)
 					IT * tempinds = new IT[recvcount];
 					NT * tempvals = new NT[recvcount];
 
@@ -1444,7 +1444,7 @@ void FullyDistSpVec<IT,NT>::ReadDistribute (const string & filename, int master,
 					MPI_Scatterv(inds, ccurptrs, cdispls, MPIType<IT>(), tempinds, recvcount,  MPIType<IT>(), rankincol, commGrid->GetColWorld());
 					MPI_Scatterv(vals, ccurptrs, cdispls, MPIType<NT>(), tempvals, recvcount,  MPIType<NT>(), rankincol, commGrid->GetColWorld());
 
-					fill_n(ccurptrs, colneighs, 0);  				// finally, reset current pointers !
+					std::fill_n(ccurptrs, colneighs, 0);  				// finally, reset current pointers !
 					DeleteAll(inds, vals);
 
 					HorizontalSend(inds, vals,tempinds, tempvals, localpairs, rcurptrs, rdispls, buffperrowneigh, recvcount, rankinrow);
@@ -1460,11 +1460,11 @@ void FullyDistSpVec<IT,NT>::ReadDistribute (const string & filename, int master,
 			assert (cnz == total_nnz);
 
 			// Signal the end of file to other processors along the column
-			fill_n(ccurptrs, colneighs, numeric_limits<int>::max());
+			std::fill_n(ccurptrs, colneighs, std::numeric_limits<int>::max());
 			MPI_Scatter(ccurptrs, 1, MPI_INT, &recvcount, 1, MPI_INT, rankincol, commGrid->GetColWorld());
 
 			// And along the row ...
-			fill_n(rcurptrs, rowneighs, numeric_limits<int>::max());
+			std::fill_n(rcurptrs, rowneighs, std::numeric_limits<int>::max());
 			MPI_Scatter(rcurptrs, 1, MPI_INT, &recvcount, 1, MPI_INT, rankinrow, commGrid->GetRowWorld());
 		}	// end of "else" (only one processor reads) block
 	}	// end_if for "master processor" case
@@ -1485,9 +1485,9 @@ void FullyDistSpVec<IT,NT>::ReadDistribute (const string & filename, int master,
 			fseek(binfile, read_offset, SEEK_SET);
 
 #ifdef IODEBUG
-			ofstream oput;
+			std::ofstream oput;
 			commGrid->OpenDebugFile("Read", oput);
-			oput << "Total nnz: " << total_nnz << " OFFSET : " << read_offset << " entries to read: " << entriestoread << endl;
+			oput << "Total nnz: " << total_nnz << " OFFSET : " << read_offset << " entries to read: " << entriestoread << std::endl;
 			oput.close();
 #endif
 
@@ -1501,7 +1501,7 @@ void FullyDistSpVec<IT,NT>::ReadDistribute (const string & filename, int master,
             {
 
 				MPI_Scatter(ccurptrs, 1, MPI_INT, &recvcount, 1, MPI_INT, rankincol, commGrid->GetColWorld());        // first receive the receive counts ...
-				if( recvcount == numeric_limits<int>::max()) break;
+				if( recvcount == std::numeric_limits<int>::max()) break;
 
 				// create space for incoming data ...
 				IT * tempinds = new IT[recvcount];
@@ -1521,7 +1521,7 @@ void FullyDistSpVec<IT,NT>::ReadDistribute (const string & filename, int master,
 		}
 
 		// Signal the end of file to other processors along the row
-		fill_n(rcurptrs, rowneighs, numeric_limits<int>::max());
+		std::fill_n(rcurptrs, rowneighs, std::numeric_limits<int>::max());
 		MPI_Scatter(rcurptrs, 1, MPI_INT, &recvcount, 1, MPI_INT, rankinrow, commGrid->GetRowWorld());
 		delete [] rcurptrs;
 	}
@@ -1532,7 +1532,7 @@ void FullyDistSpVec<IT,NT>::ReadDistribute (const string & filename, int master,
 		{
 			// receive the receive count
 			MPI_Scatter(rcurptrs, 1, MPI_INT, &recvcount, 1, MPI_INT, rankinrow, commGrid->GetRowWorld());
-			if( recvcount == numeric_limits<int>::max())
+			if( recvcount == std::numeric_limits<int>::max())
 				break;
 
 			// create space for incoming data ...
@@ -1544,19 +1544,19 @@ void FullyDistSpVec<IT,NT>::ReadDistribute (const string & filename, int master,
 
             for(int i=0; i< recvcount; ++i)
             {
-                localpairs.push_back( 	make_pair(tempinds[i], tempvals[i]) );  // no need to offset-adjust as we received the local index
+                localpairs.push_back( 	std::make_pair(tempinds[i], tempvals[i]) );  // no need to offset-adjust as we received the local index
             }
 
             DeleteAll(tempinds, tempvals);
 		}
 	}
-    // ABAB: Sort localpairs and copy the sorted result to ind/num
+    // ABAB: Sort localpairs and std::copy the sorted result to ind/num
 #ifdef IODEBUG
-    ofstream oput;
+    std::ofstream oput;
     commGrid->OpenDebugFile("Read", oput);
     for(auto litr = localpairs.begin(); litr != localpairs.end(); litr++)
     {
-        oput << "(" << litr->first << "," <<  litr->second << ")" << endl;
+        oput << "(" << litr->first << "," <<  litr->second << ")" << std::endl;
     }
     oput.close();
 #endif
@@ -1568,7 +1568,7 @@ void FullyDistSpVec<IT,NT>::ReadDistribute (const string & filename, int master,
 //! ABAB: Obsolete, will be deleted once moved to Github (and becomes independent of KDT)
 template <class IT, class NT>
 template <class HANDLER>
-ifstream& FullyDistSpVec<IT,NT>::ReadDistribute (ifstream& infile, int master, HANDLER handler)
+std::ifstream& FullyDistSpVec<IT,NT>::ReadDistribute (std::ifstream& infile, int master, HANDLER handler)
 {
 	IT total_nnz;
 	MPI_Comm World = commGrid->GetWorld();
@@ -1589,7 +1589,7 @@ ifstream& FullyDistSpVec<IT,NT>::ReadDistribute (ifstream& infile, int master, H
 		inds = new IT [ buffperneigh * neighs ];
 		vals = new NT [ buffperneigh * neighs ];
 		curptrs = new int[neighs];
-		fill_n(curptrs, neighs, 0);	// fill with zero
+		std::fill_n(curptrs, neighs, 0);	// std::fill with zero
 		if (infile.is_open())
 		{
 			infile.clear();
@@ -1598,12 +1598,12 @@ ifstream& FullyDistSpVec<IT,NT>::ReadDistribute (ifstream& infile, int master, H
 			bool indIsRow = true;
 			infile >> numrows >> numcols >> total_nnz;
 			if (numcols == 1)
-			{ // column vector, read vector indices from the row index
+			{ // column std::vector, read std::vector indices from the row index
 				indIsRow = true;
 				glen = numrows;
 			}
 			else
-			{ // row vector, read vector indices from the column index
+			{ // row std::vector, read std::vector indices from the column index
 				indIsRow = false;
 				glen = numcols;
 			}
@@ -1631,7 +1631,7 @@ ifstream& FullyDistSpVec<IT,NT>::ReadDistribute (ifstream& infile, int master, H
 					// first, send the receive counts ...
 					MPI_Scatter(curptrs, 1, MPI_INT, &recvcount, 1, MPI_INT, master, World);
 
-					// generate space for own recv data ... (use arrays because vector<bool> is cripled, if NT=bool)
+					// generate space for own recv data ... (use arrays because std::vector<bool> is cripled, if NT=bool)
 					IT * tempinds = new IT[recvcount];
 					NT * tempvals = new NT[recvcount];
 
@@ -1647,7 +1647,7 @@ ifstream& FullyDistSpVec<IT,NT>::ReadDistribute (ifstream& infile, int master, H
 					}
 
 					// reset current pointers so that we can reuse {inds,vals} buffers
-					fill_n(curptrs, neighs, 0);
+					std::fill_n(curptrs, neighs, 0);
 					DeleteAll(tempinds, tempvals);
 				}
 				++ cnz;
@@ -1655,7 +1655,7 @@ ifstream& FullyDistSpVec<IT,NT>::ReadDistribute (ifstream& infile, int master, H
 			assert (cnz == total_nnz);
 
 			// Signal the end of file to other processors along the diagonal
-			fill_n(curptrs, neighs, numeric_limits<int>::max());
+			std::fill_n(curptrs, neighs, std::numeric_limits<int>::max());
 			MPI_Scatter(curptrs, 1, MPI_INT, &recvcount, 1, MPI_INT, master, World);
 		}
 		else	// input file does not exist !
@@ -1673,7 +1673,7 @@ ifstream& FullyDistSpVec<IT,NT>::ReadDistribute (ifstream& infile, int master, H
 			// first receive the receive counts ...
 			MPI_Scatter(curptrs, 1, MPI_INT, &recvcount, 1, MPI_INT, master, World);
 
-			if( recvcount == numeric_limits<int>::max())
+			if( recvcount == std::numeric_limits<int>::max())
 				break;
 
 			// create space for incoming data ...
@@ -1700,7 +1700,7 @@ ifstream& FullyDistSpVec<IT,NT>::ReadDistribute (ifstream& infile, int master, H
 
 template <class IT, class NT>
 template <class HANDLER>
-void FullyDistSpVec<IT,NT>::SaveGathered(ofstream& outfile, int master, HANDLER handler, bool printProcSplits)
+void FullyDistSpVec<IT,NT>::SaveGathered(std::ofstream& outfile, int master, HANDLER handler, bool printProcSplits)
 {
 	int rank, nprocs;
 	MPI_Comm World = commGrid->GetWorld();
@@ -1708,7 +1708,7 @@ void FullyDistSpVec<IT,NT>::SaveGathered(ofstream& outfile, int master, HANDLER 
 	MPI_Comm_size(World, &nprocs);
 	MPI_File thefile;
 
-	char _fn[] = "temp_fullydistspvec"; // AL: this is to avoid the problem that C++ string literals are const char* while C string literals are char*, leading to a const warning (technically error, but compilers are tolerant)
+	char _fn[] = "temp_fullydistspvec"; // AL: this is to avoid the problem that C++ std::string literals are const char* while C std::string literals are char*, leading to a const warning (technically error, but compilers are tolerant)
 	int mpi_err = MPI_File_open(World, _fn, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &thefile);
 	if(mpi_err != MPI_SUCCESS)
 	{
@@ -1722,7 +1722,7 @@ void FullyDistSpVec<IT,NT>::SaveGathered(ofstream& outfile, int master, HANDLER 
 	IT * dist = new IT[nprocs];
 	dist[rank] = getlocnnz();
 	MPI_Allgather(MPI_IN_PLACE, 1, MPIType<IT>(), dist, 1, MPIType<IT>(), World);
-	IT sizeuntil = accumulate(dist, dist+rank, static_cast<IT>(0));
+	IT sizeuntil = std::accumulate(dist, dist+rank, static_cast<IT>(0));
 	IT totalLength = TotalLength();
 	IT totalNNZ = getnnz();
 
@@ -1740,7 +1740,7 @@ void FullyDistSpVec<IT,NT>::SaveGathered(ofstream& outfile, int master, HANDLER 
 
 	// The disp displacement argument specifies the position
 	// (absolute offset in bytes from the beginning of the file)
-	char native[] = "native"; // AL: this is to avoid the problem that C++ string literals are const char* while C string literals are char*, leading to a const warning (technically error, but compilers are tolerant)
+	char native[] = "native"; // AL: this is to avoid the problem that C++ std::string literals are const char* while C std::string literals are char*, leading to a const warning (technically error, but compilers are tolerant)
 	MPI_File_set_view(thefile, static_cast<int>(sizeuntil * dsize), datatype, datatype, native, MPI_INFO_NULL);
 
 	int count = ind.size();
@@ -1771,31 +1771,31 @@ void FullyDistSpVec<IT,NT>::SaveGathered(ofstream& outfile, int master, HANDLER 
 		FILE * f = fopen("temp_fullydistspvec", "r");
         	if(!f)
         	{
-			cerr << "Problem reading binary input file\n";
+			std::cerr << "Problem reading binary input file\n";
 			return;
 	        }
 		IT maxd = *max_element(dist, dist+nprocs);
 		mystruct * data = new mystruct[maxd];
 
-		streamsize oldPrecision = outfile.precision();
+		std::streamsize oldPrecision = outfile.precision();
 		outfile.precision(21);
-		outfile << totalLength << "\t1\t" << totalNNZ << endl;
+		outfile << totalLength << "\t1\t" << totalNNZ << std::endl;
 		for(int i=0; i<nprocs; ++i)
 		{
 			// read n_per_proc integers and print them
 			if (fread(data, dsize, dist[i], f) < static_cast<size_t>(dist[i]))
 			{
-			    cout << "fread 660 failed! attempting to continue..." << endl;
+			    std::cout << "fread 660 failed! attempting to continue..." << std::endl;
 			}
 
 			if (printProcSplits)
-				outfile << "Elements stored on proc " << i << ":" << endl;
+				outfile << "Elements stored on proc " << i << ":" << std::endl;
 
 			for (int j = 0; j < dist[i]; j++)
 			{
 				outfile << data[j].ind+1 << "\t1\t";
 				handler.save(outfile, data[j].num, data[j].ind);
-				outfile << endl;
+				outfile << std::endl;
 			}
 		}
 		outfile.precision(oldPrecision);
@@ -1841,7 +1841,7 @@ OUT FullyDistSpVec<IT,NT>::Reduce(_BinaryOperation __binary_op, OUT default_val,
 
 	if (num.size() > 0)
 	{
-		typename vector< NT >::const_iterator iter = num.begin();
+		typename std::vector< NT >::const_iterator iter = num.begin();
 		//localsum = __unary_op(*iter);
 		//iter++;
 		while (iter < num.end())
@@ -1857,11 +1857,11 @@ OUT FullyDistSpVec<IT,NT>::Reduce(_BinaryOperation __binary_op, OUT default_val,
 }
 
 template <class IT, class NT>
-void FullyDistSpVec<IT,NT>::PrintInfo(string vectorname) const
+void FullyDistSpVec<IT,NT>::PrintInfo(std::string vectorname) const
 {
 	IT nznz = getnnz();
 	if (commGrid->GetRank() == 0)
-		cout << "As a whole, " << vectorname << " has: " << nznz << " nonzeros and length " << glen << endl;
+		std::cout << "As a whole, " << vectorname << " has: " << nznz << " nonzeros and length " << glen << std::endl;
 }
 
 template <class IT, class NT>
@@ -1879,7 +1879,7 @@ void FullyDistSpVec<IT,NT>::DebugPrint()
 	IT * dist = new IT[nprocs];
 	dist[rank] = getlocnnz();
 	MPI_Allgather(MPI_IN_PLACE, 1, MPIType<IT>(), dist, 1, MPIType<IT>(), World);
-	IT sizeuntil = accumulate(dist, dist+rank, static_cast<IT>(0));
+	IT sizeuntil = std::accumulate(dist, dist+rank, static_cast<IT>(0));
 
 	struct mystruct
 	{
@@ -1916,7 +1916,7 @@ void FullyDistSpVec<IT,NT>::DebugPrint()
 		FILE * f = fopen("temp_fullydistspvec", "r");
                 if(!f)
                 {
-                        cerr << "Problem reading binary input file\n";
+                        std::cerr << "Problem reading binary input file\n";
                         return;
                 }
 		IT maxd = *max_element(dist, dist+nprocs);
@@ -1927,15 +1927,15 @@ void FullyDistSpVec<IT,NT>::DebugPrint()
 			// read n_per_proc integers and print them
 			if (fread(data, dsize, dist[i],f) < static_cast<size_t>(dist[i]))
 			{
-			    cout << "fread 802 failed! attempting to continue..." << endl;
+			    std::cout << "fread 802 failed! attempting to continue..." << std::endl;
 			}
 
-			cout << "Elements stored on proc " << i << ": {";
+			std::cout << "Elements stored on proc " << i << ": {";
 			for (int j = 0; j < dist[i]; j++)
 			{
-				cout << "(" << data[j].ind << "," << data[j].num << "), ";
+				std::cout << "(" << data[j].ind << "," << data[j].num << "), ";
 			}
-			cout << "}" << endl;
+			std::cout << "}" << std::endl;
 		}
 		fclose(f);
 		remove("temp_fullydistspvec");
@@ -1957,15 +1957,15 @@ template <class IT, class NT>
 void FullyDistSpVec<IT,NT>::BulkSet(IT inds[], int count) {
 	ind.resize(count);
 	num.resize(count);
-	copy(inds, inds+count, ind.data());
-	copy(inds, inds+count, num.data());
+	std::copy(inds, inds+count, ind.data());
+	std::copy(inds, inds+count, num.data());
 }
 
 
 
 /*
- ** Create a new sparse vector vout by swaping the indices and values of a sparse vector vin.
- ** the length of vout is globallen, which must be greater than the maximum entry of vin.
+ ** Create a new sparse std::vector vout by swaping the indices and values of a sparse std::vector vin.
+ ** the length of vout is globallen, which must be std::greater than the maximum entry of vin.
  ** nnz(vin) = nnz(vout)
  ** for every nonzero entry vin[k]: vout[vin[k]] = k
  */
@@ -1977,14 +1977,14 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT,NT>::Invert (IT globallen)
     IT max_entry = Reduce(maximum<IT>(), (IT) 0 ) ;
     if(max_entry >= globallen)
     {
-        cout << "Sparse vector has entries (" << max_entry  << ") larger than requested global vector length " << globallen << endl;
+        std::cout << "Sparse std::vector has entries (" << max_entry  << ") larger than requested global std::vector length " << globallen << std::endl;
         return Inverted;
     }
 
 
 	int nprocs = commGrid->GetSize();
-	vector< vector< NT > > datsent(nprocs);
-	vector< vector< IT > > indsent(nprocs);
+	std::vector< std::vector< NT > > datsent(nprocs);
+	std::vector< std::vector< IT > > indsent(nprocs);
 
 	IT ploclen = getlocnnz();
 	for(IT k=0; k < ploclen; ++k)
@@ -2014,16 +2014,16 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT,NT>::Invert (IT globallen)
     NT * datbuf = new NT[ploclen];
 	for(int i=0; i<nprocs; ++i)
 	{
-		copy(datsent[i].begin(), datsent[i].end(), datbuf+sdispls[i]);
-		vector<NT>().swap(datsent[i]);
+		std::copy(datsent[i].begin(), datsent[i].end(), datbuf+sdispls[i]);
+		std::vector<NT>().swap(datsent[i]);
 	}
     IT * indbuf = new IT[ploclen];
     for(int i=0; i<nprocs; ++i)
 	{
-		copy(indsent[i].begin(), indsent[i].end(), indbuf+sdispls[i]);
-		vector<IT>().swap(indsent[i]);
+		std::copy(indsent[i].begin(), indsent[i].end(), indbuf+sdispls[i]);
+		std::vector<IT>().swap(indsent[i]);
 	}
-    IT totrecv = accumulate(recvcnt,recvcnt+nprocs, static_cast<IT>(0));
+    IT totrecv = std::accumulate(recvcnt,recvcnt+nprocs, static_cast<IT>(0));
 	NT * recvdatbuf = new NT[totrecv];
 	MPI_Alltoallv(datbuf, sendcnt, sdispls, MPIType<NT>(), recvdatbuf, recvcnt, rdispls, MPIType<NT>(), World);
     delete [] datbuf;
@@ -2033,13 +2033,13 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT,NT>::Invert (IT globallen)
     delete [] indbuf;
 
 
-    vector< pair<IT,NT> > tosort;   // in fact, tomerge would be a better name but it is unlikely to be faster
+    std::vector< std::pair<IT,NT> > tosort;   // in fact, tomerge would be a better name but it is unlikely to be faster
 
 	for(int i=0; i<nprocs; ++i)
 	{
 		for(int j = rdispls[i]; j < rdispls[i] + recvcnt[i]; ++j)	// fetch the numerical values
 		{
-            tosort.push_back(make_pair(recvindbuf[j], recvdatbuf[j]));
+            tosort.push_back(std::make_pair(recvindbuf[j], recvdatbuf[j]));
 		}
 	}
 	DeleteAll(recvindbuf, recvdatbuf);
@@ -2047,7 +2047,7 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT,NT>::Invert (IT globallen)
     std::sort(tosort.begin(), tosort.end());
 
     IT lastIndex=-1;
-    for(typename vector<pair<IT,NT>>::iterator itr = tosort.begin(); itr != tosort.end(); ++itr)
+    for(typename std::vector<std::pair<IT,NT>>::iterator itr = tosort.begin(); itr != tosort.end(); ++itr)
     {
         if(lastIndex!=itr->first) // avoid duplicate indices
         {
@@ -2065,8 +2065,8 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT,NT>::Invert (IT globallen)
 
 
 /*
- ** Create a new sparse vector vout by swaping the indices and values of a sparse vector vin.
- ** the length of vout is globallen, which must be greater than the maximum entry of vin.
+ ** Create a new sparse std::vector vout by swaping the indices and values of a sparse std::vector vin.
+ ** the length of vout is globallen, which must be std::greater than the maximum entry of vin.
  ** nnz(vin) = nnz(vout)
  ** for every nonzero entry vin[k]: vout[vin[k]] = k
  */
@@ -2078,7 +2078,7 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT,NT>::Invert (IT globallen)
     IT max_entry = Reduce(maximum<IT>(), (IT) 0 ) ;
     if(max_entry >= globallen)
     {
-        cout << "Sparse vector has entries (" << max_entry  << ") larger than requested global vector length " << globallen << endl;
+        std::cout << "Sparse std::vector has entries (" << max_entry  << ") larger than requested global std::vector length " << globallen << std::endl;
         return Inverted;
     }
 
@@ -2151,14 +2151,14 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT,NT>::Invert (IT globallen)
     delete [] indbuf;
 
 
-    vector< pair<IT,NT> > tosort;
+    std::vector< std::pair<IT,NT> > tosort;
     tosort.resize(totrecv);
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
 	for(int i=0; i<totrecv; ++i)
 	{
-        tosort[i] = make_pair(recvindbuf[i], recvdatbuf[i]);
+        tosort[i] = std::make_pair(recvindbuf[i], recvdatbuf[i]);
 	}
 	DeleteAll(recvindbuf, recvdatbuf);
     DeleteAll(sdispls, rdispls, sendcnt, recvcnt);
@@ -2174,7 +2174,7 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT,NT>::Invert (IT globallen)
     IT lastIndex=-1;
 
     // not threaded because Inverted.ind is kept sorted
-    for(typename vector<pair<IT,NT>>::iterator itr = tosort.begin(); itr != tosort.end(); ++itr)
+    for(typename std::vector<std::pair<IT,NT>>::iterator itr = tosort.begin(); itr != tosort.end(); ++itr)
     {
         if(lastIndex!=itr->first) // avoid duplicate indices
         {
@@ -2192,7 +2192,7 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT,NT>::Invert (IT globallen)
 
 
 /*
- // generalized invert taking binary operations to define index and values of the inverted vector
+ // generalized invert taking binary operations to define index and values of the inverted std::vector
  */
 
 template <class IT, class NT>
@@ -2204,7 +2204,7 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT,NT>::Invert (IT globallen, _BinaryOperat
     FullyDistSpVec<IT,NT> Inverted(commGrid, globallen);
 
 
-    // identify the max index in the composed vector
+    // identify the max index in the composed std::vector
     IT localmax = (IT) 0;
     for(IT k=0; k < num.size(); ++k)
     {
@@ -2215,7 +2215,7 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT,NT>::Invert (IT globallen, _BinaryOperat
 
     if(globalmax >= globallen)
     {
-        cout << "Sparse vector has entries (" << globalmax  << ") larger than requested global vector length " << globallen << endl;
+        std::cout << "Sparse std::vector has entries (" << globalmax  << ") larger than requested global std::vector length " << globallen << std::endl;
         return Inverted;
     }
 
@@ -2236,7 +2236,7 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT,NT>::Invert (IT globallen, _BinaryOperat
     for(IT k=0; k < ploclen; ++k)
     {
         IT locind;
-        IT globind = __binopIdx(num[k], ind[k] + LengthUntil()); // get global index of the inverted vector
+        IT globind = __binopIdx(num[k], ind[k] + LengthUntil()); // std::get global index of the inverted std::vector
         int owner = Inverted.Owner(globind, locind);
 
 #ifdef _OPENMP
@@ -2267,7 +2267,7 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT,NT>::Invert (IT globallen, _BinaryOperat
     for(IT i=0; i < ploclen; ++i)
     {
         IT locind;
-        IT globind = __binopIdx(num[i], ind[i] + LengthUntil()); // get global index of the inverted vector
+        IT globind = __binopIdx(num[i], ind[i] + LengthUntil()); // std::get global index of the inverted std::vector
         int owner = Inverted.Owner(globind, locind);
         int id;
 #ifdef _OPENMP
@@ -2292,14 +2292,14 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT,NT>::Invert (IT globallen, _BinaryOperat
     delete [] indbuf;
 
 
-    vector< pair<IT,NT> > tosort;
+    std::vector< std::pair<IT,NT> > tosort;
     tosort.resize(totrecv);
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
     for(int i=0; i<totrecv; ++i)
     {
-        tosort[i] = make_pair(recvindbuf[i], recvdatbuf[i]);
+        tosort[i] = std::make_pair(recvindbuf[i], recvdatbuf[i]);
     }
     DeleteAll(recvindbuf, recvdatbuf);
     DeleteAll(sdispls, rdispls, sendcnt, recvcnt);
@@ -2315,7 +2315,7 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT,NT>::Invert (IT globallen, _BinaryOperat
     IT lastIndex=-1;
 
     // not threaded because Inverted.ind is kept sorted
-    for(typename vector<pair<IT,NT>>::iterator itr = tosort.begin(); itr != tosort.end(); ++itr)
+    for(typename std::vector<std::pair<IT,NT>>::iterator itr = tosort.begin(); itr != tosort.end(); ++itr)
     {
         if(lastIndex!=itr->first) // avoid duplicate indices
         {
@@ -2343,7 +2343,7 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT,NT>::InvertRMA (IT globallen, _BinaryOpe
     int myrank;
     MPI_Comm_rank(commGrid->GetWorld(), &myrank);
 
-    // identify the max index in the composed vector
+    // identify the max index in the composed std::vector
     IT localmax = (IT) 0;
     for(IT k=0; k < num.size(); ++k)
     {
@@ -2354,7 +2354,7 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT,NT>::InvertRMA (IT globallen, _BinaryOpe
 
     if(globalmax >= globallen)
     {
-        cout << "Sparse vector has entries (" << globalmax  << ") larger than requested global vector length " << globallen << endl;
+        std::cout << "Sparse std::vector has entries (" << globalmax  << ") larger than requested global std::vector length " << globallen << std::endl;
         return Inverted;
     }
 
@@ -2375,7 +2375,7 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT,NT>::InvertRMA (IT globallen, _BinaryOpe
     for(IT k=0; k < ploclen; ++k)
     {
         IT locind;
-        IT globind = __binopIdx(num[k], ind[k] + LengthUntil()); // get global index of the inverted vector
+        IT globind = __binopIdx(num[k], ind[k] + LengthUntil()); // std::get global index of the inverted std::vector
         int owner = Inverted.Owner(globind, locind);
 
 #ifdef _OPENMP
@@ -2433,7 +2433,7 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT,NT>::InvertRMA (IT globallen, _BinaryOpe
     for(IT i=0; i < ploclen; ++i)
     {
         IT locind;
-        IT globind = __binopIdx(num[i], ind[i] + LengthUntil()); // get global index of the inverted vector
+        IT globind = __binopIdx(num[i], ind[i] + LengthUntil()); // std::get global index of the inverted std::vector
         int owner = Inverted.Owner(globind, locind);
         int id;
 #ifdef _OPENMP
@@ -2479,14 +2479,14 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT,NT>::InvertRMA (IT globallen, _BinaryOpe
     delete [] rmadispls;
 
 
-    vector< pair<IT,NT> > tosort;
+    std::vector< std::pair<IT,NT> > tosort;
     tosort.resize(totrecv);
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
     for(int i=0; i<totrecv; ++i)
     {
-        tosort[i] = make_pair(recvindbuf[i], recvdatbuf[i]);
+        tosort[i] = std::make_pair(recvindbuf[i], recvdatbuf[i]);
     }
     DeleteAll(recvindbuf, recvdatbuf);
     DeleteAll(sdispls, rdispls, sendcnt, recvcnt);
@@ -2502,7 +2502,7 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT,NT>::InvertRMA (IT globallen, _BinaryOpe
     IT lastIndex=-1;
 
     // not threaded because Inverted.ind is kept sorted
-    for(typename vector<pair<IT,NT>>::iterator itr = tosort.begin(); itr != tosort.end(); ++itr)
+    for(typename std::vector<std::pair<IT,NT>>::iterator itr = tosort.begin(); itr != tosort.end(); ++itr)
     {
         if(lastIndex!=itr->first) // avoid duplicate indices
         {
@@ -2527,7 +2527,7 @@ void FullyDistSpVec<IT,NT>::Select (const FullyDistVec<IT,NT1> & denseVec, _Unar
 	{
 		if(TotalLength() != denseVec.TotalLength())
 		{
-			ostringstream outs;
+			std::ostringstream outs;
 			outs << "Vector dimensions don't match (" << TotalLength() << " vs " << denseVec.TotalLength() << ") for Select\n";
 			SpParHelper::Print(outs.str());
 			MPI_Abort(MPI_COMM_WORLD, DIMMISMATCH);
@@ -2537,7 +2537,7 @@ void FullyDistSpVec<IT,NT>::Select (const FullyDistVec<IT,NT1> & denseVec, _Unar
 
 			IT spsize = getlocnnz();
             IT k = 0;
-            // iterate over the sparse vector
+            // iterate over the sparse std::vector
             for(IT i=0; i< spsize; ++i)
             {
                 if(__unop(denseVec.arr[ind[i]]))
@@ -2552,8 +2552,8 @@ void FullyDistSpVec<IT,NT>::Select (const FullyDistVec<IT,NT1> & denseVec, _Unar
 	}
 	else
 	{
-        ostringstream outs;
-        outs << "Grids are not comparable for Select" << endl;
+        std::ostringstream outs;
+        outs << "Grids are not comparable for Select" << std::endl;
         SpParHelper::Print(outs.str());
 		MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
 	}
@@ -2569,7 +2569,7 @@ void FullyDistSpVec<IT,NT>::Setminus (const FullyDistSpVec<IT,NT1> & other)
     {
         if(TotalLength() != other.TotalLength())
         {
-            ostringstream outs;
+            std::ostringstream outs;
             outs << "Vector dimensions don't match (" << TotalLength() << " vs " << other.TotalLength() << ") for Select\n";
             SpParHelper::Print(outs.str());
             MPI_Abort(MPI_COMM_WORLD, DIMMISMATCH);
@@ -2580,7 +2580,7 @@ void FullyDistSpVec<IT,NT>::Setminus (const FullyDistSpVec<IT,NT1> & other)
             IT mysize = getlocnnz();
             IT othersize = other.getlocnnz();
             IT k = 0, i=0, j=0;
-            // iterate over the sparse vector
+            // iterate over the sparse std::vector
             for(; i< mysize && j < othersize;)
             {
                 if(other.ind[j] == ind[i]) //skip
@@ -2606,8 +2606,8 @@ void FullyDistSpVec<IT,NT>::Setminus (const FullyDistSpVec<IT,NT1> & other)
     }
     else
     {
-        ostringstream outs;
-        outs << "Grids are not comparable for Select" << endl;
+        std::ostringstream outs;
+        outs << "Grids are not comparable for Select" << std::endl;
         SpParHelper::Print(outs.str());
         MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
     }
@@ -2627,7 +2627,7 @@ FullyDistSpVec<IT,NT1> FullyDistSpVec<IT,NT>::SelectNew (const FullyDistVec<IT,N
 	{
 		if(TotalLength() != denseVec.TotalLength())
 		{
-			ostringstream outs;
+			std::ostringstream outs;
 			outs << "Vector dimensions don't match (" << TotalLength() << " vs " << denseVec.TotalLength() << ") for Select\n";
 			SpParHelper::Print(outs.str());
 			MPI_Abort(MPI_COMM_WORLD, DIMMISMATCH);
@@ -2637,7 +2637,7 @@ FullyDistSpVec<IT,NT1> FullyDistSpVec<IT,NT>::SelectNew (const FullyDistVec<IT,N
 
 			IT spsize = getlocnnz();
             //IT k = 0;
-            // iterate over the sparse vector
+            // iterate over the sparse std::vector
             for(IT i=0; i< spsize; ++i)
             {
                 if(__unop1(denseVec.arr[ind[i]]))
@@ -2654,8 +2654,8 @@ FullyDistSpVec<IT,NT1> FullyDistSpVec<IT,NT>::SelectNew (const FullyDistVec<IT,N
 	}
 	else
 	{
-        ostringstream outs;
-        outs << "Grids are not comparable for Select" << endl;
+        std::ostringstream outs;
+        outs << "Grids are not comparable for Select" << std::endl;
         SpParHelper::Print(outs.str());
 		MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
 	}
@@ -2674,7 +2674,7 @@ void FullyDistSpVec<IT,NT>::SelectApply (const FullyDistVec<IT,NT1> & denseVec, 
 	{
 		if(TotalLength() != denseVec.TotalLength())
 		{
-			ostringstream outs;
+			std::ostringstream outs;
 			outs << "Vector dimensions don't match (" << TotalLength() << " vs " << denseVec.TotalLength() << ") for Select\n";
 			SpParHelper::Print(outs.str());
 			MPI_Abort(MPI_COMM_WORLD, DIMMISMATCH);
@@ -2684,7 +2684,7 @@ void FullyDistSpVec<IT,NT>::SelectApply (const FullyDistVec<IT,NT1> & denseVec, 
 
 			IT spsize = getlocnnz();
             IT k = 0;
-            // iterate over the sparse vector
+            // iterate over the sparse std::vector
             for(IT i=0; i< spsize; ++i)
             {
                 if(__unop(denseVec.arr[ind[i]]))
@@ -2699,8 +2699,8 @@ void FullyDistSpVec<IT,NT>::SelectApply (const FullyDistVec<IT,NT1> & denseVec, 
 	}
 	else
 	{
-        ostringstream outs;
-        outs << "Grids are not comparable for Select" << endl;
+        std::ostringstream outs;
+        outs << "Grids are not comparable for Select" << std::endl;
         SpParHelper::Print(outs.str());
 		MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
 	}
@@ -2718,7 +2718,7 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT,NT>::SelectApplyNew(const FullyDistVec<I
 	{
 		if(TotalLength() != denseVec.TotalLength())
 		{
-			ostringstream outs;
+			std::ostringstream outs;
 			outs << "Vector dimensions don't match (" << TotalLength() << " vs " << denseVec.TotalLength() << ") for Select\n";
 			SpParHelper::Print(outs.str());
 			MPI_Abort(MPI_COMM_WORLD, DIMMISMATCH);
@@ -2728,7 +2728,7 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT,NT>::SelectApplyNew(const FullyDistVec<I
 
 			IT spsize = getlocnnz();
             //IT k = 0;
-            // iterate over the sparse vector
+            // iterate over the sparse std::vector
             for(IT i=0; i< spsize; ++i)
             {
                 if(__unop(denseVec.arr[ind[i]]))
@@ -2743,8 +2743,8 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT,NT>::SelectApplyNew(const FullyDistVec<I
 	}
 	else
 	{
-        ostringstream outs;
-        outs << "Grids are not comparable for Select" << endl;
+        std::ostringstream outs;
+        outs << "Grids are not comparable for Select" << std::endl;
         SpParHelper::Print(outs.str());
 		MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
 	}
@@ -2752,7 +2752,7 @@ FullyDistSpVec<IT,NT> FullyDistSpVec<IT,NT>::SelectApplyNew(const FullyDistVec<I
 }
 
 
-// apply an unary function to each nnz and return a new vector
+// apply an unary function to each nnz and return a new std::vector
 // can be a constrauctor
 /*
 template <typename IT, typename NT>
@@ -2780,8 +2780,8 @@ void FullyDistSpVec<IT,NT>::FilterByVal (FullyDistSpVec<IT,IT> Selector, _UnaryO
 {
     if(*commGrid != *(Selector.commGrid))
     {
-        ostringstream outs;
-        outs << "Grids are not comparable for Filter" << endl;
+        std::ostringstream outs;
+        outs << "Grids are not comparable for Filter" << std::endl;
         SpParHelper::Print(outs.str());
 		MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
     }
@@ -2813,7 +2813,7 @@ void FullyDistSpVec<IT,NT>::FilterByVal (FullyDistSpVec<IT,IT> Selector, _UnaryO
             sendbuf[k] = Selector.num[k];
     }
 
-    IT totrecv = accumulate(recvcnt,recvcnt+nprocs, static_cast<IT>(0));
+    IT totrecv = std::accumulate(recvcnt,recvcnt+nprocs, static_cast<IT>(0));
 
     std::vector<IT> recvbuf;
     recvbuf.resize(totrecv);
@@ -2848,6 +2848,4 @@ void FullyDistSpVec<IT,NT>::FilterByVal (FullyDistSpVec<IT,IT> Selector, _UnaryO
 
 
 }
-
-
-
+}

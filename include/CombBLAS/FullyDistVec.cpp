@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2015, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -30,47 +30,49 @@
 #include "FullyDistSpVec.h"
 #include "Operations.h"
 
+namespace combblas {
+
 template <class IT, class NT>
 FullyDistVec<IT, NT>::FullyDistVec()
-    : FullyDist<IT, NT, typename CombBLAS::disable_if<
-                            CombBLAS::is_boolean<NT>::value, NT>::type>() {}
+    : FullyDist<IT, NT, typename combblas::disable_if<
+                            combblas::is_boolean<NT>::value, NT>::type>() {}
 
 template <class IT, class NT>
 FullyDistVec<IT, NT>::FullyDistVec(IT globallen, NT initval)
-    : FullyDist<IT, NT, typename CombBLAS::disable_if<
-                            CombBLAS::is_boolean<NT>::value, NT>::type>(
+    : FullyDist<IT, NT, typename combblas::disable_if<
+                            combblas::is_boolean<NT>::value, NT>::type>(
           globallen) {
   arr.resize(MyLocLength(), initval);
 }
 
 template <class IT, class NT>
-FullyDistVec<IT, NT>::FullyDistVec(shared_ptr<CommGrid> grid)
-    : FullyDist<IT, NT, typename CombBLAS::disable_if<
-                            CombBLAS::is_boolean<NT>::value, NT>::type>(grid) {}
+FullyDistVec<IT, NT>::FullyDistVec(std::shared_ptr<CommGrid> grid)
+    : FullyDist<IT, NT, typename combblas::disable_if<
+                            combblas::is_boolean<NT>::value, NT>::type>(grid) {}
 
 template <class IT, class NT>
-FullyDistVec<IT, NT>::FullyDistVec(shared_ptr<CommGrid> grid, IT globallen,
+FullyDistVec<IT, NT>::FullyDistVec(std::shared_ptr<CommGrid> grid, IT globallen,
                                    NT initval)
-    : FullyDist<IT, NT, typename CombBLAS::disable_if<
-                            CombBLAS::is_boolean<NT>::value, NT>::type>(
+    : FullyDist<IT, NT, typename combblas::disable_if<
+                            combblas::is_boolean<NT>::value, NT>::type>(
           grid, globallen) {
   arr.resize(MyLocLength(), initval);
 }
 
 template <class IT, class NT>
 FullyDistVec<IT, NT>::FullyDistVec(
-    const FullyDistSpVec<IT, NT>& rhs)  // Conversion copy-constructor
-    : FullyDist<IT, NT, typename CombBLAS::disable_if<
-                            CombBLAS::is_boolean<NT>::value, NT>::type>(
+    const FullyDistSpVec<IT, NT>& rhs)  // Conversion std::copy-constructor
+    : FullyDist<IT, NT, typename combblas::disable_if<
+                            combblas::is_boolean<NT>::value, NT>::type>(
           rhs.commGrid, rhs.glen) {
   *this = rhs;
 }
 
 template <class IT, class NT>
 FullyDistVec<IT, NT>::FullyDistVec(
-    const DenseParVec<IT, NT>& rhs)  // Conversion copy-constructor
-    : FullyDist<IT, NT, typename CombBLAS::disable_if<
-                            CombBLAS::is_boolean<NT>::value, NT>::type>(
+    const DenseParVec<IT, NT>& rhs)  // Conversion std::copy-constructor
+    : FullyDist<IT, NT, typename combblas::disable_if<
+                            combblas::is_boolean<NT>::value, NT>::type>(
           rhs.commGrid) {
   *this = rhs;
 }
@@ -78,8 +80,8 @@ FullyDistVec<IT, NT>::FullyDistVec(
 template <class IT, class NT>
 template <class ITRHS, class NTRHS>
 FullyDistVec<IT, NT>::FullyDistVec(const FullyDistVec<ITRHS, NTRHS>& rhs)
-    : FullyDist<IT, NT, typename CombBLAS::disable_if<
-                            CombBLAS::is_boolean<NT>::value, NT>::type>(
+    : FullyDist<IT, NT, typename combblas::disable_if<
+                            combblas::is_boolean<NT>::value, NT>::type>(
           rhs.commGrid, static_cast<IT>(rhs.glen)) {
   arr.resize(static_cast<IT>(rhs.arr.size()), NT());
 
@@ -89,15 +91,15 @@ FullyDistVec<IT, NT>::FullyDistVec(const FullyDistVec<ITRHS, NTRHS>& rhs)
 }
 
 /**
-  * Initialize a FullyDistVec with a separate vector from each processor
+  * Initialize a FullyDistVec with a separate std::vector from each processor
   * Optimizes for the common case where all fillarr's in separate processors are
  * of the same size
   */
 template <class IT, class NT>
-FullyDistVec<IT, NT>::FullyDistVec(const vector<NT>& fillarr,
-                                   shared_ptr<CommGrid> grid)
-    : FullyDist<IT, NT, typename CombBLAS::disable_if<
-                            CombBLAS::is_boolean<NT>::value, NT>::type>(grid) {
+FullyDistVec<IT, NT>::FullyDistVec(const std::vector<NT>& fillarr,
+                                   std::shared_ptr<CommGrid> grid)
+    : FullyDist<IT, NT, typename combblas::disable_if<
+                            combblas::is_boolean<NT>::value, NT>::type>(grid) {
   MPI_Comm World = commGrid->GetWorld();
   int nprocs = commGrid->GetSize();
   int rank = commGrid->GetRank();
@@ -108,21 +110,21 @@ FullyDistVec<IT, NT>::FullyDistVec(const vector<NT>& fillarr,
   MPI_Allgather(MPI_IN_PLACE, 1, MPIType<IT>(), sizes, 1, MPIType<IT>(), World);
   glen = std::accumulate(sizes, sizes + nprocs, static_cast<IT>(0));
 
-  vector<IT> uniq_sizes;
+  std::vector<IT> uniq_sizes;
   std::unique_copy(sizes, sizes + nprocs, std::back_inserter(uniq_sizes));
   if (uniq_sizes.size() == 1) {
     arr = fillarr;
   } else {
-    IT lengthuntil = accumulate(sizes, sizes + rank, static_cast<IT>(0));
+    IT lengthuntil = std::accumulate(sizes, sizes + rank, static_cast<IT>(0));
 
-    // Although the found vector is not reshuffled yet, its glen and commGrid
+    // Although the found std::vector is not reshuffled yet, its glen and commGrid
     // are set
     // We can call the Owner/MyLocLength/LengthUntil functions (to infer future
     // distribution)
 
     // rebalance/redistribute
     int* sendcnt = new int[nprocs];
-    fill(sendcnt, sendcnt + nprocs, 0);
+    std::fill(sendcnt, sendcnt + nprocs, 0);
     for (IT i = 0; i < nsize; ++i) {
       IT locind;
       int owner = Owner(i + lengthuntil, locind);
@@ -140,10 +142,10 @@ FullyDistVec<IT, NT>::FullyDistVec(const vector<NT>& fillarr,
       sdispls[i + 1] = sdispls[i] + sendcnt[i];
       rdispls[i + 1] = rdispls[i] + recvcnt[i];
     }
-    IT totrecv = accumulate(recvcnt, recvcnt + nprocs, static_cast<IT>(0));
-    vector<IT> recvbuf(totrecv);
+    IT totrecv = std::accumulate(recvcnt, recvcnt + nprocs, static_cast<IT>(0));
+    std::vector<IT> recvbuf(totrecv);
 
-    // data is already in the right order in found.arr
+    // data is already in the std::right order in found.arr
     MPI_Alltoallv(&(arr[0]), sendcnt, sdispls, MPIType<IT>(), &(recvbuf[0]),
                   recvcnt, rdispls, MPIType<IT>(), World);
     arr.swap(recvbuf);
@@ -153,7 +155,7 @@ FullyDistVec<IT, NT>::FullyDistVec(const vector<NT>& fillarr,
 }
 
 template <class IT, class NT>
-pair<IT, NT> FullyDistVec<IT, NT>::MinElement() const {
+std::pair<IT, NT> FullyDistVec<IT, NT>::MinElement() const {
   auto it = min_element(arr.begin(), arr.end());
   NT localMin = *it;
   NT globalMin;
@@ -168,7 +170,7 @@ pair<IT, NT> FullyDistVec<IT, NT>::MinElement() const {
   MPI_Allreduce(&localMinIdx, &globalMinIdx, 1, MPIType<IT>(), MPI_MIN,
                 commGrid->GetWorld());  // it can be MPI_MAX or anything
 
-  return make_pair(globalMinIdx, globalMin);
+  return std::make_pair(globalMinIdx, globalMin);
 }
 
 template <class IT, class NT>
@@ -192,7 +194,7 @@ OUT FullyDistVec<IT, NT>::Reduce(_BinaryOperation __binary_op, OUT default_val,
   OUT localsum = default_val;
 
   if (arr.size() > 0) {
-    typename vector<NT>::const_iterator iter = arr.begin();
+    typename std::vector<NT>::const_iterator iter = arr.begin();
     // localsum = __unary_op(*iter);
     // iter++;
     while (iter < arr.end()) {
@@ -217,14 +219,14 @@ void FullyDistVec<IT, NT>::SelectCandidates(double nver) {
 #endif
 
   IT length = TotalLength();
-  vector<double> loccands(length);
-  vector<NT> loccandints(length);
+  std::vector<double> loccands(length);
+  std::vector<NT> loccandints(length);
   MPI_Comm World = commGrid->GetWorld();
   int myrank = commGrid->GetRank();
   if (myrank == 0) {
     for (int i = 0; i < length; ++i) loccands[i] = M.rand();
-    transform(loccands.begin(), loccands.end(), loccands.begin(),
-              bind2nd(multiplies<double>(), nver));
+    std::transform(loccands.begin(), loccands.end(), loccands.begin(),
+              bind2nd(std::multiplies<double>(), nver));
 
     for (int i = 0; i < length; ++i)
       loccandints[i] = static_cast<NT>(loccands[i]);
@@ -254,8 +256,8 @@ template <class IT, class NT>
 FullyDistVec<IT, NT>& FullyDistVec<IT, NT>::operator=(
     const FullyDistVec<IT, NT>& rhs) {
   if (this != &rhs) {
-    FullyDist<IT, NT, typename CombBLAS::disable_if<
-                          CombBLAS::is_boolean<NT>::value, NT>::type>::
+    FullyDist<IT, NT, typename combblas::disable_if<
+                          combblas::is_boolean<NT>::value, NT>::type>::
     operator=(rhs);  // to update glen and commGrid
     arr = rhs.arr;
   }
@@ -267,8 +269,8 @@ FullyDistVec<IT, NT>& FullyDistVec<IT, NT>::operator=(
     const FullyDistSpVec<IT, NT>&
         rhs)  // FullyDistSpVec->FullyDistVec conversion operator
 {
-  FullyDist<IT, NT, typename CombBLAS::disable_if<
-                        CombBLAS::is_boolean<NT>::value, NT>::type>::
+  FullyDist<IT, NT, typename combblas::disable_if<
+                        combblas::is_boolean<NT>::value, NT>::type>::
   operator=(rhs);  // to update glen and commGrid
   arr.resize(rhs.MyLocLength());
   std::fill(arr.begin(), arr.end(), NT());
@@ -276,7 +278,7 @@ FullyDistVec<IT, NT>& FullyDistVec<IT, NT>::operator=(
   IT spvecsize = rhs.getlocnnz();
   for (IT i = 0; i < spvecsize; ++i) {
     // if(rhs.ind[i] > arr.size())
-    //	cout << "rhs.ind[i]: " << rhs.ind[i] <<  endl;
+    //	std::cout << "rhs.ind[i]: " << rhs.ind[i] <<  std::endl;
     arr[rhs.ind[i]] = rhs.num[i];
   }
   return *this;
@@ -288,12 +290,12 @@ FullyDistVec<IT, NT>& FullyDistVec<IT, NT>::operator=(
         rhs)  // DenseParVec->FullyDistVec conversion operator
 {
   if (*commGrid != *rhs.commGrid) {
-    cout << "Grids are not comparable elementwise addition" << endl;
+    std::cout << "Grids are not comparable elementwise addition" << std::endl;
     MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
   } else {
     glen = rhs.getTotalLength();
     arr.resize(MyLocLength());  // once glen is set, MyLocLength() works
-    fill(arr.begin(), arr.end(), NT());
+    std::fill(arr.begin(), arr.end(), NT());
 
     int* sendcnts = NULL;
     int* dpls = NULL;
@@ -301,11 +303,11 @@ FullyDistVec<IT, NT>& FullyDistVec<IT, NT>::operator=(
       int proccols = commGrid->GetGridCols();
       IT n_perproc = rhs.getLocalLength() / proccols;
       sendcnts = new int[proccols];
-      fill(sendcnts, sendcnts + proccols - 1, n_perproc);
+      std::fill(sendcnts, sendcnts + proccols - 1, n_perproc);
       sendcnts[proccols - 1] =
           rhs.getLocalLength() - (n_perproc * (proccols - 1));
       dpls = new int[proccols]();  // displacements (zero initialized pid)
-      partial_sum(sendcnts, sendcnts + proccols - 1, dpls + 1);
+      std::partial_sum(sendcnts, sendcnts + proccols - 1, dpls + 1);
     }
 
     int rowroot = commGrid->GetDiagOfProcRow();
@@ -321,8 +323,8 @@ FullyDistVec<IT, NT>& FullyDistVec<IT, NT>::operator=(
 template <class IT, class NT>
 FullyDistVec<IT, NT>& FullyDistVec<IT, NT>::stealFrom(
     FullyDistVec<IT, NT>& victim) {
-  FullyDist<IT, NT, typename CombBLAS::disable_if<
-                        CombBLAS::is_boolean<NT>::value, NT>::type>::
+  FullyDist<IT, NT, typename combblas::disable_if<
+                        combblas::is_boolean<NT>::value, NT>::type>::
   operator=(victim);  // to update glen and commGrid
   arr.swap(victim.arr);
   return *this;
@@ -362,7 +364,7 @@ template <class IT, class NT>
 template <typename _BinaryOperation>
 void FullyDistVec<IT, NT>::EWise(const FullyDistVec<IT, NT>& rhs,
                                  _BinaryOperation __binary_op) {
-  transform(arr.begin(), arr.end(), rhs.arr.begin(), arr.begin(), __binary_op);
+  std::transform(arr.begin(), arr.end(), rhs.arr.begin(), arr.begin(), __binary_op);
 };
 
 template <class IT, class NT>
@@ -370,7 +372,7 @@ FullyDistVec<IT, NT>& FullyDistVec<IT, NT>::operator+=(
     const FullyDistVec<IT, NT>& rhs) {
   if (this != &rhs) {
     if (!(*commGrid == *rhs.commGrid)) {
-      cout << "Grids are not comparable elementwise addition" << endl;
+      std::cout << "Grids are not comparable elementwise addition" << std::endl;
       MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
     } else {
       EWise(rhs, std::plus<NT>());
@@ -384,7 +386,7 @@ FullyDistVec<IT, NT>& FullyDistVec<IT, NT>::operator-=(
     const FullyDistVec<IT, NT>& rhs) {
   if (this != &rhs) {
     if (!(*commGrid == *rhs.commGrid)) {
-      cout << "Grids are not comparable elementwise addition" << endl;
+      std::cout << "Grids are not comparable elementwise addition" << std::endl;
       MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
     } else {
       EWise(rhs, std::minus<NT>());
@@ -414,7 +416,7 @@ IT FullyDistVec<IT, NT>::Count(_Predicate pred) const {
   return whole;
 }
 
-//! Returns a dense vector of global indices
+//! Returns a dense std::vector of global indices
 //! for which the predicate is satisfied
 template <class IT, class NT>
 template <typename _Predicate>
@@ -435,17 +437,17 @@ FullyDistVec<IT, IT> FullyDistVec<IT, NT>::FindInds(_Predicate pred) const {
   IT nsize = found.arr.size();
   dist[rank] = nsize;
   MPI_Allgather(MPI_IN_PLACE, 1, MPIType<IT>(), dist, 1, MPIType<IT>(), World);
-  IT lengthuntil = accumulate(dist, dist + rank, static_cast<IT>(0));
-  found.glen = accumulate(dist, dist + nprocs, static_cast<IT>(0));
+  IT lengthuntil = std::accumulate(dist, dist + rank, static_cast<IT>(0));
+  found.glen = std::accumulate(dist, dist + nprocs, static_cast<IT>(0));
 
-  // Although the found vector is not reshuffled yet, its glen and commGrid are
+  // Although the found std::vector is not reshuffled yet, its glen and commGrid are
   // set
   // We can call the Owner/MyLocLength/LengthUntil functions (to infer future
   // distribution)
 
   // rebalance/redistribute
   int* sendcnt = new int[nprocs];
-  fill(sendcnt, sendcnt + nprocs, 0);
+  std::fill(sendcnt, sendcnt + nprocs, 0);
   for (IT i = 0; i < nsize; ++i) {
     IT locind;
     int owner = found.Owner(i + lengthuntil, locind);
@@ -463,10 +465,10 @@ FullyDistVec<IT, IT> FullyDistVec<IT, NT>::FindInds(_Predicate pred) const {
     sdispls[i + 1] = sdispls[i] + sendcnt[i];
     rdispls[i + 1] = rdispls[i] + recvcnt[i];
   }
-  IT totrecv = accumulate(recvcnt, recvcnt + nprocs, static_cast<IT>(0));
-  vector<IT> recvbuf(totrecv);
+  IT totrecv = std::accumulate(recvcnt, recvcnt + nprocs, static_cast<IT>(0));
+  std::vector<IT> recvbuf(totrecv);
 
-  // data is already in the right order in found.arr
+  // data is already in the std::right order in found.arr
   MPI_Alltoallv(&(found.arr[0]), sendcnt, sdispls, MPIType<IT>(), &(recvbuf[0]),
                 recvcnt, rdispls, MPIType<IT>(), World);
   found.arr.swap(recvbuf);
@@ -493,7 +495,7 @@ FullyDistSpVec<IT, NT> FullyDistVec<IT, NT>::Find(_Predicate pred) const {
   return found;
 }
 
-//! Retain a sparse vector with indices where the supplied value is found
+//! Retain a sparse std::vector with indices where the supplied value is found
 template <class IT, class NT>
 FullyDistSpVec<IT, NT> FullyDistVec<IT, NT>::Find(NT val) const {
   FullyDistSpVec<IT, NT> found(commGrid);
@@ -510,7 +512,7 @@ FullyDistSpVec<IT, NT> FullyDistVec<IT, NT>::Find(NT val) const {
 
 template <class IT, class NT>
 template <class HANDLER>
-ifstream& FullyDistVec<IT, NT>::ReadDistribute(ifstream& infile, int master,
+std::ifstream& FullyDistVec<IT, NT>::ReadDistribute(std::ifstream& infile, int master,
                                                HANDLER handler) {
   FullyDistSpVec<IT, NT> tmpSpVec(commGrid);
   tmpSpVec.ReadDistribute(infile, master, handler);
@@ -521,7 +523,7 @@ ifstream& FullyDistVec<IT, NT>::ReadDistribute(ifstream& infile, int master,
 
 template <class IT, class NT>
 template <class HANDLER>
-void FullyDistVec<IT, NT>::SaveGathered(ofstream& outfile, int master,
+void FullyDistVec<IT, NT>::SaveGathered(std::ofstream& outfile, int master,
                                         HANDLER handler, bool printProcSplits) {
   FullyDistSpVec<IT, NT> tmpSpVec = *this;
   tmpSpVec.SaveGathered(outfile, master, handler, printProcSplits);
@@ -532,17 +534,17 @@ void FullyDistVec<IT, NT>::SetElement(IT indx, NT numx) {
   int rank = commGrid->GetRank();
   if (glen == 0) {
     if (rank == 0)
-      cout << "FullyDistVec::SetElement can't be called on an empty vector."
-           << endl;
+      std::cout << "FullyDistVec::SetElement can't be called on an empty std::vector."
+           << std::endl;
     return;
   }
   IT locind;
   int owner = Owner(indx, locind);
   if (commGrid->GetRank() == owner) {
     if (locind > (LocArrSize() - 1)) {
-      cout << "FullyDistVec::SetElement cannot expand array" << endl;
+      std::cout << "FullyDistVec::SetElement cannot expand array" << std::endl;
     } else if (locind < 0) {
-      cout << "FullyDistVec::SetElement local index < 0" << endl;
+      std::cout << "FullyDistVec::SetElement local index < 0" << std::endl;
     } else {
       arr[locind] = numx;
     }
@@ -556,8 +558,8 @@ NT FullyDistVec<IT, NT>::GetElement(IT indx) const {
   int rank = commGrid->GetRank();
   if (glen == 0) {
     if (rank == 0)
-      cout << "FullyDistVec::GetElement can't be called on an empty vector."
-           << endl;
+      std::cout << "FullyDistVec::GetElement can't be called on an empty std::vector."
+           << std::endl;
 
     return NT();
   }
@@ -565,11 +567,11 @@ NT FullyDistVec<IT, NT>::GetElement(IT indx) const {
   int owner = Owner(indx, locind);
   if (commGrid->GetRank() == owner) {
     if (locind > (LocArrSize() - 1)) {
-      cout << "FullyDistVec::GetElement local index > size" << endl;
+      std::cout << "FullyDistVec::GetElement local index > size" << std::endl;
       ret = NT();
 
     } else if (locind < 0) {
-      cout << "FullyDistVec::GetElement local index < 0" << endl;
+      std::cout << "FullyDistVec::GetElement local index < 0" << std::endl;
       ret = NT();
     } else {
       ret = arr[locind];
@@ -588,8 +590,8 @@ void FullyDistVec<IT, NT>::DebugPrint() {
   MPI_Comm_size(World, &nprocs);
   MPI_File thefile;
   char _fn[] = "temp_fullydistvec";  // AL: this is to avoid the problem that
-                                     // C++ string literals are const char*
-                                     // while C string literals are char*,
+                                     // C++ std::string literals are const char*
+                                     // while C std::string literals are char*,
                                      // leading to a const warning (technically
                                      // error, but compilers are tolerant)
   MPI_File_open(World, _fn, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL,
@@ -598,8 +600,8 @@ void FullyDistVec<IT, NT>::DebugPrint() {
 
   // The disp displacement argument specifies the position
   // (absolute offset in bytes from the beginning of the file)
-  char native[] = "native";  // AL: this is to avoid the problem that C++ string
-                             // literals are const char* while C string literals
+  char native[] = "native";  // AL: this is to avoid the problem that C++ std::string
+                             // literals are const char* while C std::string literals
                              // are char*, leading to a const warning
                              // (technically error, but compilers are tolerant)
   MPI_File_set_view(thefile, int64_t(lengthuntil * sizeof(NT)), MPIType<NT>(),
@@ -616,7 +618,7 @@ void FullyDistVec<IT, NT>::DebugPrint() {
   if (rank == 0) {
     FILE* f = fopen("temp_fullydistvec", "r");
     if (!f) {
-      cerr << "Problem reading binary input file\n";
+      std::cerr << "Problem reading binary input file\n";
       return;
     }
     IT maxd = *max_element(counts, counts + nprocs);
@@ -626,14 +628,14 @@ void FullyDistVec<IT, NT>::DebugPrint() {
       // read counts[i] integers and print them
       size_t result = fread(data, sizeof(NT), counts[i], f);
       if (result != (unsigned)counts[i]) {
-        cout << "Error in fread, only " << result << " entries read" << endl;
+        std::cout << "Error in fread, only " << result << " entries read" << std::endl;
       }
 
-      cout << "Elements stored on proc " << i << ": {";
+      std::cout << "Elements stored on proc " << i << ": {";
       for (int j = 0; j < counts[i]; j++) {
-        cout << data[j] << ",";
+        std::cout << data[j] << ",";
       }
-      cout << "}" << endl;
+      std::cout << "}" << std::endl;
     }
     delete[] data;
     delete[] counts;
@@ -644,7 +646,7 @@ template <class IT, class NT>
 template <typename _UnaryOperation, typename IRRELEVANT_NT>
 void FullyDistVec<IT, NT>::Apply(
     _UnaryOperation __unary_op, const FullyDistSpVec<IT, IRRELEVANT_NT>& mask) {
-  typename vector<IT>::const_iterator miter = mask.ind.begin();
+  typename std::vector<IT>::const_iterator miter = mask.ind.begin();
   while (miter < mask.ind.end()) {
     IT index = *miter++;
     arr[index] = __unary_op(arr[index]);
@@ -659,14 +661,14 @@ void FullyDistVec<IT, NT>::EWiseApply(const FullyDistVec<IT, NT2>& other,
                                       const bool useExtendedBinOp) {
   if (*(commGrid) == *(other.commGrid)) {
     if (glen != other.glen) {
-      ostringstream outs;
+      std::ostringstream outs;
       outs << "Vector dimensions don't match (" << glen << " vs " << other.glen
            << ") for FullyDistVec::EWiseApply\n";
       SpParHelper::Print(outs.str());
       MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
     } else {
-      typename vector<NT>::iterator thisIter = arr.begin();
-      typename vector<NT2>::const_iterator otherIter = other.arr.begin();
+      typename std::vector<NT>::iterator thisIter = arr.begin();
+      typename std::vector<NT2>::const_iterator otherIter = other.arr.begin();
       while (thisIter < arr.end()) {
         if (_do_op(*thisIter, *otherIter, false, false))
           *thisIter = __binary_op(*thisIter, *otherIter, false, false);
@@ -675,9 +677,9 @@ void FullyDistVec<IT, NT>::EWiseApply(const FullyDistVec<IT, NT2>& other,
       }
     }
   } else {
-    ostringstream outs;
+    std::ostringstream outs;
     outs << "Grids are not comparable for FullyDistVec<IT,NT>::EWiseApply"
-         << endl;
+         << std::endl;
     SpParHelper::Print(outs.str());
     MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
   }
@@ -694,14 +696,14 @@ void FullyDistVec<IT, NT>::EWiseApply(const FullyDistSpVec<IT, NT2>& other,
                                       const bool useExtendedBinOp) {
   if (*(commGrid) == *(other.commGrid)) {
     if (glen != other.glen) {
-      cerr << "Vector dimensions don't match (" << glen << " vs " << other.glen
+      std::cerr << "Vector dimensions don't match (" << glen << " vs " << other.glen
            << ") for FullyDistVec::EWiseApply\n";
       MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
     } else {
-      typename vector<IT>::const_iterator otherInd = other.ind.begin();
-      typename vector<NT2>::const_iterator otherNum = other.num.begin();
+      typename std::vector<IT>::const_iterator otherInd = other.ind.begin();
+      typename std::vector<NT2>::const_iterator otherNum = other.num.begin();
 
-      if (applyNulls)  // scan the entire dense vector and apply sparse elements
+      if (applyNulls)  // scan the entire dense std::vector and apply sparse elements
                        // as they appear
       {
         for (IT i = 0; (unsigned)i < arr.size(); ++i) {
@@ -715,7 +717,7 @@ void FullyDistVec<IT, NT>::EWiseApply(const FullyDistSpVec<IT, NT2>& other,
             otherNum++;
           }
         }
-      } else  // scan the sparse vector only
+      } else  // scan the sparse std::vector only
       {
         /*
         for(otherInd = other.ind.begin(); otherInd < other.ind.end();
@@ -739,7 +741,7 @@ void FullyDistVec<IT, NT>::EWiseApply(const FullyDistSpVec<IT, NT2>& other,
       }
     }
   } else {
-    cout << "Grids are not comparable elementwise apply" << endl;
+    std::cout << "Grids are not comparable elementwise apply" << std::endl;
     MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
   }
 }
@@ -749,21 +751,21 @@ FullyDistVec<IT, IT> FullyDistVec<IT, NT>::sort() {
   MPI_Comm World = commGrid->GetWorld();
   FullyDistVec<IT, IT> temp(commGrid);
   IT nnz = LocArrSize();
-  pair<NT, IT>* vecpair = new pair<NT, IT>[nnz];
+  std::pair<NT, IT>* vecpair = new std::pair<NT, IT>[nnz];
   int nprocs = commGrid->GetSize();
   int rank = commGrid->GetRank();
 
   IT* dist = new IT[nprocs];
   dist[rank] = nnz;
   MPI_Allgather(MPI_IN_PLACE, 1, MPIType<IT>(), dist, 1, MPIType<IT>(), World);
-  IT sizeuntil = LengthUntil();  // size = length, for dense vectors
+  IT sizeuntil = LengthUntil();  // size = length, for dense std::vectors
   for (IT i = 0; i < nnz; ++i) {
     vecpair[i].first = arr[i];  // we'll sort wrt numerical values
     vecpair[i].second = i + sizeuntil;
   }
   SpParHelper::MemoryEfficientPSort(vecpair, nnz, dist, World);
 
-  vector<IT> narr(nnz);
+  std::vector<IT> narr(nnz);
   for (IT i = 0; i < nnz; ++i) {
     arr[i] = vecpair[i].first;  // sorted range (change the object itself)
     narr[i] =
@@ -777,7 +779,7 @@ FullyDistVec<IT, IT> FullyDistVec<IT, NT>::sort() {
   return temp;
 }
 
-// Randomly permutes an already existing vector
+// Randomly permutes an already existing std::vector
 template <class IT, class NT>
 void FullyDistVec<IT, NT>::RandPerm() {
 #ifdef DETERMINISTIC
@@ -793,7 +795,7 @@ void FullyDistVec<IT, NT>::RandPerm() {
   IT size = LocArrSize();
 
 #ifdef COMBBLAS_LEGACY
-  pair<double, NT>* vecpair = new pair<double, NT>[size];
+  std::pair<double, NT>* vecpair = new std::pair<double, NT>[size];
   IT* dist = new IT[nprocs];
   dist[rank] = size;
   MPI_Allgather(MPI_IN_PLACE, 1, MPIType<IT>(), dist, 1, MPIType<IT>(), World);
@@ -801,14 +803,14 @@ void FullyDistVec<IT, NT>::RandPerm() {
     vecpair[i].first = M.rand();
     vecpair[i].second = arr[i];
   }
-  // less< pair<T1,T2> > works correctly (sorts wrt first elements)
+  // std::less< std::pair<T1,T2> > works correctly (sorts wrt first elements)
   SpParHelper::MemoryEfficientPSort(vecpair, size, dist, World);
-  vector<NT> nnum(size);
+  std::vector<NT> nnum(size);
   for (int i = 0; i < size; ++i) nnum[i] = vecpair[i].second;
   DeleteAll(vecpair, dist);
   arr.swap(nnum);
 #else
-  vector<vector<NT> > data_send(nprocs);
+  std::vector<std::vector<NT> > data_send(nprocs);
   for (int i = 0; i < size; ++i) {
     // send each entry to a random process
     uint32_t dest = M.randInt(nprocs - 1);
@@ -828,17 +830,17 @@ void FullyDistVec<IT, NT>::RandPerm() {
     sdispls[i + 1] = sdispls[i] + sendcnt[i];
     rdispls[i + 1] = rdispls[i] + recvcnt[i];
   }
-  IT totrecv = accumulate(recvcnt, recvcnt + nprocs, static_cast<IT>(0));
+  IT totrecv = std::accumulate(recvcnt, recvcnt + nprocs, static_cast<IT>(0));
   if (totrecv > std::numeric_limits<int>::max()) {
-    cout << "COMBBLAS_WARNING: total data to receive exceeds max int: "
-         << totrecv << endl;
+    std::cout << "COMBBLAS_WARNING: total data to receive exceeds max int: "
+         << totrecv << std::endl;
   }
-  vector<NT>().swap(arr);  // make space for temporaries
+  std::vector<NT>().swap(arr);  // make space for temporaries
 
   NT* sendbuf = new NT[size];
   for (int i = 0; i < nprocs; ++i) {
-    copy(data_send[i].begin(), data_send[i].end(), sendbuf + sdispls[i]);
-    vector<NT>().swap(data_send[i]);  // free memory
+    std::copy(data_send[i].begin(), data_send[i].end(), sendbuf + sdispls[i]);
+    std::vector<NT>().swap(data_send[i]);  // free memory
   }
   NT* recvbuf = new NT[totrecv];
   MPI_Alltoallv(sendbuf, sendcnt, sdispls, MPIType<NT>(), recvbuf, recvcnt,
@@ -852,7 +854,7 @@ void FullyDistVec<IT, NT>::RandPerm() {
   int64_t glenuntil =
       std::accumulate(localcounts, localcounts + rank, static_cast<int64_t>(0));
 
-  vector<vector<IT> > locs_send(nprocs);
+  std::vector<std::vector<IT> > locs_send(nprocs);
   for (IT i = 0; i < totrecv; ++i)  // determine new locations w/ prefix sums
   {
     IT remotelocind;
@@ -870,21 +872,21 @@ void FullyDistVec<IT, NT>::RandPerm() {
     sdispls[i + 1] = sdispls[i] + sendcnt[i];
     rdispls[i + 1] = rdispls[i] + recvcnt[i];
   }
-  IT newsize = accumulate(recvcnt, recvcnt + nprocs, static_cast<IT>(0));
+  IT newsize = std::accumulate(recvcnt, recvcnt + nprocs, static_cast<IT>(0));
   if (newsize > std::numeric_limits<int>::max()) {
-    cout << "COMBBLAS_WARNING: total data to receive exceeds max int: "
-         << newsize << endl;
+    std::cout << "COMBBLAS_WARNING: total data to receive exceeds max int: "
+         << newsize << std::endl;
   }
   // re-use the receive buffer as sendbuf of second stage
   IT totalsend = std::accumulate(sendcnt, sendcnt + nprocs, static_cast<IT>(0));
   if (totalsend != totrecv || newsize != size) {
-    cout << "COMBBLAS_WARNING: sending different sized data than received: "
+    std::cout << "COMBBLAS_WARNING: sending different sized data than received: "
          << totalsend << "=" << totrecv << " , " << newsize << "=" << size
-         << endl;
+         << std::endl;
   }
   for (int i = 0; i < nprocs; ++i) {
-    copy(data_send[i].begin(), data_send[i].end(), recvbuf + sdispls[i]);
-    vector<NT>().swap(data_send[i]);  // free memory
+    std::copy(data_send[i].begin(), data_send[i].end(), recvbuf + sdispls[i]);
+    std::vector<NT>().swap(data_send[i]);  // free memory
   }
   // re-use the send buffer as receive buffer of second stage
   MPI_Alltoallv(recvbuf, sendcnt, sdispls, MPIType<NT>(), sendbuf, recvcnt,
@@ -892,8 +894,8 @@ void FullyDistVec<IT, NT>::RandPerm() {
   delete[] recvbuf;
   IT* newinds = new IT[totalsend];
   for (int i = 0; i < nprocs; ++i) {
-    copy(locs_send[i].begin(), locs_send[i].end(), newinds + sdispls[i]);
-    vector<IT>().swap(locs_send[i]);  // free memory
+    std::copy(locs_send[i].begin(), locs_send[i].end(), newinds + sdispls[i]);
+    std::vector<IT>().swap(locs_send[i]);  // free memory
   }
   IT* indsbuf = new IT[size];
   MPI_Alltoallv(newinds, sendcnt, sdispls, MPIType<IT>(), indsbuf, recvcnt,
@@ -923,7 +925,7 @@ template <class IT, class NT>
 FullyDistVec<IT, NT> FullyDistVec<IT, NT>::operator()(
     const FullyDistVec<IT, IT>& ri) const {
   if (!(*commGrid == *ri.commGrid)) {
-    cout << "Grids are not comparable for dense vector subsref" << endl;
+    std::cout << "Grids are not comparable for dense std::vector subsref" << std::endl;
     return FullyDistVec<IT, NT>();
   }
 
@@ -931,8 +933,8 @@ FullyDistVec<IT, NT> FullyDistVec<IT, NT>::operator()(
   FullyDistVec<IT, NT> Indexed(commGrid, ri.glen,
                                NT());  // length(Indexed) = length(ri)
   int nprocs = commGrid->GetSize();
-  vector<vector<IT> > data_req(nprocs);
-  vector<vector<IT> > revr_map(
+  std::vector<std::vector<IT> > data_req(nprocs);
+  std::vector<std::vector<IT> > revr_map(
       nprocs);  // to put the incoming data to the correct location
 
   IT riloclen = ri.LocArrSize();
@@ -957,17 +959,17 @@ FullyDistVec<IT, NT> FullyDistVec<IT, NT>::operator()(
     sdispls[i + 1] = sdispls[i] + sendcnt[i];
     rdispls[i + 1] = rdispls[i] + recvcnt[i];
   }
-  IT totrecv = accumulate(recvcnt, recvcnt + nprocs, static_cast<IT>(0));
+  IT totrecv = std::accumulate(recvcnt, recvcnt + nprocs, static_cast<IT>(0));
   for (int i = 0; i < nprocs; ++i) {
-    copy(data_req[i].begin(), data_req[i].end(), sendbuf + sdispls[i]);
-    vector<IT>().swap(data_req[i]);
+    std::copy(data_req[i].begin(), data_req[i].end(), sendbuf + sdispls[i]);
+    std::vector<IT>().swap(data_req[i]);
   }
 
   IT* reversemap = new IT[riloclen];
   for (int i = 0; i < nprocs; ++i) {
-    copy(revr_map[i].begin(), revr_map[i].end(),
+    std::copy(revr_map[i].begin(), revr_map[i].end(),
          reversemap + sdispls[i]);  // reversemap array is unique
-    vector<IT>().swap(revr_map[i]);
+    std::vector<IT>().swap(revr_map[i]);
   }
 
   IT* recvbuf = new IT[totrecv];
@@ -977,7 +979,7 @@ FullyDistVec<IT, NT> FullyDistVec<IT, NT>::operator()(
 
   // We will return the requested data,
   // our return will be as big as the request
-  // as we are indexing a dense vector, all elements exist
+  // as we are indexing a dense std::vector, all elements exist
   // so the displacement boundaries are the same as rdispls
   NT* databack = new NT[totrecv];
   for (int i = 0; i < nprocs; ++i) {
@@ -1007,17 +1009,17 @@ FullyDistVec<IT, NT> FullyDistVec<IT, NT>::operator()(
 }
 
 template <class IT, class NT>
-void FullyDistVec<IT, NT>::PrintInfo(string vectorname) const {
+void FullyDistVec<IT, NT>::PrintInfo(std::string vectorname) const {
   IT totl = TotalLength();
   if (commGrid->GetRank() == 0)
-    cout << "As a whole, " << vectorname << " has length " << totl << endl;
+    std::cout << "As a whole, " << vectorname << " has length " << totl << std::endl;
 }
 
 template <class IT, class NT>
 void FullyDistVec<IT, NT>::Set(const FullyDistSpVec<IT, NT>& other) {
   if (*(commGrid) == *(other.commGrid)) {
     if (glen != other.glen) {
-      cerr << "Vector dimensions don't match (" << glen << " vs " << other.glen
+      std::cerr << "Vector dimensions don't match (" << glen << " vs " << other.glen
            << ") for FullyDistVec::Set\n";
       MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
     } else {
@@ -1030,12 +1032,12 @@ void FullyDistVec<IT, NT>::Set(const FullyDistSpVec<IT, NT>& other) {
       }
     }
   } else {
-    cout << "Grids are not comparable for Set" << endl;
+    std::cout << "Grids are not comparable for Set" << std::endl;
     MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
   }
 }
 
-// General purpose set operation on dense vector by a sparse vector
+// General purpose set operation on dense std::vector by a sparse std::vector
 
 template <class IT, class NT>
 template <class NT1, typename _BinaryOperationIdx, typename _BinaryOperationVal>
@@ -1043,7 +1045,7 @@ void FullyDistVec<IT, NT>::GSet(const FullyDistSpVec<IT, NT1>& spVec,
                                 _BinaryOperationIdx __binopIdx,
                                 _BinaryOperationVal __binopVal, MPI_Win win) {
   if (*(commGrid) != *(spVec.commGrid)) {
-    cout << "Grids are not comparable for GSet" << endl;
+    std::cout << "Grids are not comparable for GSet" << std::endl;
     MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
   }
 
@@ -1055,20 +1057,20 @@ void FullyDistVec<IT, NT>::GSet(const FullyDistSpVec<IT, NT1>& spVec,
   int myrank;
   MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
 
-  vector<vector<NT> > datsent(nprocs);
-  vector<vector<IT> > indsent(nprocs);
+  std::vector<std::vector<NT> > datsent(nprocs);
+  std::vector<std::vector<IT> > indsent(nprocs);
   IT lengthUntil = spVec.LengthUntil();
 
   for (IT k = 0; k < spVecSize; ++k) {
     IT locind;
-    // get global index of the dense vector from the value. Most often a select
+    // std::get global index of the dense std::vector from the value. Most often a select
     // operator.
     // If the first operand is selected, then invert; otherwise, EwiseApply.
     IT globind = __binopIdx(spVec.num[k], spVec.ind[k] + lengthUntil);
-    int owner = Owner(globind, locind);  // get local index
+    int owner = Owner(globind, locind);  // std::get local index
     NT val = __binopVal(spVec.num[k], spVec.ind[k] + lengthUntil);
     if (globind <
-        glen)  // prevent index greater than size of the composed vector
+        glen)  // prevent index std::greater than size of the composed std::vector
     {
       datsent[owner].push_back(val);
       indsent[owner].push_back(
@@ -1100,9 +1102,9 @@ void FullyDistVec<IT, NT>::GSet(const FullyDistSpVec<IT, NT1>& spVec,
   // MPI_Win_free(&win);
 }
 
-// General purpose get operation on dense vector by a sparse vector
-// Get the element of the dense vector indexed by the value of the sparse vector
-// invert and get might not work in the presence of repeated values
+// General purpose std::get operation on dense std::vector by a sparse std::vector
+// Get the element of the dense std::vector indexed by the value of the sparse std::vector
+// invert and std::get might not work in the presence of repeated values
 
 template <class IT, class NT>
 template <class NT1, typename _BinaryOperationIdx>
@@ -1110,7 +1112,7 @@ FullyDistSpVec<IT, NT> FullyDistVec<IT, NT>::GGet(
     const FullyDistSpVec<IT, NT1>& spVec, _BinaryOperationIdx __binopIdx,
     NT nullValue) {
   if (*(commGrid) != *(spVec.commGrid)) {
-    cout << "Grids are not comparable for GGet" << endl;
+    std::cout << "Grids are not comparable for GGet" << std::endl;
     MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
   }
 
@@ -1119,8 +1121,8 @@ FullyDistSpVec<IT, NT> FullyDistVec<IT, NT>::GGet(
   int myrank;
   MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
 
-  vector<vector<NT> > spIdx(nprocs);
-  vector<vector<IT> > indsent(nprocs);
+  std::vector<std::vector<NT> > spIdx(nprocs);
+  std::vector<std::vector<IT> > indsent(nprocs);
   IT lengthUntil = spVec.LengthUntil();
   IT spVecSize = spVec.getlocnnz();
 
@@ -1130,14 +1132,14 @@ FullyDistSpVec<IT, NT> FullyDistVec<IT, NT>::GGet(
 
   for (IT k = 0; k < spVecSize; ++k) {
     IT locind;
-    // get global index of the dense vector from the value. Most often a select
+    // std::get global index of the dense std::vector from the value. Most often a select
     // operator.
     // If the first operand is selected, then invert; otherwise, EwiseApply.
     IT globind = __binopIdx(spVec.num[k], spVec.ind[k] + lengthUntil);
-    int owner = Owner(globind, locind);  // get local index
+    int owner = Owner(globind, locind);  // std::get local index
     // NT val = __binopVal(spVec.num[k], spVec.ind[k] + lengthUntil);
     if (globind <
-        glen)  // prevent index greater than size of the composed vector
+        glen)  // prevent index std::greater than size of the composed std::vector
     {
       spIdx[owner].push_back(k);  // position of spVec
       indsent[owner].push_back(
@@ -1148,7 +1150,7 @@ FullyDistSpVec<IT, NT> FullyDistVec<IT, NT>::GGet(
   }
 
   for (int j = 0; j < indsent[myrank].size();
-       ++j)  // directly get local entries
+       ++j)  // directly std::get local entries
   {
     res.num[spIdx[myrank][j]] = arr[indsent[myrank][j]];
   }
@@ -1169,4 +1171,5 @@ FullyDistSpVec<IT, NT> FullyDistVec<IT, NT>::GGet(
   MPI_Win_free(&win);
 
   return res;
+}
 }

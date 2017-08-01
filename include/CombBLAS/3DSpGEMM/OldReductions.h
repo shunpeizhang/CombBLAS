@@ -9,8 +9,8 @@
 // localmerged is invalidated in all processes after this redursive function
 // globalmerged is valid only in fibWorld root (0) upon exit
 template <typename SR>
-void ParallelReduce(MPI_Comm & fibWorld, tuple<int32_t,int32_t,double> * & localmerged,
-						MPI_Datatype & MPI_triple, tuple<int32_t,int32_t,double> * & globalmerged,
+void ParallelReduce(MPI_Comm & fibWorld, std::tuple<int32_t,int32_t,double> * & localmerged,
+						MPI_Datatype & MPI_triple, std::tuple<int32_t,int32_t,double> * & globalmerged,
 						int inputnnz, int & outputnnz)
 {
     int fprocs, frank;
@@ -41,7 +41,7 @@ void ParallelReduce(MPI_Comm & fibWorld, tuple<int32_t,int32_t,double> * & local
 		
 		MPI_Recv(&hissize, 1, MPI_INT, frank+1, 1, fibWorld, &status);
 		
-		tuple<int32_t,int32_t,double> * recvdata = new tuple<int32_t,int32_t,double>[hissize];
+		std::tuple<int32_t,int32_t,double> * recvdata = new std::tuple<int32_t,int32_t,double>[hissize];
 		
 		double reduce_beg = MPI_Wtime();
 		MPI_Recv(recvdata, hissize, MPI_triple, frank+1, 1, fibWorld, &status);
@@ -49,33 +49,33 @@ void ParallelReduce(MPI_Comm & fibWorld, tuple<int32_t,int32_t,double> * & local
 
 		
 		int i=0, j=0, k = 0;
-		tuple<int32_t,int32_t,double> *  mergeddata = new tuple<int32_t,int32_t,double>[inputnnz + hissize];
+		std::tuple<int32_t,int32_t,double> *  mergeddata = new std::tuple<int32_t,int32_t,double>[inputnnz + hissize];
 
 
 		while(i < inputnnz && j < hissize)
 		{
 			// both data are in ascending order w.r.t. first columns then rows
-			if(get<1>(localmerged[i]) > get<1>(recvdata[j]))
+			if(std::get<1>(localmerged[i]) > std::get<1>(recvdata[j]))
 			{
 				mergeddata[k] = recvdata[j++];  
 			}
-			else if(get<1>(localmerged[i]) < get<1>(recvdata[j]))
+			else if(std::get<1>(localmerged[i]) < std::get<1>(recvdata[j]))
 			{
 				mergeddata[k] = localmerged[i++];
 			}
 			else // columns are equal 
 			{
-				if(get<0>(localmerged[i]) > get<0>(recvdata[j]))
+				if(std::get<0>(localmerged[i]) > std::get<0>(recvdata[j]))
 				{
 					mergeddata[k] = recvdata[j++];
 				}
-				else if(get<0>(localmerged[i]) < get<0>(recvdata[j]))
+				else if(std::get<0>(localmerged[i]) < std::get<0>(recvdata[j]))
 				{
 					mergeddata[k] = localmerged[i++];
 				}
 				else  // everything equal
 				{
-					mergeddata[k] = make_tuple(get<0>(localmerged[i]), get<1>(recvdata[j]), SR::add(get<2>(recvdata[j]), get<2>(localmerged[i])));
+					mergeddata[k] = std::make_tuple(std::get<0>(localmerged[i]), std::get<1>(recvdata[j]), SR::add(std::get<2>(recvdata[j]), std::get<2>(localmerged[i])));
 					++i; ++j;
 				}
 			}
@@ -103,8 +103,8 @@ void ParallelReduce(MPI_Comm & fibWorld, tuple<int32_t,int32_t,double> * & local
 // localmerged is invalidated in all processes after this redursive function
 // globalmerged is valid on all processes upon exit
 template <typename SR, typename IT, typename NT>
-void ParallelReduce_Alltoall(MPI_Comm & fibWorld, tuple<IT,IT,NT> * & localmerged,
-                             MPI_Datatype & MPI_triple, tuple<IT,IT,NT> * & globalmerged,
+void ParallelReduce_Alltoall(MPI_Comm & fibWorld, std::tuple<IT,IT,NT> * & localmerged,
+                             MPI_Datatype & MPI_triple, std::tuple<IT,IT,NT> * & globalmerged,
                              IT inputnnz, IT & outputnnz, IT ncols)
 {
     int fprocs;
@@ -166,7 +166,7 @@ void ParallelReduce_Alltoall(MPI_Comm & fibWorld, tuple<IT,IT,NT> * & localmerge
     int recv_count = 0;
     for( int i = 0; i < fprocs; i++ )
         recv_count += recv_sizes[i];
-    tuple<IT,IT,NT> *recvbuf = new tuple<IT,IT,NT>[recv_count];
+    std::tuple<IT,IT,NT> *recvbuf = new std::tuple<IT,IT,NT>[recv_count];
     
     int recv_offsets[fprocs];
     recv_offsets[0] = 0;
@@ -184,10 +184,10 @@ void ParallelReduce_Alltoall(MPI_Comm & fibWorld, tuple<IT,IT,NT> * & localmerge
     for( int i = 0; i < fprocs; i++ )
         pos[i] = recv_offsets[i];
     outputnnz = 0;
-    globalmerged = new tuple<IT,IT,NT>[recv_count];
+    globalmerged = new std::tuple<IT,IT,NT>[recv_count];
     
     while( true ) {
-        // find the next entry
+        // std::find the next entry
         int nexti = -1;
         int r = INT_MAX;
         int c = INT_MAX;

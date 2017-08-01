@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -34,7 +34,7 @@ namespace combblas {
   * This special data structure is used for optimizing BFS iterations
   * by providing a fixed sized buffer for communication
   * the contents of the buffer are irrelevant until SpImpl:SpMXSpV starts
-  * hence the copy constructor that doesn't copy contents
+  * hence the std::copy constructor that doesn't std::copy contents
   */
 template <class IT, class NT>
 class OptBuf
@@ -45,23 +45,23 @@ public:
 	{
 		if(totmax > 0)
 		{
-		//	fill(isthere, isthere+localm, false);
+		//	std::fill(isthere, isthere+localm, false);
 			isthere->reset();
 		}
 	}
 
-	void Set(const vector<int> & maxsizes, int mA)
+	void Set(const std::vector<int> & maxsizes, int mA)
 	{
 		p_c =  maxsizes.size();
-		totmax = accumulate(maxsizes.begin(), maxsizes.end(), 0);
+		totmax = std::accumulate(maxsizes.begin(), maxsizes.end(), 0);
 		inds = new IT[totmax];
-		fill_n(inds, totmax, -1);
+		std::fill_n(inds, totmax, -1);
 		nums = new NT[totmax];
 		dspls = new int[p_c]();
-		partial_sum(maxsizes.begin(), maxsizes.end()-1, dspls+1);
+		std::partial_sum(maxsizes.begin(), maxsizes.end()-1, dspls+1);
 		localm = mA;
 		//isthere = new bool[localm];
-		//fill(isthere, isthere+localm, false);
+		//std::fill(isthere, isthere+localm, false);
 		isthere = new BitMap(localm);
 	};
 	~OptBuf()
@@ -88,7 +88,7 @@ public:
 		nums = new NT[totmax];
 		dspls = new int[p_c]();
 		//isthere = new bool[localm];
-		//fill(isthere, isthere+localm, false);
+		//std::fill(isthere, isthere+localm, false);
 		isthere = new BitMap(localm);
 	}
 	OptBuf<IT,NT> & operator=(const OptBuf<IT,NT> & rhs)

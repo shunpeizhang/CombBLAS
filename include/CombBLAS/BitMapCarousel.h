@@ -8,10 +8,10 @@
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -39,7 +39,7 @@ namespace combblas {
 template <class IT, class NT>
 class BitMapCarousel {
  public:
-  BitMapCarousel(shared_ptr<CommGrid> grid, IT glen, int local_subword_disp) {
+  BitMapCarousel(std::shared_ptr<CommGrid> grid, IT glen, int local_subword_disp) {
     commGrid.reset(new CommGrid(*grid));
     rotation_index = 0;
     global_size = glen;
@@ -155,7 +155,7 @@ class BitMapCarousel {
 #endif
     local_size = SizeOfChunk();
     rotlenuntil = RotLengthUntil();
-    swap(bm, recv_buff);
+    std::swap(bm, recv_buff);
     curr_subword_disp = sub_disps[(my_proccol+rotation_index)%proccols];
   }
 
@@ -175,7 +175,7 @@ class BitMapCarousel {
   }
 
 private:
-  shared_ptr<CommGrid> commGrid;
+  std::shared_ptr<CommGrid> commGrid;
   int rotation_index;
   int my_procrow;
   int my_proccol;

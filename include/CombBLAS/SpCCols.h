@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2015, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -38,7 +38,7 @@ public:
     SpCCols (IT size, IT nRow, IT nCol);
     SpCCols (const SpTuples<IT,NT> & rhs, bool transpose);
 
-    SpCCols (const SpCCols<IT,NT> & rhs);					// Actual copy constructor
+    SpCCols (const SpCCols<IT,NT> & rhs);					// Actual std::copy constructor
     SpCCols();
 
     // Member Functions and Operators:
@@ -46,13 +46,13 @@ public:
     SpCCols<IT,NT> & operator+= (const SpCCols<IT, NT> & rhs);
 
     void RowSplit(int numsplits);
-    void ColSplit(int parts, vector< SpCCols<IT,NT> > & matrices); //!< \attention Destroys calling object (*this)
+    void ColSplit(int parts, std::vector< SpCCols<IT,NT> > & matrices); //!< \attention Destroys calling object (*this)
 
-    void CreateImpl(const vector<IT> & essentials);
-    void CreateImpl(IT size, IT nRow, IT nCol, tuple<IT, IT, NT> * mytuples);
+    void CreateImpl(const std::vector<IT> & essentials);
+    void CreateImpl(IT size, IT nRow, IT nCol, std::tuple<IT, IT, NT> * mytuples);
 
     Arr<IT,NT> GetArrays() const;
-    vector<IT> GetEssentials() const;
+    std::vector<IT> GetEssentials() const;
     const static IT esscount;
 
     IT getnrow() const { return m; }
@@ -72,11 +72,11 @@ private:
     IT nnz;
 
     template <typename SR, typename IU, typename NU, typename RHS, typename LHS>
-    friend void csc_gespmv_dense (const SpCCols<IU, NU> & A, const RHS * x, LHS * y); //!< dense vector
+    friend void csc_gespmv_dense (const SpCCols<IU, NU> & A, const RHS * x, LHS * y); //!< dense std::vector
 
     template <typename SR, typename IU, typename NUM, typename IVT, typename OVT>
     friend int csc_gespmv_sparse (const SpCCols<IU, NUM> & A, const int32_t * indx, const IVT * numx, int32_t nnzx,
-                                     int32_t * & sendindbuf, OVT * & sendnumbuf, int * & sdispls, int p_c);  //!< sparse vector
+                                     int32_t * & sendindbuf, OVT * & sendnumbuf, int * & sdispls, int p_c);  //!< sparse std::vector
 }
 
 }

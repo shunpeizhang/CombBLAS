@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2015, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -48,7 +48,7 @@ Csc<IT,NT>::Csc (const Csc<IT,NT> & rhs): n(rhs.n), nz(rhs.nz)
     {
         ir		= new IT[nz];
         numx	= new NT[nz];
-        std::copy(rhs.ir, rhs.ir+nz, ir); // copy(first, last, result)
+        std::copy(rhs.ir, rhs.ir+nz, ir); // std::copy(first, last, result)
         std::copy(rhs.numx, rhs.numx+nz, numx);
     }
     jc	= new IT[n+1];
@@ -118,12 +118,12 @@ void Csc<IT,NT>::Resize(IT nsize)
 
     if(nsize > nz)	// Grow it
     {
-        std::copy(tmpir, tmpir + nz, ir);   //copy all old elements
+        std::copy(tmpir, tmpir + nz, ir);   //std::copy all old elements
         std::copy(tmpnumx, tmpnumx + nz, numx);
     }
     else	// Shrink it
     {
-        std::copy(tmpir, tmpir + nsize, ir);   // copy only a portion of the old elements
+        std::copy(tmpir, tmpir + nsize, ir);   // std::copy only a portion of the old elements
         std::copy(tmpnumx, tmpnumx + nsize, numx);
     }
     delete [] tmpnumx;		// delete the memory pointed by previous pointers

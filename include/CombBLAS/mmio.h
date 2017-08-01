@@ -92,7 +92,7 @@ int mm_is_valid(MM_typecode matcode);		/* too complex for a macro */
 				    ojbect 		sparse/   	data        storage
 						  		dense     	type        scheme
 
-   string position:	 [0]        [1]			[2]         [3]
+   std::string position:	 [0]        [1]			[2]         [3]
 
    Matrix typecode:  M(atrix)  C(oord)		R(eal)   	G(eneral)
 						        A(array)	C(omplex)   H(ermitian)

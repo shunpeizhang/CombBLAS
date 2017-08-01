@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -29,11 +29,11 @@
 #ifndef _SP_SEMANTIC_GRAPH_H_
 #define _SP_SEMANTIC_GRAPH_H_
 
-#include <iostream>
+#include<iostream>
 #include <fstream>
 #include <cmath>
 #include <mpi.h>
-#include <vector>
+#include<vector>
 #include <iterator>
 // TR1 includes belong in CombBLAS.h
 

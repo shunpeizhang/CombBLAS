@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -41,8 +41,8 @@ public:
 
 	// Operators are swapped for performance
 	// If you want/need to convert them back to their normal definitions, don't forget to add
-	// "greater< HeapEntry<T> >()" optional parameter to all the heap operations operating on HeapEntry<T> objects.
-	// For example: push_heap(heap, heap + kisect, greater< HeapEntry<T> >());
+	// "std::greater< HeapEntry<T> >()" optional parameter to all the heap operations operating on HeapEntry<T> objects.
+	// For example: std::push_heap(heap, heap + kisect, std::greater< HeapEntry<T> >());
 
 	bool operator > (const HeapEntry & rhs) const
 	{ return (key < rhs.key); }

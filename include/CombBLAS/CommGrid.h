@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2015, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -32,6 +32,7 @@
 #include <iostream>
 #include <cmath>
 #include <cassert>
+#include <memory>
 #include <mpi.h>
 #include <sstream>
 #include <string>
@@ -54,7 +55,7 @@ public:
 		if(diagWorld != MPI_COMM_NULL) MPI_Comm_free(&diagWorld);
 	}
 	CommGrid (const CommGrid & rhs): grrows(rhs.grrows), grcols(rhs.grcols),
-			myprocrow(rhs.myprocrow), myproccol(rhs.myproccol), myrank(rhs.myrank) // copy constructor
+			myprocrow(rhs.myprocrow), myproccol(rhs.myproccol), myrank(rhs.myrank) // std::copy constructor
 	{
 		MPI_Comm_dup(rhs.commWorld, &commWorld);
 		MPI_Comm_dup(rhs.rowWorld, &rowWorld);
@@ -119,7 +120,7 @@ public:
 	int GetDiagOfProcRow();
 	int GetDiagOfProcCol();
 
-	int GetComplementRank()	// For P(i,j), get rank of P(j,i)
+	int GetComplementRank()	// For P(i,j), std::get rank of P(j,i)
 	{
 		return ((grcols * myproccol) + myprocrow);
 	}

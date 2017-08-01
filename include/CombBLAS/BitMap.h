@@ -8,10 +8,10 @@
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -57,7 +57,7 @@ class BitMap {
 	// VS9: warning C4244: 'initializing' : conversion from 'uint64_t' to 'unsigned int', possible loss of data
 	start = new uint64_t[num_longs];
 	end = start + num_longs;
-	copy(rhs.start, rhs.end, start);
+	std::copy(rhs.start, rhs.end, start);
   }
   BitMap & operator= (const BitMap & rhs)
   {
@@ -68,7 +68,7 @@ class BitMap {
 		// VS9: warning C4244: 'initializing' : conversion from 'uint64_t' to 'unsigned int', possible loss of data
         	start = new uint64_t[num_longs];
         	end = start + num_longs;
-        	copy(rhs.start, rhs.end, start);
+        	std::copy(rhs.start, rhs.end, start);
 	}
 	return *this;
    }
@@ -141,15 +141,15 @@ class BitMap {
   }
 
 	void copy_from(const BitMap* other) {
-		copy(other->start, other->end, start);
+		std::copy(other->start, other->end, start);
 	}
 
 	void print_ones() {
 		uint64_t max_size = (end-start)*64;
 		for (uint64_t i=0; i<max_size; i++)
 			if (get_bit(i))
-				cout << " " << i;
-		cout << endl;
+				std::cout << " " << i;
+		std::cout << std::endl;
 	}
 
  private:

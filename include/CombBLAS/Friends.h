@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2015, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -29,7 +29,7 @@
 #ifndef _FRIENDS_H_
 #define _FRIENDS_H_
 
-#include <iostream>
+#include<iostream>
 #include "SpMat.h"	// Best to include the base class first
 #include "SpHelper.h"
 #include "StackEntry.h"
@@ -57,7 +57,7 @@ class Dcsc;
 /****************************** MULTITHREADED LOGIC ALSO GOES HERE *******************************/
 /*************************************************************************************************/
 
-//! SpMV with dense vector
+//! SpMV with dense std::vector
 template <typename SR, typename IU, typename NU, typename RHS, typename LHS>
 void dcsc_gespmv (const SpDCCols<IU, NU> & A, const RHS * x, LHS * y)
 {
@@ -72,8 +72,8 @@ void dcsc_gespmv (const SpDCCols<IU, NU> & A, const RHS * x, LHS * y)
 				SR::axpy(A.dcsc->numx[i], x[colid], y[rowid]);
 				if (SR::returnedSAID())
 				{
-					cout << "the semiring returned SAID but that is not implemented. results will be incorrect." << endl;
-					throw string("the semiring returned SAID but that is not implemented. results will be incorrect.");
+					std::cout << "the semiring returned SAID but that is not implemented. results will be incorrect." << std::endl;
+					throw std::string("the semiring returned SAID but that is not implemented. results will be incorrect.");
 				}
 			}
 		}
@@ -81,7 +81,7 @@ void dcsc_gespmv (const SpDCCols<IU, NU> & A, const RHS * x, LHS * y)
 }
 
 /**
-  * Multithreaded SpMV with sparse vector
+  * Multithreaded SpMV with sparse std::vector
   * the assembly of outgoing buffers sendindbuf/sendnumbuf are done here
   */
 template <typename SR, typename IU, typename NUM, typename DER, typename IVT, typename OVT>
@@ -100,8 +100,8 @@ int generic_gespmv_threaded (const SpMat<IU,NUM,DER> & A, const int32_t * indx, 
 		{
 			int32_t nlocrows = static_cast<int32_t>(A.getnrow());
 			int32_t perpiece = nlocrows / splits;
-			vector< vector< int32_t > > indy(splits);
-			vector< vector< OVT > > numy(splits);
+			std::vector< std::vector< int32_t > > indy(splits);
+			std::vector< std::vector< OVT > > numy(splits);
 
 			// Parallelize with OpenMP
 			#ifdef _OPENMP
@@ -115,7 +115,7 @@ int generic_gespmv_threaded (const SpMat<IU,NUM,DER> & A, const int32_t * indx, 
 					SpMXSpV_ForThreading<SR>(*(A.GetInternal(i)), nlocrows - perpiece*i, indx, numx, nnzx, indy[i], numy[i], i*perpiece);
 			}
 
-			vector<int> accum(splits+1, 0);
+			std::vector<int> accum(splits+1, 0);
 			for(int i=0; i<splits; ++i)
 				accum[i+1] = accum[i] + indy[i].size();
 
@@ -126,13 +126,13 @@ int generic_gespmv_threaded (const SpMat<IU,NUM,DER> & A, const int32_t * indx, 
 
 			// keep recipients of last entries in each split (-1 for an empty split)
 			// so that we can delete indy[] and numy[] contents as soon as they are processed
-			vector<int32_t> end_recs(splits);
+			std::vector<int32_t> end_recs(splits);
 			for(int i=0; i<splits; ++i)
 			{
 				if(indy[i].empty())
 					end_recs[i] = -1;
 				else
-					end_recs[i] = min(indy[i].back() / perproc, last_rec);
+					end_recs[i] = std::min(indy[i].back() / perproc, last_rec);
 			}
 			#ifdef _OPENMP
 			#pragma omp parallel for // num_threads(6)
@@ -143,7 +143,7 @@ int generic_gespmv_threaded (const SpMat<IU,NUM,DER> & A, const int32_t * indx, 
 				{
 					// FACT: Data is sorted, so if the recipient of begin is the same as the owner of end,
 					// then the whole data is sent to the same processor
-					int32_t beg_rec = min( indy[i].front() / perproc, last_rec);
+					int32_t beg_rec = std::min( indy[i].front() / perproc, last_rec);
 
 					// We have to test the previous "split", to see if we are marking a "recipient head"
 					// set displacement markers for the completed (previous) buffers only
@@ -153,16 +153,16 @@ int generic_gespmv_threaded (const SpMat<IU,NUM,DER> & A, const int32_t * indx, 
 						while (k >= 0 && end_recs[k] == -1) k--;	// loop backwards until seeing an non-empty split
 						if(k >= 0)	// we found a non-empty split
 						{
-							fill(sdispls+end_recs[k]+1, sdispls+beg_rec+1, accum[i]);	// last entry to be set is sdispls[beg_rec]
+							std::fill(sdispls+end_recs[k]+1, sdispls+beg_rec+1, accum[i]);	// last entry to be set is sdispls[beg_rec]
 						}
-						// else fill sdispls[1...beg_rec] with zero (already done)
+						// else std::fill sdispls[1...beg_rec] with zero (already done)
 					}
 					// else set sdispls[0] to zero (already done)
 					if(beg_rec == end_recs[i])	// fast case
 					{
-						transform(indy[i].begin(), indy[i].end(), indy[i].begin(), bind2nd(minus<int32_t>(), perproc*beg_rec));
-						copy(indy[i].begin(), indy[i].end(), sendindbuf+accum[i]);
-						copy(numy[i].begin(), numy[i].end(), sendnumbuf+accum[i]);
+						std::transform(indy[i].begin(), indy[i].end(), indy[i].begin(), bind2nd(std::minus<int32_t>(), perproc*beg_rec));
+						std::copy(indy[i].begin(), indy[i].end(), sendindbuf+accum[i]);
+						std::copy(numy[i].begin(), numy[i].end(), sendnumbuf+accum[i]);
 					}
 					else	// slow case
 					{
@@ -171,7 +171,7 @@ int generic_gespmv_threaded (const SpMat<IU,NUM,DER> & A, const int32_t * indx, 
 						int end = indy[i].size();
 						for(int cur=0; cur< end; ++cur)
 						{
-							int32_t cur_rec = min( indy[i][cur] / perproc, last_rec);
+							int32_t cur_rec = std::min( indy[i][cur] / perproc, last_rec);
 							while(beg_rec != cur_rec)
 							{
 								sdispls[++beg_rec] = accum[i] + cur;	// first entry to be set is sdispls[beg_rec+1]
@@ -180,8 +180,8 @@ int generic_gespmv_threaded (const SpMat<IU,NUM,DER> & A, const int32_t * indx, 
 							sendnumbuf[ accum[i] + cur ] = numy[i][cur];
 						}
 					}
-					vector<int32_t>().swap(indy[i]);
-					vector<OVT>().swap(numy[i]);
+					std::vector<int32_t>().swap(indy[i]);
+					std::vector<OVT>().swap(numy[i]);
 					bool lastnonzero = true;	// am I the last nonzero split?
 					for(int k=i+1; k < splits; ++k)
 					{
@@ -189,14 +189,14 @@ int generic_gespmv_threaded (const SpMat<IU,NUM,DER> & A, const int32_t * indx, 
 							lastnonzero = false;
 					}
 					if(lastnonzero)
-						fill(sdispls+end_recs[i]+1, sdispls+p_c, accum[i+1]);
+						std::fill(sdispls+end_recs[i]+1, sdispls+p_c, accum[i+1]);
 				}	// end_if(!indy[i].empty)
 			}	// end parallel for
 			return accum[splits];
 		}
 		else
 		{
-			cout << "Something is wrong, splits should be nonzero for multithreaded execution" << endl;
+			std::cout << "Something is wrong, splits should be nonzero for multithreaded execution" << std::endl;
 			return 0;
 		}
 	}
@@ -211,10 +211,10 @@ int generic_gespmv_threaded (const SpMat<IU,NUM,DER> & A, const int32_t * indx, 
 
 
 /**
- * Multithreaded SpMV with sparse vector and preset buffers
+ * Multithreaded SpMV with sparse std::vector and preset buffers
  * the assembly of outgoing buffers sendindbuf/sendnumbuf are done here
- * IVT: input vector numerical type
- * OVT: output vector numerical type
+ * IVT: input std::vector numerical type
+ * OVT: output std::vector numerical type
  */
 template <typename SR, typename IU, typename NUM, typename IVT, typename OVT>
 void dcsc_gespmv_threaded_setbuffers (const SpDCCols<IU, NUM> & A, const int32_t * indx, const IVT * numx, int32_t nnzx,
@@ -225,8 +225,8 @@ void dcsc_gespmv_threaded_setbuffers (const SpDCCols<IU, NUM> & A, const int32_t
 		int splits = A.getnsplit();
 		if(splits > 0)
 		{
-			vector< vector<int32_t> > indy(splits);
-			vector< vector< OVT > > numy(splits);
+			std::vector< std::vector<int32_t> > indy(splits);
+			std::vector< std::vector< OVT > > numy(splits);
 			int32_t nlocrows = static_cast<int32_t>(A.getnrow());
 			int32_t perpiece = nlocrows / splits;
 
@@ -246,13 +246,13 @@ void dcsc_gespmv_threaded_setbuffers (const SpDCCols<IU, NUM> & A, const int32_t
 
 			// keep recipients of last entries in each split (-1 for an empty split)
 			// so that we can delete indy[] and numy[] contents as soon as they are processed
-			vector<int32_t> end_recs(splits);
+			std::vector<int32_t> end_recs(splits);
 			for(int i=0; i<splits; ++i)
 			{
 				if(indy[i].empty())
 					end_recs[i] = -1;
 				else
-					end_recs[i] = min(indy[i].back() / perproc, last_rec);
+					end_recs[i] = std::min(indy[i].back() / perproc, last_rec);
 			}
 
 			int ** loc_rec_cnts = new int *[splits];
@@ -264,14 +264,14 @@ void dcsc_gespmv_threaded_setbuffers (const SpDCCols<IU, NUM> & A, const int32_t
 				loc_rec_cnts[i]  = new int[p_c](); // thread-local recipient data
 				if(!indy[i].empty())	// guarantee that .begin() and .end() are not null
 				{
-					int32_t cur_rec = min( indy[i].front() / perproc, last_rec);
+					int32_t cur_rec = std::min( indy[i].front() / perproc, last_rec);
 					int32_t lastdata = (cur_rec+1) * perproc;  // one past last entry that goes to this current recipient
-					for(typename vector<int32_t>::iterator it = indy[i].begin(); it != indy[i].end(); ++it)
+					for(typename std::vector<int32_t>::iterator it = indy[i].begin(); it != indy[i].end(); ++it)
 					{
 
 						if( ( (*it) >= lastdata ) && cur_rec != last_rec )
 						{
-							cur_rec = min( (*it) / perproc, last_rec);
+							cur_rec = std::min( (*it) / perproc, last_rec);
 							lastdata = (cur_rec+1) * perproc;
 						}
 						++loc_rec_cnts[i][cur_rec];
@@ -287,26 +287,26 @@ void dcsc_gespmv_threaded_setbuffers (const SpDCCols<IU, NUM> & A, const int32_t
 				{
 					// FACT: Data is sorted, so if the recipient of begin is the same as the owner of end,
 					// then the whole data is sent to the same processor
-					int32_t beg_rec = min( indy[i].front() / perproc, last_rec);
+					int32_t beg_rec = std::min( indy[i].front() / perproc, last_rec);
 					int32_t alreadysent = 0;	// already sent per recipient
 					for(int before = i-1; before >= 0; before--)
 						 alreadysent += loc_rec_cnts[before][beg_rec];
 
 					if(beg_rec == end_recs[i])	// fast case
 					{
-						transform(indy[i].begin(), indy[i].end(), indy[i].begin(), bind2nd(minus<int32_t>(), perproc*beg_rec));
-						copy(indy[i].begin(), indy[i].end(), sendindbuf + dspls[beg_rec] + alreadysent);
-						copy(numy[i].begin(), numy[i].end(), sendnumbuf + dspls[beg_rec] + alreadysent);
+						std::transform(indy[i].begin(), indy[i].end(), indy[i].begin(), bind2nd(std::minus<int32_t>(), perproc*beg_rec));
+						std::copy(indy[i].begin(), indy[i].end(), sendindbuf + dspls[beg_rec] + alreadysent);
+						std::copy(numy[i].begin(), numy[i].end(), sendnumbuf + dspls[beg_rec] + alreadysent);
 					}
 					else	// slow case
 					{
 						int32_t cur_rec = beg_rec;
 						int32_t lastdata = (cur_rec+1) * perproc;  // one past last entry that goes to this current recipient
-						for(typename vector<int32_t>::iterator it = indy[i].begin(); it != indy[i].end(); ++it)
+						for(typename std::vector<int32_t>::iterator it = indy[i].begin(); it != indy[i].end(); ++it)
 						{
 							if( ( (*it) >= lastdata ) && cur_rec != last_rec )
 							{
-								cur_rec = min( (*it) / perproc, last_rec);
+								cur_rec = std::min( (*it) / perproc, last_rec);
 								lastdata = (cur_rec+1) * perproc;
 
 								// if this split switches to a new recipient after sending some data
@@ -330,22 +330,22 @@ void dcsc_gespmv_threaded_setbuffers (const SpDCCols<IU, NUM> & A, const int32_t
 		}
 		else
 		{
-			cout << "Something is wrong, splits should be nonzero for multithreaded execution" << endl;
+			std::cout << "Something is wrong, splits should be nonzero for multithreaded execution" << std::endl;
 		}
 	}
 }
 
-//! SpMV with sparse vector
+//! SpMV with sparse std::vector
 //! MIND: Matrix index type
 //! VIND: Vector index type (optimized: int32_t, general: int64_t)
 template <typename SR, typename MIND, typename VIND, typename NUM, typename IVT, typename OVT>
-void dcsc_gespmv (const SpDCCols<MIND, NUM> & A, const VIND * indx, const IVT * numx, VIND nnzx, vector<VIND> & indy, vector<OVT>  & numy)
+void dcsc_gespmv (const SpDCCols<MIND, NUM> & A, const VIND * indx, const IVT * numx, VIND nnzx, std::vector<VIND> & indy, std::vector<OVT>  & numy)
 {
 	if(A.getnnz() > 0 && nnzx > 0)
 	{
 		if(A.getnsplit() > 0)
 		{
-			cout << "Call dcsc_gespmv_threaded instead" << endl;
+			std::cout << "Call dcsc_gespmv_threaded instead" << std::endl;
 		}
 		else
 		{
@@ -354,7 +354,7 @@ void dcsc_gespmv (const SpDCCols<MIND, NUM> & A, const VIND * indx, const IVT * 
 	}
 }
 
-/** SpMV with sparse vector
+/** SpMV with sparse std::vector
   * @param[in] indexisvalue is only used for BFS-like computations, if true then we can call the optimized version that skips SPA
   */
 template <typename SR, typename IU, typename NUM, typename IVT, typename OVT>
@@ -388,10 +388,10 @@ void BooleanRowSplit(SpDCCols<IU, bool> & A, int numsplits)
 {
 	A.splits = numsplits;
 	IU perpiece = A.m / A.splits;
-	vector<IU> prevcolids(A.splits, -1);	// previous column id's are set to -1
-	vector<IU> nzcs(A.splits, 0);
-	vector<IU> nnzs(A.splits, 0);
-	vector < vector < pair<IU,IU> > > colrowpairs(A.splits);
+	std::vector<IU> prevcolids(A.splits, -1);	// previous column id's are set to -1
+	std::vector<IU> nzcs(A.splits, 0);
+	std::vector<IU> nnzs(A.splits, 0);
+	std::vector < std::vector < std::pair<IU,IU> > > colrowpairs(A.splits);
 	if(A.nnz > 0 && A.dcsc != NULL)
 	{
 		for(IU i=0; i< A.dcsc->nzc; ++i)
@@ -400,8 +400,8 @@ void BooleanRowSplit(SpDCCols<IU, bool> & A, int numsplits)
 			{
 				IU colid = A.dcsc->jc[i];
 				IU rowid = A.dcsc->ir[j];
-				IU owner = min(rowid / perpiece, static_cast<IU>(A.splits-1));
-				colrowpairs[owner].push_back(make_pair(colid, rowid - owner*perpiece));
+				IU owner = std::min(rowid / perpiece, static_cast<IU>(A.splits-1));
+				colrowpairs[owner].push_back(std::make_pair(colid, rowid - owner*perpiece));
 
 				if(prevcolids[owner] != colid)
 				{
@@ -413,8 +413,8 @@ void BooleanRowSplit(SpDCCols<IU, bool> & A, int numsplits)
 		}
 	}
 	delete A.dcsc;	// claim memory
-	//copy(nzcs.begin(), nzcs.end(), ostream_iterator<IU>(cout," " )); cout << endl;
-	//copy(nnzs.begin(), nnzs.end(), ostream_iterator<IU>(cout," " )); cout << endl;
+	//std::copy(nzcs.begin(), nzcs.end(), std::ostream_iterator<IU>(std::cout," " )); std::cout << std::endl;
+	//std::copy(nnzs.begin(), nnzs.end(), std::ostream_iterator<IU>(std::cout," " )); std::cout << std::endl;
 	A.dcscarr = new Dcsc<IU,bool>*[A.splits];
 
 	// To be parallelized with OpenMP
@@ -422,7 +422,7 @@ void BooleanRowSplit(SpDCCols<IU, bool> & A, int numsplits)
 	{
 		sort(colrowpairs[i].begin(), colrowpairs[i].end());	// sort w.r.t. columns
 		A.dcscarr[i] = new Dcsc<IU,bool>(nnzs[i],nzcs[i]);
-		fill(A.dcscarr[i]->numx, A.dcscarr[i]->numx+nnzs[i], static_cast<bool>(1));
+		std::fill(A.dcscarr[i]->numx, A.dcscarr[i]->numx+nnzs[i], static_cast<bool>(1));
 		IU curnzc = 0;				// number of nonzero columns constructed so far
 		IU cindex = colrowpairs[i][0].first;
 		IU rindex = colrowpairs[i][0].second;
@@ -481,7 +481,7 @@ SpTuples<IU, NUO> * Tuples_AnXBt
 		return new SpTuples< IU, NUO >(0, mdim, ndim);
 	}
 
-	StackEntry< NUO, pair<IU,IU> > * multstack;
+	StackEntry< NUO, std::pair<IU,IU> > * multstack;
 
 	IU cnz = SpHelper::SpCartesian< SR > (*(A.dcsc), *(B.dcsc), kisect, isect1, isect2, multstack);
 	DeleteAll(isect1, isect2, cols, rows);
@@ -509,7 +509,7 @@ SpTuples<IU, NUO> * Tuples_AnXBn
 	{
 		return new SpTuples<IU, NUO>(0, mdim, ndim);
 	}
-	StackEntry< NUO, pair<IU,IU> > * multstack;
+	StackEntry< NUO, std::pair<IU,IU> > * multstack;
 	IU cnz = SpHelper::SpColByCol< SR > (*(A.dcsc), *(B.dcsc), A.n,  multstack);
 
 	if(clearA)
@@ -529,7 +529,7 @@ SpTuples<IU, NUO> * Tuples_AtXBt
 {
 	IU mdim = A.n;
 	IU ndim = B.m;
-	cout << "Tuples_AtXBt function has not been implemented yet !" << endl;
+	std::cout << "Tuples_AtXBt function has not been implemented yet !" << std::endl;
 
 	return new SpTuples<IU, NUO> (0, mdim, ndim);
 }
@@ -542,7 +542,7 @@ SpTuples<IU, NUO> * Tuples_AtXBn
 {
 	IU mdim = A.n;
 	IU ndim = B.n;
-	cout << "Tuples_AtXBn function has not been implemented yet !" << endl;
+	std::cout << "Tuples_AtXBn function has not been implemented yet !" << std::endl;
 
 	return new SpTuples<IU, NUO> (0, mdim, ndim);
 }
@@ -550,7 +550,7 @@ SpTuples<IU, NUO> * Tuples_AtXBn
 // Performs a balanced merge of the array of SpTuples
 // Assumes the input parameters are already column sorted
 template<class SR, class IU, class NU>
-SpTuples<IU,NU> MergeAll( const vector<SpTuples<IU,NU> *> & ArrSpTups, IU mstar = 0, IU nstar = 0, bool delarrs = false )
+SpTuples<IU,NU> MergeAll( const std::vector<SpTuples<IU,NU> *> & ArrSpTups, IU mstar = 0, IU nstar = 0, bool delarrs = false )
 {
 	int hsize =  ArrSpTups.size();
 	if(hsize == 0)
@@ -566,37 +566,37 @@ SpTuples<IU,NU> MergeAll( const vector<SpTuples<IU,NU> *> & ArrSpTups, IU mstar 
 	{
 		if((mstar != ArrSpTups[i]->m) || nstar != ArrSpTups[i]->n)
 		{
-			cerr << "Dimensions do not match on MergeAll()" << endl;
+			std::cerr << "Dimensions do not match on MergeAll()" << std::endl;
 			return SpTuples<IU,NU>(0,0,0);
 		}
 	}
 	if(hsize > 1)
 	{
 		ColLexiCompare<IU,int> heapcomp;
-		tuple<IU, IU, int> * heap = new tuple<IU, IU, int> [hsize];	// (rowindex, colindex, source-id)
+		std::tuple<IU, IU, int> * heap = new std::tuple<IU, IU, int> [hsize];	// (rowindex, colindex, source-id)
 		IU * curptr = new IU[hsize];
-		fill_n(curptr, hsize, static_cast<IU>(0));
+		std::fill_n(curptr, hsize, static_cast<IU>(0));
 		IU estnnz = 0;
 
 		for(int i=0; i< hsize; ++i)
 		{
 			estnnz += ArrSpTups[i]->getnnz();
-			heap[i] = make_tuple(get<0>(ArrSpTups[i]->tuples[0]), get<1>(ArrSpTups[i]->tuples[0]), i);
+			heap[i] = std::make_tuple(std::get<0>(ArrSpTups[i]->tuples[0]), std::get<1>(ArrSpTups[i]->tuples[0]), i);
 		}
-		make_heap(heap, heap+hsize, not2(heapcomp));
+		std::make_heap(heap, heap+hsize, not2(heapcomp));
 
-		tuple<IU, IU, NU> * ntuples = new tuple<IU,IU,NU>[estnnz];
+		std::tuple<IU, IU, NU> * ntuples = new std::tuple<IU,IU,NU>[estnnz];
 		IU cnz = 0;
 
 		while(hsize > 0)
 		{
-			pop_heap(heap, heap + hsize, not2(heapcomp));         // result is stored in heap[hsize-1]
-			int source = get<2>(heap[hsize-1]);
+			std::pop_heap(heap, heap + hsize, not2(heapcomp));         // result is stored in heap[hsize-1]
+			int source = std::get<2>(heap[hsize-1]);
 
 			if( (cnz != 0) &&
-				((get<0>(ntuples[cnz-1]) == get<0>(heap[hsize-1])) && (get<1>(ntuples[cnz-1]) == get<1>(heap[hsize-1]))) )
+				((std::get<0>(ntuples[cnz-1]) == std::get<0>(heap[hsize-1])) && (std::get<1>(ntuples[cnz-1]) == std::get<1>(heap[hsize-1]))) )
 			{
-				get<2>(ntuples[cnz-1])  = SR::add(get<2>(ntuples[cnz-1]), ArrSpTups[source]->numvalue(curptr[source]++));
+				std::get<2>(ntuples[cnz-1])  = SR::add(std::get<2>(ntuples[cnz-1]), ArrSpTups[source]->numvalue(curptr[source]++));
 			}
 			else
 			{
@@ -605,9 +605,9 @@ SpTuples<IU,NU> MergeAll( const vector<SpTuples<IU,NU> *> & ArrSpTups, IU mstar 
 
 			if(curptr[source] != ArrSpTups[source]->getnnz())	// That array has not been depleted
 			{
-				heap[hsize-1] = make_tuple(get<0>(ArrSpTups[source]->tuples[curptr[source]]),
-								get<1>(ArrSpTups[source]->tuples[curptr[source]]), source);
-				push_heap(heap, heap+hsize, not2(heapcomp));
+				heap[hsize-1] = std::make_tuple(std::get<0>(ArrSpTups[source]->tuples[curptr[source]]),
+								std::get<1>(ArrSpTups[source]->tuples[curptr[source]]), source);
+				std::push_heap(heap, heap+hsize, not2(heapcomp));
 			}
 			else
 			{

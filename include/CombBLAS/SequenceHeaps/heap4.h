@@ -18,7 +18,7 @@ inline char *knAlign(void *p, unsigned long sz)
 template <class Key, class Value>
 class Heap4 {
   //  static const Key infimum  = 4;
-  //static const Key supremum = numeric_limits<Key>.max();
+  //static const Key supremum = std::numeric_limits<Key>.max();
   typedef KNElement<Key, Value> Element;
   int capacity;
   Element * rawData;
@@ -54,7 +54,7 @@ public:
 };
 
 
-// reset size to 0 and fill data array with sentinels
+// reset size to 0 and std::fill data array with sentinels
 template <class Key, class Value>
 inline void Heap4<Key, Value>::
 reset() {
@@ -84,7 +84,7 @@ deleteMinBasic()
   Key minKey, otherKey;
   int delta;
 
-  // first move up elements on a min-path
+  // first move up elements on a std::min-path
   int hole = 1; 
   int succ = 2;
   int layerSize = 4; // size of succ's layer
@@ -112,7 +112,7 @@ deleteMinBasic()
     succ += delta;
     layerPos += delta;
 
-    // move min successor up
+    // move std::min successor up
     data[hole].key = minKey;
     data[hole].value = data[succ].value;
 
@@ -156,7 +156,7 @@ void Heap4<Key, Value>::
 insert(Key k, Value v)
 {
   Assert2(size < capacity);
-  Debug4(cout << "insert(" << k << ", " << v << ")" << endl);
+  Debug4(std::cout << "insert(" << k << ", " << v << ")" << std::endl);
 
   int layerSize = finalLayerSize;
   int layerDist  = finalLayerDist;
@@ -196,10 +196,10 @@ print()
   int pos = 1;
   for (int layerSize = 1;  pos < size;  layerSize <<= 2) {
     for (int i = 0;  i < layerSize && pos + i <= size;  i++) {
-      cout << data[pos + i].key << " ";
+      std::cout << data[pos + i].key << " ";
     }
     pos += layerSize;
-    cout << endl;
+    std::cout << std::endl;
   }
 }
 

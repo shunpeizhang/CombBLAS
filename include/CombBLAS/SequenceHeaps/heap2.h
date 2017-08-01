@@ -10,7 +10,7 @@ struct KNElement {Key key; Value value;};
 template <class Key, class Value>
 class Heap2 {
   //  static const Key infimum  = 4;
-  //static const Key supremum = numeric_limits<Key>.max();
+  //static const Key supremum = std::numeric_limits<Key>.max();
   typedef KNElement<Key, Value> Element;
   Element *data;
   int capacity;
@@ -42,7 +42,7 @@ public:
 };
 
 
-// reset size to 0 and fill data array with sentinels
+// reset size to 0 and std::fill data array with sentinels
 template <class Key, class Value>
 inline void Heap2<Key, Value>::
 reset() {
@@ -63,7 +63,7 @@ deleteMinBasic()
 {
   Assert2(size > 0);
 
-  // first move up elements on a min-path
+  // first move up elements on a std::min-path
   int hole = 1; 
   int succ = 2;
   int sz   = size;
@@ -86,7 +86,7 @@ deleteMinBasic()
   // bubble up rightmost element
   Key bubble = dat[sz].key;
   int pred = hole >> 1;
-  while (dat[pred].key > bubble) { // must terminate since min at root
+  while (dat[pred].key > bubble) { // must terminate since std::min at root
     dat[hole] = dat[pred];
     hole = pred;
     pred >>= 1;
@@ -112,7 +112,7 @@ sortTo(Element *to)
   Element * const beyond = to + sz;
   Element * const root   = data + 1;
   while (to < beyond) {
-    // copy minimun
+    // std::copy minimun
     *to = *root;
     to++;
 
@@ -146,7 +146,7 @@ inline void Heap2<Key, Value>::
 insert(Key k, Value v)
 {
   Assert2(size < capacity);
-  Debug4(cout << "insert(" << k << ", " << v << ")" << endl);
+  Debug4(std::cout << "insert(" << k << ", " << v << ")" << std::endl);
 
   Element *dat = data;
   size++;

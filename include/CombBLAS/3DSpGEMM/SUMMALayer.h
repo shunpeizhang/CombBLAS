@@ -3,12 +3,12 @@
 
 #include <mpi.h>
 #include <sys/time.h> 
-#include <iostream>
+#include<iostream>
 #include <iomanip>
 #include <functional>
 #include <algorithm>
-#include <vector>
-#include <string>
+#include<vector>
+#include<string>
 #include <sstream>
 
 
@@ -21,7 +21,7 @@
 // SplitB is already locally transposed
 // Returns an array of unmerged lists in C
 template <typename IT, typename NT>
-void SUMMALayer (SpDCCols<IT,NT> & SplitA, SpDCCols<IT,NT> & SplitB, vector< SpTuples<IT,NT>* > & C, CCGrid & CMG, bool isBT, bool threaded)
+void SUMMALayer (SpDCCols<IT,NT> & SplitA, SpDCCols<IT,NT> & SplitB, std::vector< SpTuples<IT,NT>* > & C, CCGrid & CMG, bool isBT, bool threaded)
 {
 	typedef PlusTimesSRing<NT,NT> PTDD;
 	
@@ -43,9 +43,9 @@ void SUMMALayer (SpDCCols<IT,NT> & SplitA, SpDCCols<IT,NT> & SplitB, vector< SpT
     for(int i = 0; i < stages; ++i)
     {
         double bcast_beg = MPI_Wtime();
-        vector<IT> ess;
+        std::vector<IT> ess;
         
-        if(i == Aself)  ARecv = &SplitA;	// shallow-copy
+        if(i == Aself)  ARecv = &SplitA;	// shallow-std::copy
         else
         {
             ess.resize(SpDCCols<IT,NT>::esscount);
@@ -57,7 +57,7 @@ void SUMMALayer (SpDCCols<IT,NT> & SplitA, SpDCCols<IT,NT> & SplitB, vector< SpT
         SpParHelper::BCastMatrix(CMG.rowWorld, *ARecv, ess, i);	// then, receive its elements
         ess.clear();
         
-        if(i == Bself)  BRecv = &SplitB;	// shallow-copy
+        if(i == Bself)  BRecv = &SplitB;	// shallow-std::copy
         else
         {
             ess.resize(SpDCCols<IT,NT>::esscount);

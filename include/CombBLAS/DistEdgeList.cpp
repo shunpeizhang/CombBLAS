@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -42,7 +42,8 @@
 
 #include <fstream>
 #include <algorithm>
-using namespace std;
+
+namespace combblas {
 
 template <typename IT>
 DistEdgeList<IT>::DistEdgeList(): edges(NULL), pedges(NULL), nedges(0), globalV(0)
@@ -74,16 +75,16 @@ DistEdgeList<IT>::DistEdgeList(const char * filename, IT globaln, IT globalm): e
    		read_offset_end = 8*globalm;
 
 
-	ofstream oput;
+	std::ofstream oput;
 	commGrid->OpenDebugFile("BinRead", oput);
 	if(infp != NULL)
 	{
-		oput << "File exists" << endl;
-		oput << "Trying to read " << nedges << " edges out of " << globalm << endl;
+		oput << "File exists" << std::endl;
+		oput << "Trying to read " << nedges << " edges out of " << globalm << std::endl;
 	}
 	else
 	{
-		oput << "File does not exist" << endl;
+		oput << "File does not exist" << std::endl;
 	}
 
 	/* gen_edges is an array of unsigned ints of size 2*nedges */
@@ -91,10 +92,10 @@ DistEdgeList<IT>::DistEdgeList(const char * filename, IT globaln, IT globalm): e
 	fseek(infp, read_offset_start, SEEK_SET);
 	fread(gen_edges, 2*nedges, sizeof(uint32_t), infp);
 	SetMemSize(nedges);
-	oput << "Freads done " << endl;
+	oput << "Freads done " << std::endl;
 	for(IT i=0; i< 2*nedges; ++i)
 		edges[i] = (IT) gen_edges[i];
-	oput << "Puts done " << endl;
+	oput << "Puts done " << std::endl;
 	delete [] gen_edges;
 	oput.close();
 
@@ -105,7 +106,7 @@ DistEdgeList<IT>::DistEdgeList(const char * filename, IT globaln, IT globalm): e
 // commenting out because there is a compiler error with MPI_File_open.
 
 template <typename IT>
-void DistEdgeList<IT>::Dump64bit(string filename)
+void DistEdgeList<IT>::Dump64bit(std::string filename)
 {
 	int rank,nprocs;
 	MPI_Comm World = commGrid->GetWorld();
@@ -117,7 +118,7 @@ void DistEdgeList<IT>::Dump64bit(string filename)
 	IT * prelens = new IT[nprocs];
 	prelens[rank] = 2*nedges;
 	MPI_Allgather(MPI_IN_PLACE, 0, MPIType<IT>(), prelens, 1, MPIType<IT>(), commGrid->GetWorld());
-	IT lengthuntil = accumulate(prelens, prelens+rank, 0);
+	IT lengthuntil = std::accumulate(prelens, prelens+rank, 0);
 
 	// The disp displacement argument specifies the position
 	// (absolute offset in bytes from the beginning of the file)
@@ -128,7 +129,7 @@ void DistEdgeList<IT>::Dump64bit(string filename)
 }
 
 template <typename IT>
-void DistEdgeList<IT>::Dump32bit(string filename)
+void DistEdgeList<IT>::Dump32bit(std::string filename)
 {
 	int rank, nprocs;
 	MPI_Comm World = commGrid->GetWorld();
@@ -140,7 +141,7 @@ void DistEdgeList<IT>::Dump32bit(string filename)
 	IT * prelens = new IT[nprocs];
 	prelens[rank] = 2*nedges;
 	MPI_Allgather(MPI_IN_PLACE, 0, MPIType<IT>(), prelens, 1, MPIType<IT>(), commGrid->GetWorld());
-	IT lengthuntil = accumulate(prelens, prelens+rank, static_cast<IT>(0));
+	IT lengthuntil = std::accumulate(prelens, prelens+rank, static_cast<IT>(0));
 
 	// The disp displacement argument specifies the position
 	// (absolute offset in bytes from the beginning of the file)
@@ -189,7 +190,7 @@ template <typename IT>
 void DistEdgeList<IT>::CleanupEmpties()
 {
 
-	// find out how many edges there actually are
+	// std::find out how many edges there actually are
 	while (nedges > 0 && edges[2*(nedges-1) + 0] == -1)
 	{
 		nedges--;
@@ -249,7 +250,7 @@ void DistEdgeList<IT>::GenGraph500Data(double initiator[4], int log_numverts, in
 	#endif
 		make_mrg_seed(rank, seed2, seed);	// we give rank as the first seed, so it is different on processors
 
-		// a single pair of [val0,val1] for all the computation, global across all processors
+		// a single std::pair of [val0,val1] for all the computation, global across all processors
 		uint64_t val0, val1; /* Values for scrambling */
 		if(scramble)
 		{
@@ -281,12 +282,12 @@ void DistEdgeList<IT>::GenGraph500Data(double initiator[4], int log_numverts, in
 
 /**
  * Randomly permutes the distributed edge list.
- * Once we call Viral's psort on this vector, everything will go to the right place [tuples are
+ * Once we call Viral's psort on this std::vector, everything will go to the std::right place [tuples are
  * sorted lexicographically] and you can reconstruct the int64_t * edges in an embarrassingly parallel way.
  * As I understood, the entire purpose of this function is to destroy any locality. It does not
  * rename any vertices and edges are not named anyway.
  * For an example, think about the edge (0,1). It will eventually (at the end of kernel 1) be owned by processor P(0,0).
- * However, assume that processor P(r1,c1) has a copy of it before the call to PermEdges. After
+ * However, assume that processor P(r1,c1) has a std::copy of it before the call to PermEdges. After
  * this call, some other irrelevant processor P(r2,c2) will own it. So we gained nothing, it is just a scrambled egg.
 **/
 template <typename IT>
@@ -319,7 +320,7 @@ void PermEdges(DistEdgeList<IT> & DEL)
 		IT n_sofar = s*perstage;
 		IT n_thisstage = ((s==(stages-1))? (maxedges - n_sofar): perstage);
 
-		pair<double, pair<IT,IT> >* vecpair = new pair<double, pair<IT,IT> >[n_thisstage];
+		std::pair<double, std::pair<IT,IT> >* vecpair = new std::pair<double, std::pair<IT,IT> >[n_thisstage];
 		dist[rank] = n_thisstage;
 		MPI_Allgather(MPI_IN_PLACE, 1, MPIType<IT>(), dist, 1, MPIType<IT>(), DEL.commGrid->GetWorld());
 
@@ -330,7 +331,7 @@ void PermEdges(DistEdgeList<IT> & DEL)
 			vecpair[i].second.second = DEL.edges[2*(i+n_sofar)+1];
 		}
 
-		// less< pair<T1,T2> > works correctly (sorts w.r.t. first element of type T1)
+		// std::less< std::pair<T1,T2> > works correctly (sorts w.r.t. first element of type T1)
 		SpParHelper::MemoryEfficientPSort(vecpair, n_thisstage, dist, DEL.commGrid->GetWorld());
 		// SpParHelper::DebugPrintKeys(vecpair, n_thisstage, dist, DEL.commGrid->GetWorld());
 		for (IT i = 0; i < n_thisstage; i++)
@@ -341,8 +342,8 @@ void PermEdges(DistEdgeList<IT> & DEL)
 		delete [] vecpair;
 		#ifdef DEBUG
 		double et = MPI_Wtime();
-		ostringstream timeinfo;
-		timeinfo << "Stage " << s << " in " << et-st << " seconds" << endl;
+		std::ostringstream timeinfo;
+		timeinfo << "Stage " << s << " in " << et-st << " seconds" << std::endl;
 		SpParHelper::Print(timeinfo.str());
 		#endif
 	}
@@ -355,7 +356,7 @@ void PermEdges(DistEdgeList<IT> & DEL)
   *	Then the p round robin algorithm will do the renaming:
   * For all processors P(i,i)
   *          Broadcast local_p to all p processors
-  *          For j= i*N/p to min((i+1)*N/p, N)
+  *          For j= i*N/p to std::min((i+1)*N/p, N)
   *                    Rename the all j's with local_p(j) inside the edgelist (and mark them
   *                    "renamed" so that yeach vertex id is renamed only once)
   **/
@@ -375,20 +376,20 @@ void RenameVertices(DistEdgeList<IU> & DEL)
 	// way to mark whether each vertex was already renamed or not
 	IU locedgelist = 2*DEL.getNumLocalEdges();
 	bool* renamed = new bool[locedgelist];
-	fill_n(renamed, locedgelist, 0);
+	std::fill_n(renamed, locedgelist, 0);
 
 	// permutation for one round
 	IU * localPerm = NULL;
 	IU permsize;
 	IU startInd = 0;
 
-	//vector < pair<IU, IU> > vec;
+	//std::vector < std::pair<IU, IU> > vec;
 	//for(IU i=0; i< DEL.getNumLocalEdges(); i++)
-	//	vec.push_back(make_pair(DEL.edges[2*i], DEL.edges[2*i+1]));
+	//	vec.push_back(std::make_pair(DEL.edges[2*i], DEL.edges[2*i+1]));
 	//sort(vec.begin(), vec.end());
-	//vector < pair<IU, IU> > uniqued;
+	//std::vector < std::pair<IU, IU> > uniqued;
 	//unique_copy(vec.begin(), vec.end(), back_inserter(uniqued));
-	//cout << "before: " << vec.size() << " and after: " << uniqued.size() << endl;
+	//std::cout << "before: " << vec.size() << " and after: " << uniqued.size() << std::endl;
 
 	for (int round = 0; round < nprocs; round++)
 	{
@@ -397,7 +398,7 @@ void RenameVertices(DistEdgeList<IU> & DEL)
 		{
 			permsize = locrows;
 			localPerm = new IU[permsize];
-			copy(globalPerm.arr.begin(), globalPerm.arr.end(), localPerm);
+			std::copy(globalPerm.arr.begin(), globalPerm.arr.end(), localPerm);
 		}
 		MPI_Bcast(&permsize, 1, MPIType<IU>(), round, World);
 		if(rank != round)
@@ -407,7 +408,7 @@ void RenameVertices(DistEdgeList<IU> & DEL)
 		MPI_Bcast(localPerm, permsize, MPIType<IU>(), round, World);
 
 		// iterate over
-		for (typename vector<IU>::size_type j = 0; j < (unsigned)locedgelist ; j++)
+		for (typename std::vector<IU>::size_type j = 0; j < (unsigned)locedgelist ; j++)
 		{
 			// We are renaming vertices, not edges
 			if (startInd <= DEL.edges[j] && DEL.edges[j] < (startInd + permsize) && !renamed[j])
@@ -422,3 +423,4 @@ void RenameVertices(DistEdgeList<IU> & DEL)
 	delete [] renamed;
 }
 
+}

@@ -8,10 +8,10 @@
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -38,7 +38,7 @@ namespace combblas {
 template <class IT, class VT>
 class BitMapFringe {
  public:
-  BitMapFringe(shared_ptr<CommGrid> grid, FullyDistSpVec<IT,VT> & x) {
+  BitMapFringe(std::shared_ptr<CommGrid> grid, FullyDistSpVec<IT,VT> & x) {
     cg.reset(new CommGrid(*grid));
 
 	MPI_Comm World = x.getcommgrid()->GetWorld();
@@ -196,7 +196,7 @@ class BitMapFringe {
     return local_bm;
   }
  private:
- 	shared_ptr<CommGrid> cg;
+ 	std::shared_ptr<CommGrid> cg;
   BitMap* local_bm;
   BitMap* next_bm;
   BitMap* trans_bm;

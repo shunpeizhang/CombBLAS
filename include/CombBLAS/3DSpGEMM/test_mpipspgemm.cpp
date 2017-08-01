@@ -1,10 +1,10 @@
 #include <mpi.h>
 #include <sys/time.h>
-#include <iostream>
+#include<iostream>
 #include <functional>
 #include <algorithm>
-#include <vector>
-#include <string>
+#include<vector>
+#include<string>
 #include <sstream>
 #include <stdint.h>
 #include <cmath>
@@ -15,7 +15,7 @@
 #include "Multiplier.h"
 #include "SplitMatDist.h"
 
-using namespace std;
+;
 
 double comm_bcast;
 double comm_reduce;
@@ -33,23 +33,23 @@ int main(int argc, char *argv[])
 {
     int provided;
 	//MPI_Init_thread(&argc, &argv, MPI_THREAD_SINGLE, &provided);
-    
-    
+
+
     MPI_Init_thread(&argc, &argv, MPI_THREAD_SERIALIZED, &provided);
     if (provided < MPI_THREAD_SERIALIZED)
     {
         printf("ERROR: The MPI library does not have MPI_THREAD_SERIALIZED support\n");
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
-    
-    
+
+
     int nprocs, myrank;
     MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
     MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
 
 	if(argc != 8)
 	{
-        cout << argc << endl;
+        std::cout << argc << std::endl;
 		if(myrank == 0)
 		{
             printf("Usage (input): ./mpipspgemm <GridRows> <GridCols> <Layers> <matA> <matB> <matC> <algo>\n");
@@ -63,14 +63,14 @@ int main(int argc, char *argv[])
 	unsigned GRCOLS = (unsigned) atoi(argv[2]);
 	unsigned C_FACTOR = (unsigned) atoi(argv[3]);
     CCGrid CMG(C_FACTOR, GRCOLS);
-    
+
     if(GRROWS != GRCOLS)
     {
         SpParHelper::Print("This version of the Combinatorial BLAS only works on a square logical processor grid\n");
         MPI_Barrier(MPI_COMM_WORLD);
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
-    
+
     int layer_length = GRROWS*GRCOLS;
     if(layer_length * C_FACTOR != nprocs)
     {
@@ -78,38 +78,38 @@ int main(int argc, char *argv[])
         MPI_Barrier(MPI_COMM_WORLD);
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
-    
-	
-    
+
+
+
     SpDCCols<int32_t, double> splitA, splitB, controlC;
     SpDCCols<int32_t, double> *splitC;
-    string type;
-    
-    
-    string fileA(argv[4]);
-    string fileB(argv[5]);
-    string fileC(argv[6]);
-    
+    std::string type;
+
+
+    std::string fileA(argv[4]);
+    std::string fileB(argv[5]);
+    std::string fileC(argv[6]);
+
     {
-        shared_ptr<CommGrid> layerGrid;
+        std::shared_ptr<CommGrid> layerGrid;
         layerGrid.reset( new CommGrid(CMG.layerWorld, 0, 0) );
-        FullyDistVec<int32_t, int32_t> p(layerGrid); // permutation vector defined on layers
-        
+        FullyDistVec<int32_t, int32_t> p(layerGrid); // permutation std::vector defined on layers
+
         double t01 = MPI_Wtime();
-        
+
         SpDCCols<int32_t, double> *A = ReadMat<double>(fileA, CMG, true, p);
         SpDCCols<int32_t, double> *B = ReadMat<double>(fileB, CMG, true, p);
         SpDCCols<int32_t, double> *C = ReadMat<double>(fileC, CMG, true, p);
-        
+
         SplitMat(CMG, A, splitA, false);
         SplitMat(CMG, B, splitB, true);
         SplitMat(CMG, C, controlC, false);
-        
-        if(myrank == 0) cout << "Matrices read and replicated along layers : time " << MPI_Wtime() - t01 << endl;
 
-        type = string(argv[7]);
-        
-        if(type == string("outer"))
+        if(myrank == 0) std::cout << "Matrices read and replicated along layers : time " << MPI_Wtime() - t01 << std::endl;
+
+        type = std::string(argv[7]);
+
+        if(type == std::string("outer"))
         {
             for(int k=0; k<ITERS; k++)
             {
@@ -121,11 +121,11 @@ int main(int argc, char *argv[])
                     SpParHelper::Print("ERROR in Outer product multiplication, go fix it!\n");
                 delete splitC;
             }
-            
+
         }
-        else if(type == string("column"))
+        else if(type == std::string("column"))
         {
-            
+
             for(int k=0; k<ITERS; k++)
             {
                 splitC = multiply(splitA, splitB, CMG, false, false);
@@ -133,10 +133,10 @@ int main(int argc, char *argv[])
                     SpParHelper::Print("Col-heap multiplication working correctly\n");
                 else
                     SpParHelper::Print("ERROR in Col-heap multiplication, go fix it!\n");
-                
+
                 delete splitC;
             }
-            
+
         }
         else // default threaded
         {
@@ -155,5 +155,5 @@ int main(int argc, char *argv[])
 	MPI_Finalize();
 	return 0;
 }
-	
+
 

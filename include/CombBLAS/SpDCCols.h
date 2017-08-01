@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2015, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -29,7 +29,7 @@
 #ifndef _SP_DCCOLS_H
 #define _SP_DCCOLS_H
 
-#include <iostream>
+#include<iostream>
 #include <fstream>
 #include <cmath>
 #include "SpMat.h"	// Best to include the base class first
@@ -41,7 +41,7 @@
 #include "MemoryPool.h"
 #include "LocArr.h"
 #include "Friends.h"
-#include "CombBLAS.h"
+#include "combblas.h"
 #include "FullyDist.h"
 namespace combblas {
 
@@ -56,9 +56,9 @@ public:
 	SpDCCols ();
 	SpDCCols (IT size, IT nRow, IT nCol, IT nzc);
 	SpDCCols (const SpTuples<IT,NT> & rhs, bool transpose);
-    SpDCCols (IT nRow, IT nCol, IT nnz1, const tuple<IT, IT, NT> * rhs, bool transpose);
+    SpDCCols (IT nRow, IT nCol, IT nnz1, const std::tuple<IT, IT, NT> * rhs, bool transpose);
 
-	SpDCCols (const SpDCCols<IT,NT> & rhs);					// Actual copy constructor
+	SpDCCols (const SpDCCols<IT,NT> & rhs);					// Actual std::copy constructor
 	~SpDCCols();
 
 	template <typename NNT> operator SpDCCols<IT,NNT> () const;		//!< NNT: New numeric type
@@ -68,7 +68,7 @@ public:
 	SpDCCols<IT,NT> & operator= (const SpDCCols<IT, NT> & rhs);
 	SpDCCols<IT,NT> & operator+= (const SpDCCols<IT, NT> & rhs);
 	SpDCCols<IT,NT> operator() (IT ri, IT ci) const;
-	SpDCCols<IT,NT> operator() (const vector<IT> & ri, const vector<IT> & ci) const;
+	SpDCCols<IT,NT> operator() (const std::vector<IT> & ri, const std::vector<IT> & ci) const;
 	bool operator== (const SpDCCols<IT, NT> & rhs) const
 	{
 		if(rhs.nnz == 0 && nnz == 0)
@@ -219,17 +219,17 @@ public:
 		BooleanRowSplit(*this, numsplits);	// only works with boolean arrays
 	}
 
-    void ColSplit(int parts, vector< SpDCCols<IT,NT> > & matrices); //!< \attention Destroys calling object (*this)
+    void ColSplit(int parts, std::vector< SpDCCols<IT,NT> > & matrices); //!< \attention Destroys calling object (*this)
 	void Split(SpDCCols<IT,NT> & partA, SpDCCols<IT,NT> & partB); 	//!< \attention Destroys calling object (*this)
 	void Merge(SpDCCols<IT,NT> & partA, SpDCCols<IT,NT> & partB);	//!< \attention Destroys its parameters (partA & partB)
 
-	void CreateImpl(const vector<IT> & essentials);
-	void CreateImpl(IT size, IT nRow, IT nCol, tuple<IT, IT, NT> * mytuples);
+	void CreateImpl(const std::vector<IT> & essentials);
+	void CreateImpl(IT size, IT nRow, IT nCol, std::tuple<IT, IT, NT> * mytuples);
     void CreateImpl(IT * _cp, IT * _jc, IT * _ir, NT * _numx, IT _nz, IT _nzc, IT _m, IT _n);
 
 
 	Arr<IT,NT> GetArrays() const;
-	vector<IT> GetEssentials() const;
+	std::vector<IT> GetEssentials() const;
 	const static IT esscount;
 
 	bool isZero() const { return (nnz == 0); }
@@ -239,10 +239,10 @@ public:
 	IT getnzc() const { return (nnz == 0) ? 0: dcsc->nzc; }
 	int getnsplit() const { return splits; }
 
-	ofstream& put(ofstream & outfile) const;
-	ifstream& get(ifstream & infile);
+	std::ofstream& put(std::ofstream & outfile) const;
+	std::ifstream& get(std::ifstream & infile);
 	void PrintInfo() const;
-	void PrintInfo(ofstream & out) const;
+	void PrintInfo(std::ofstream & out) const;
 
 	template <typename SR>
 	int PlusEq_AtXBt(const SpDCCols<IT,NT> & A, const SpDCCols<IT,NT> & B);
@@ -266,13 +266,13 @@ public:
         return dcscarr[i];
     }
 
-    auto GetInternal() const    { return GetDCSC(); }
-    auto GetInternal(int i) const  { return GetDCSC(i); }
+    Dcsc<IT, NT>* GetInternal() const    { return GetDCSC(); }
+    Dcsc<IT, NT>* GetInternal(int i) const  { return GetDCSC(i); }
 
 
 private:
 	void CopyDcsc(Dcsc<IT,NT> * source);
-	SpDCCols<IT,NT> ColIndex(const vector<IT> & ci) const;	//!< col indexing without multiplication
+	SpDCCols<IT,NT> ColIndex(const std::vector<IT> & ci) const;	//!< col indexing without multiplication
 
 	template <typename SR, typename NTR>
 	SpDCCols< IT, typename promote_trait<NT,NTR>::T_promote > OrdOutProdMult(const SpDCCols<IT,NTR> & rhs) const;
@@ -280,7 +280,7 @@ private:
 	template <typename SR, typename NTR>
 	SpDCCols< IT, typename promote_trait<NT,NTR>::T_promote > OrdColByCol(const SpDCCols<IT,NTR> & rhs) const;
 
-	SpDCCols (IT size, IT nRow, IT nCol, const vector<IT> & indices, bool isRow);	// Constructor for indexing
+	SpDCCols (IT size, IT nRow, IT nCol, const std::vector<IT> & indices, bool isRow);	// Constructor for indexing
 	SpDCCols (IT nRow, IT nCol, Dcsc<IT,NT> * mydcsc);			// Constructor for multiplication
 
 	// Anonymous union
@@ -353,12 +353,12 @@ template <class IT, class NT> struct promote_trait< SpDCCols<IT,NT> , SpDCCols<I
         typedef SpDCCols<IT,NT> T_promote;
     };
 // General case #2: First is boolean the second is anything except boolean (to prevent ambiguity)
-template <class IT, class NT> struct promote_trait< SpDCCols<IT,bool> , SpDCCols<IT,NT>, typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value >::type >
+template <class IT, class NT> struct promote_trait< SpDCCols<IT,bool> , SpDCCols<IT,NT>, typename combblas::disable_if< combblas::is_boolean<NT>::value >::type >
     {
         typedef SpDCCols<IT,NT> T_promote;
     };
 // General case #3: Second is boolean the first is anything except boolean (to prevent ambiguity)
-template <class IT, class NT> struct promote_trait< SpDCCols<IT,NT> , SpDCCols<IT,bool>, typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value >::type >
+template <class IT, class NT> struct promote_trait< SpDCCols<IT,NT> , SpDCCols<IT,bool>, typename combblas::disable_if< combblas::is_boolean<NT>::value >::type >
 	{
 		typedef SpDCCols<IT,NT> T_promote;
 	};

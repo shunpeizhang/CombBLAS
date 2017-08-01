@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -29,9 +29,9 @@
 #ifndef _SP_PAR_VEC_H_
 #define _SP_PAR_VEC_H_
 
-#include <iostream>
+#include<iostream>
 #include <utility>
-#include <vector>
+#include<vector>
 #include "CombBLAS.h"
 #include "CommGrid.h"
 #include "MPIOp.h"
@@ -46,7 +46,7 @@ template <class IT>
 class DistEdgeList;
 
 /**
-  * A sparse vector of length n (with nnz <= n of them being nonzeros) is
+  * A sparse std::vector of length n (with nnz <= n of them being nonzeros) is
   *distributed to
   * diagonal processors in a way that respects ordering of the nonzero indices
   * Example: x = [5,1,6,2,9] for nnz(x)=5 and length(x)=10
@@ -59,13 +59,13 @@ class DistEdgeList;
   *will be consecutive integers
   * It is possibly that nonzero counts are distributed unevenly
   * Example: x=[1,2,3,4,5] and length(x) = 10, then P_00 would own all the
-  *nonzeros and P_11 would hold an empty vector
+  *nonzeros and P_11 would hold an empty std::vector
   * Just like in SpParMat case, indices are local to processors (they belong to
   *range [0,...,length-1] on each processor)
   *
   * TODO: Instead of repeated calls to "DiagWorld", this class should be
   *oblivious to the communicator
-  * 	  It should just distribute the vector to the MPI::IntraComm that it
+  * 	  It should just distribute the std::vector to the MPI::IntraComm that it
   *owns, whether diagonal or whole
  **/
 
@@ -74,36 +74,36 @@ class SpParVec {
  public:
   SpParVec();
   SpParVec(IT loclength);
-  SpParVec(shared_ptr<CommGrid> grid);
-  SpParVec(shared_ptr<CommGrid> grid, IT loclength);
+  SpParVec(std::shared_ptr<CommGrid> grid);
+  SpParVec(std::shared_ptr<CommGrid> grid, IT loclength);
 
-  //! like operator=, but instead of making a deep copy it just steals the
+  //! like operator=, but instead of making a deep std::copy it just steals the
   //! contents.
   //! Useful for places where the "victim" will be distroyed immediately after
   //! the call.
   void stealFrom(SpParVec<IT, NT>& victim);
   SpParVec<IT, NT>& operator+=(const SpParVec<IT, NT>& rhs);
   SpParVec<IT, NT>& operator-=(const SpParVec<IT, NT>& rhs);
-  ifstream& ReadDistribute(ifstream& infile, int master);
+  std::ifstream& ReadDistribute(std::ifstream& infile, int master);
 
   template <typename NNT>
   operator SpParVec<IT, NNT>() const  //!< Type conversion operator
   {
     SpParVec<IT, NNT> CVT(commGrid);
-    CVT.ind = vector<IT>(ind.begin(), ind.end());
-    CVT.num = vector<NNT>(num.begin(), num.end());
+    CVT.ind = std::vector<IT>(ind.begin(), ind.end());
+    CVT.num = std::vector<NNT>(num.begin(), num.end());
     CVT.length = length;
   }
 
-  void PrintInfo(string vecname) const;
+  void PrintInfo(std::string vecname) const;
   void iota(IT size, NT first);
   SpParVec<IT, NT> operator()(const SpParVec<IT, IT>& ri)
       const;  //!< SpRef (expects NT of ri to be 0-based)
   void SetElement(IT indx, NT numx);  // element-wise assignment
   NT operator[](IT indx) const;
 
-  // sort the vector itself
-  // return the permutation vector (0-based)
+  // sort the std::vector itself
+  // return the permutation std::vector (0-based)
   SpParVec<IT, IT> sort();
 
   IT getlocnnz() const { return ind.size(); }
@@ -130,14 +130,14 @@ class SpParVec {
       IT n_perproc = getTypicalLocLength();
       IT offset = static_cast<IT>(rank) * n_perproc;
 
-      transform(ind.begin(), ind.end(), num.begin(),
-                bind2nd(plus<IT>(), offset));
+      std::transform(ind.begin(), ind.end(), num.begin(),
+                bind2nd(std::plus<IT>(), offset));
     }
   }
 
   template <typename _UnaryOperation>
   void Apply(_UnaryOperation __unary_op) {
-    transform(num.begin(), num.end(), num.begin(), __unary_op);
+    std::transform(num.begin(), num.end(), num.begin(), __unary_op);
   }
 
   template <typename _UnaryOperation>
@@ -184,8 +184,8 @@ class SpParVec {
       IT n_perproc = getTypicalLocLength();
       IT offset = static_cast<IT>(rank) * n_perproc;
 
-      vector<IT> new_ind;
-      vector<NT> new_num;
+      std::vector<IT> new_ind;
+      std::vector<NT> new_num;
 
       for (IT i = 0; i < ind.size(); i++) {
         if (op(ind[i] + offset, num[i])) {
@@ -203,18 +203,18 @@ class SpParVec {
   NT Reduce(_BinaryOperation __binary_op, NT init);
 
   void DebugPrint();
-  shared_ptr<CommGrid> getcommgrid() { return commGrid; }
+  std::shared_ptr<CommGrid> getcommgrid() { return commGrid; }
   NT NOT_FOUND;
-  vector<IT>& getind() { return ind; }
-  vector<NT>& getnum() { return num; }
-  const vector<IT>& getind() const { return ind; }
-  const vector<NT>& getnum() const { return num; }
+  std::vector<IT>& getind() { return ind; }
+  std::vector<NT>& getnum() { return num; }
+  const std::vector<IT>& getind() const { return ind; }
+  const std::vector<NT>& getnum() const { return num; }
 
  private:
-  shared_ptr<CommGrid> commGrid;
-  vector<IT> ind;  // ind.size() give the number of nonzeros
-  vector<NT> num;
-  IT length;  // actual local length of the vector (including zeros)
+  std::shared_ptr<CommGrid> commGrid;
+  std::vector<IT> ind;  // ind.size() give the number of nonzeros
+  std::vector<NT> num;
+  IT length;  // actual local length of the std::vector (including zeros)
   bool diagonal;
 
   template <class IU, class NU>

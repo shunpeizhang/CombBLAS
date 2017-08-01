@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2015, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -29,8 +29,8 @@
 #ifndef _SP_IMPL_H_
 #define _SP_IMPL_H_
 
-#include <iostream>
-#include <vector>
+#include<iostream>
+#include<vector>
 
 namespace combblas {
 
@@ -45,8 +45,8 @@ struct SpImpl;
 
 template <class SR, class IT, class NUM, class IVT, class OVT>
 void SpMXSpV(const Dcsc<IT, NUM>& Adcsc, int32_t mA, const int32_t* indx,
-             const IVT* numx, int32_t veclen, vector<int32_t>& indy,
-             vector<OVT>& numy) {
+             const IVT* numx, int32_t veclen, std::vector<int32_t>& indy,
+             std::vector<OVT>& numy) {
   SpImpl<SR, IT, NUM, IVT, OVT>::SpMXSpV(Adcsc, mA, indx, numx, veclen, indy,
                                          numy);  // don't touch this
 };
@@ -64,7 +64,7 @@ void SpMXSpV(const Dcsc<IT, NUM>& Adcsc, int32_t mA, const int32_t* indx,
 template <class SR, class IT, class NUM, class IVT, class OVT>
 void SpMXSpV_ForThreading(const Dcsc<IT, NUM>& Adcsc, int32_t mA,
                           const int32_t* indx, const IVT* numx, int32_t veclen,
-                          vector<int32_t>& indy, vector<OVT>& numy,
+                          std::vector<int32_t>& indy, std::vector<OVT>& numy,
                           int32_t offset) {
   SpImpl<SR, IT, NUM, IVT, OVT>::SpMXSpV_ForThreading(
       Adcsc, mA, indx, numx, veclen, indy, numy, offset);  // don't touch this
@@ -74,14 +74,14 @@ void SpMXSpV_ForThreading(const Dcsc<IT, NUM>& Adcsc, int32_t mA,
 template <class SR, class IT, class NUM, class IVT, class OVT>
 void SpMXSpV_ForThreading(const Csc<IT, NUM>& Acsc, int32_t mA,
                           const int32_t* indx, const IVT* numx, int32_t veclen,
-                          vector<int32_t>& indy, vector<OVT>& numy,
+                          std::vector<int32_t>& indy, std::vector<OVT>& numy,
                           int32_t offset) {
   SpImpl<SR, IT, NUM, IVT, OVT>::SpMXSpV_ForThreading(
       Acsc, mA, indx, numx, veclen, indy, numy, offset);  // don't touch this
 };
 
 /**
- * IT: The sparse matrix index type. Sparse vector index type is fixed to be
+ * IT: The sparse matrix index type. Sparse std::vector index type is fixed to be
  *int32_t
  * It is the caller function's (inside ParFriends/Friends) job to convert any
  *different types
@@ -95,25 +95,25 @@ template <class SR, class IT, class NUM, class IVT, class OVT>
 struct SpImpl {
   static void SpMXSpV(const Dcsc<IT, NUM>& Adcsc, int32_t mA,
                       const int32_t* indx, const IVT* numx, int32_t veclen,
-                      vector<int32_t>& indy,
-                      vector<OVT>& numy);  // specialize this
+                      std::vector<int32_t>& indy,
+                      std::vector<OVT>& numy);  // specialize this
 
   static void SpMXSpV(const Dcsc<IT, NUM>& Adcsc, int32_t mA,
                       const int32_t* indx, const IVT* numx, int32_t veclen,
                       int32_t* indy, OVT* numy, int* cnts, int* dspls,
                       int p_c) {
-    cout << "Optbuf enabled version is not yet supported with general "
+    std::cout << "Optbuf enabled version is not yet supported with general "
             "(non-boolean) matrices"
-         << endl;
+         << std::endl;
   };
 
   static void SpMXSpV_ForThreading(const Dcsc<IT, NUM>& Adcsc, int32_t mA,
                                    const int32_t* indx, const IVT* numx,
-                                   int32_t veclen, vector<int32_t>& indy,
-                                   vector<OVT>& numy, int32_t offset) {
-    cout << "Threaded version is not yet supported with general (non-boolean) "
+                                   int32_t veclen, std::vector<int32_t>& indy,
+                                   std::vector<OVT>& numy, int32_t offset) {
+    std::cout << "Threaded version is not yet supported with general (non-boolean) "
             "matrices"
-         << endl;
+         << std::endl;
   };
 };
 
@@ -122,23 +122,23 @@ struct SpImpl<SR, IT, bool, IVT, OVT>  // specialization
 {
   static void SpMXSpV(const Dcsc<IT, bool>& Adcsc, int32_t mA,
                       const int32_t* indx, const IVT* numx, int32_t veclen,
-                      vector<int32_t>& indy, vector<OVT>& numy);
+                      std::vector<int32_t>& indy, std::vector<OVT>& numy);
 
   static void SpMXSpV(const Dcsc<IT, bool>& Adcsc, int32_t mA,
                       const int32_t* indx, const IVT* numx, int32_t veclen,
                       int32_t* indy, OVT* numy, int* cnts, int* dspls, int p_c);
 
-  //! Dcsc and vector index types do not need to match
+  //! Dcsc and std::vector index types do not need to match
   static void SpMXSpV_ForThreading(const Dcsc<IT, bool>& Adcsc, int32_t mA,
                                    const int32_t* indx, const IVT* numx,
-                                   int32_t veclen, vector<int32_t>& indy,
-                                   vector<OVT>& numy, int32_t offset);
+                                   int32_t veclen, std::vector<int32_t>& indy,
+                                   std::vector<OVT>& numy, int32_t offset);
 
-  //! Csc and vector index types do not need to match
+  //! Csc and std::vector index types do not need to match
   static void SpMXSpV_ForThreading(const Csc<IT, bool>& Acsc, int32_t mA,
                                    const int32_t* indx, const IVT* numx,
-                                   int32_t veclen, vector<int32_t>& indy,
-                                   vector<OVT>& numy, int32_t offset);
+                                   int32_t veclen, std::vector<int32_t>& indy,
+                                   std::vector<OVT>& numy, int32_t offset);
 };
 }
 

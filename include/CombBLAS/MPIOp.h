@@ -1,7 +1,7 @@
 #ifndef _MPI_OP_H
 #define _MPI_OP_H
 
-#include <iostream>
+#include<iostream>
 #include <typeinfo>
 #include <map>
 #include <functional>

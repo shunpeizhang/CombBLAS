@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2015, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -29,18 +29,20 @@
 #include "SpImpl.h"
 #include "Deleter.h"
 
+namespace combblas {
+
 /**
  * Base template version [full use of the semiring add() and multiply()]
- * @param[in] indx { vector that practically keeps column numbers requested from A }
+ * @param[in] indx { std::vector that practically keeps column numbers requested from A }
  *
  * Base template version [full use of the semiring add() and multiply()]
- * @param[in] indx { vector that practically keeps column numbers requested from A }
+ * @param[in] indx { std::vector that practically keeps column numbers requested from A }
  *
  * Roughly how the below function works:
- * Let's say our sparse vector has entries at 3, 7 and 9.
- * FillColInds() creates a vector of pairs that contain the
+ * Let's say our sparse std::vector has entries at 3, 7 and 9.
+ * FillColInds() creates a std::vector of std::pairs that contain the
  * start and end indices (into matrix.ir and matrix.numx arrays).
- * pair.first is the start index, pair.second is the end index.
+ * std::pair.first is the start index, std::pair.second is the end index.
  *
  * Here's how we merge these adjacencies of 3,7 and 9:
  * We keep a heap of size 3 and push the first entries in adj{3}, adj{7}, adj{9} onto the heap wset.
@@ -52,11 +54,11 @@
  **/
 template <class SR, class IT, class NUM, class IVT, class OVT>
 void SpImpl<SR,IT,NUM,IVT,OVT>::SpMXSpV(const Dcsc<IT,NUM> & Adcsc, int32_t mA, const int32_t * indx, const IVT * numx, int32_t veclen,
-			vector<int32_t> & indy, vector< OVT > & numy)
+			std::vector<int32_t> & indy, std::vector< OVT > & numy)
 {
 	int32_t hsize = 0;
 	// colinds dereferences A.ir (valid from colinds[].first to colinds[].second)
-	vector< pair<IT,IT> > colinds( (IT) veclen);
+	std::vector< std::pair<IT,IT> > colinds( (IT) veclen);
 	Adcsc.FillColInds(indx, (IT) veclen, colinds, NULL, 0);	// csize is irrelevant if aux is NULL
 
 	if(sizeof(NUM) > sizeof(OVT))	// ABAB: include a filtering based runtime choice as well?
@@ -78,11 +80,11 @@ void SpImpl<SR,IT,NUM,IVT,OVT>::SpMXSpV(const Dcsc<IT,NUM> & Adcsc, int32_t mA, 
 				}
 			}
 		}
-		make_heap(wset, wset+hsize);
+		std::make_heap(wset, wset+hsize);
 		while(hsize > 0)
 		{
-			pop_heap(wset, wset + hsize);         	// result is stored in wset[hsize-1]
-			IT locv = wset[hsize-1].runr;		// relative location of the nonzero in sparse column vector
+			std::pop_heap(wset, wset + hsize);         	// result is stored in wset[hsize-1]
+			IT locv = wset[hsize-1].runr;		// relative location of the nonzero in sparse column std::vector
 			if((!indy.empty()) && indy.back() == wset[hsize-1].key)
 			{
 				numy.back() = SR::add(numy.back(), wset[hsize-1].num);
@@ -101,7 +103,7 @@ void SpImpl<SR,IT,NUM,IVT,OVT>::SpMXSpV(const Dcsc<IT,NUM> & Adcsc, int32_t mA, 
                                 {
 					wset[hsize-1].key = Adcsc.ir[colinds[locv].first];
 					wset[hsize-1].num = mrhs;
-					push_heap(wset, wset+hsize);	// runr stays the same
+					std::push_heap(wset, wset+hsize);	// runr stays the same
 					pushed = true;
 					break;
 				}
@@ -121,11 +123,11 @@ void SpImpl<SR,IT,NUM,IVT,OVT>::SpMXSpV(const Dcsc<IT,NUM> & Adcsc, int32_t mA, 
 				wset[hsize++] = HeapEntry< IT,NUM > ( Adcsc.ir[colinds[j].first], j, Adcsc.numx[colinds[j].first]);  // HeapEntry(key, run, num)
 			}
 		}
-		make_heap(wset, wset+hsize);
+		std::make_heap(wset, wset+hsize);
 		while(hsize > 0)
 		{
-			pop_heap(wset, wset + hsize);         	// result is stored in wset[hsize-1]
-			IT locv = wset[hsize-1].runr;		// relative location of the nonzero in sparse column vector
+			std::pop_heap(wset, wset + hsize);         	// result is stored in wset[hsize-1]
+			IT locv = wset[hsize-1].runr;		// relative location of the nonzero in sparse column std::vector
 			OVT mrhs = SR::multiply(wset[hsize-1].num, numx[locv]);
 
 			if (!SR::returnedSAID())
@@ -146,7 +148,7 @@ void SpImpl<SR,IT,NUM,IVT,OVT>::SpMXSpV(const Dcsc<IT,NUM> & Adcsc, int32_t mA, 
 				// runr stays the same !
 				wset[hsize-1].key = Adcsc.ir[colinds[locv].first];
 				wset[hsize-1].num = Adcsc.numx[colinds[locv].first];
-				push_heap(wset, wset+hsize);
+				std::push_heap(wset, wset+hsize);
 			}
 			else		--hsize;
 		}
@@ -158,17 +160,17 @@ void SpImpl<SR,IT,NUM,IVT,OVT>::SpMXSpV(const Dcsc<IT,NUM> & Adcsc, int32_t mA, 
 /**
   * One of the two versions of SpMXSpV with on boolean matrix [uses only Semiring::add()]
   * This version is likely to be more memory efficient than the other one (the one that uses preallocated memory buffers)
-  * Because here we don't use a dense accumulation vector but a heap. It will probably be slower though.
+  * Because here we don't use a dense accumulation std::vector but a heap. It will probably be slower though.
 **/
 template <class SR, class IT, class IVT, class OVT>
 void SpImpl<SR,IT,bool,IVT,OVT>::SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA, const int32_t * indx, const IVT * numx, int32_t veclen,
-			vector<int32_t> & indy, vector<OVT> & numy)
+			std::vector<int32_t> & indy, std::vector<OVT> & numy)
 {
-	IT inf = numeric_limits<IT>::min();
-	IT sup = numeric_limits<IT>::max();
+	IT inf = std::numeric_limits<IT>::min();
+	IT sup = std::numeric_limits<IT>::max();
 	KNHeap< IT, IVT > sHeap(sup, inf); 	// max size: flops
 
-	IT k = 0; 	// index to indx vector
+	IT k = 0; 	// index to indx std::vector
 	IT i = 0; 	// index to columns of matrix
 	while(i< Adcsc.nzc && k < veclen)
 	{
@@ -221,11 +223,11 @@ void SpImpl<SR,IT,bool,IVT,OVT>::SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA
 {
 	OVT * localy = new OVT[mA];
 	bool * isthere = new bool[mA];
-	fill(isthere, isthere+mA, false);
-	vector< vector<int32_t> > nzinds(p_c);	// nonzero indices
+	std::fill(isthere, isthere+mA, false);
+	std::vector< std::vector<int32_t> > nzinds(p_c);	// nonzero indices
 
 	int32_t perproc = mA / p_c;
-	int32_t k = 0; 	// index to indx vector
+	int32_t k = 0; 	// index to indx std::vector
 	IT i = 0; 	// index to columns of matrix
 	while(i< Adcsc.nzc && k < veclen)
 	{
@@ -238,7 +240,7 @@ void SpImpl<SR,IT,bool,IVT,OVT>::SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA
 				int32_t rowid = (int32_t) Adcsc.ir[j];
 				if(!isthere[rowid])
 				{
-					int32_t owner = min(rowid / perproc, static_cast<int32_t>(p_c-1));
+					int32_t owner = std::min(rowid / perproc, static_cast<int32_t>(p_c-1));
 					localy[rowid] = numx[k];	// initial assignment, requires implicit conversion if IVT != OVT
 					nzinds[owner].push_back(rowid);
 					isthere[rowid] = true;
@@ -273,15 +275,15 @@ void SpImpl<SR,IT,bool,IVT,OVT>::SpMXSpV(const Dcsc<IT,bool> & Adcsc, int32_t mA
 //! We can safely use a SPA here because Adcsc is short (::RowSplit() has already been called on it)
 template <typename SR, typename IT, typename IVT, typename OVT>
 void SpImpl<SR,IT,bool,IVT,OVT>::SpMXSpV_ForThreading(const Dcsc<IT,bool> & Adcsc, int32_t mA, const int32_t * indx, const IVT * numx, int32_t veclen,
-			vector<int32_t> & indy, vector<OVT> & numy, int32_t offset)
+			std::vector<int32_t> & indy, std::vector<OVT> & numy, int32_t offset)
 {
 	OVT * localy = new OVT[mA];
 	bool * isthere = new bool[mA];
-	fill(isthere, isthere+mA, false);
-	vector<int32_t> nzinds;	// nonzero indices
+	std::fill(isthere, isthere+mA, false);
+	std::vector<int32_t> nzinds;	// nonzero indices
 
 	// The following piece of code is not general, but it's more memory efficient than FillColInds
-	int32_t k = 0; 	// index to indx vector
+	int32_t k = 0; 	// index to indx std::vector
 	IT i = 0; 	// index to columns of matrix
 	while(i< Adcsc.nzc && k < veclen)
 	{
@@ -322,12 +324,12 @@ void SpImpl<SR,IT,bool,IVT,OVT>::SpMXSpV_ForThreading(const Dcsc<IT,bool> & Adcs
 //! We can safely use a SPA here because Acsc is short (::RowSplit() has already been called on it)
 template <typename SR, typename IT, typename IVT, typename OVT>
 void SpImpl<SR,IT,bool,IVT,OVT>::SpMXSpV_ForThreading(const Csc<IT,bool> & Acsc, int32_t mA, const int32_t * indx, const IVT * numx, int32_t veclen,
-                                                      vector<int32_t> & indy, vector<OVT> & numy, int32_t offset)
+                                                      std::vector<int32_t> & indy, std::vector<OVT> & numy, int32_t offset)
 {
     OVT * localy = new OVT[mA];
     bool * isthere = new bool[mA];
-    fill(isthere, isthere+mA, false);
-    vector<int32_t> nzinds;	// nonzero indices
+    std::fill(isthere, isthere+mA, false);
+    std::vector<int32_t> nzinds;	// nonzero indices
 
     for (int32_t k = 0; k < veclen; ++k)
     {
@@ -358,4 +360,4 @@ void SpImpl<SR,IT,bool,IVT,OVT>::SpMXSpV_ForThreading(const Csc<IT,bool> & Acsc,
     }
     DeleteAll(localy,isthere);
 }
-
+}

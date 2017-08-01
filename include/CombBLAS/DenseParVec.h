@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -29,9 +29,9 @@
 #ifndef _DENSE_PAR_VEC_H_
 #define _DENSE_PAR_VEC_H_
 
-#include <iostream>
+#include<iostream>
 #include <fstream>
-#include <vector>
+#include<vector>
 #include <utility>
 #include <iterator>
 #include "CombBLAS.h"
@@ -53,19 +53,19 @@ class DenseParVec
 {
 public:
 	DenseParVec ( );
-	DenseParVec ( shared_ptr<CommGrid> grid, IT globallength );
+	DenseParVec ( std::shared_ptr<CommGrid> grid, IT globallength );
 	// explicit DenseParVec ( IT globallength );
-	DenseParVec ( IT locallength, NT initval, NT id); // initializes the vector to size locallength (if this node is on a diagonal)
-	// DenseParVec ( shared_ptr<CommGrid> grid, NT id);
-	DenseParVec ( shared_ptr<CommGrid> grid, IT locallength, NT initval, NT id);
-	DenseParVec ( shared_ptr<CommGrid> grid, IT globallength, NT initval);
+	DenseParVec ( IT locallength, NT initval, NT id); // initializes the std::vector to size locallength (if this node is on a diagonal)
+	// DenseParVec ( std::shared_ptr<CommGrid> grid, NT id);
+	DenseParVec ( std::shared_ptr<CommGrid> grid, IT locallength, NT initval, NT id);
+	DenseParVec ( std::shared_ptr<CommGrid> grid, IT globallength, NT initval);
 
-	ifstream& ReadDistribute (ifstream& infile, int master);
+	std::ifstream& ReadDistribute (std::ifstream& infile, int master);
 	DenseParVec<IT,NT> & operator=(const SpParVec<IT,NT> & rhs);		//!< SpParVec->DenseParVec conversion operator
 	DenseParVec<IT,NT> & operator=(const DenseParVec<IT,NT> & rhs);
 	DenseParVec<IT,NT> operator() (const DenseParVec<IT,IT> & ri) const;	//<! subsref
 
-	//! like operator=, but instead of making a deep copy it just steals the contents.
+	//! like operator=, but instead of making a deep std::copy it just steals the contents.
 	//! Useful for places where the "victim" will be distroyed immediately after the call.
 	DenseParVec<IT,NT> & stealFrom(DenseParVec<IT,NT> & victim);
 	DenseParVec<IT,NT> & operator+=(const SpParVec<IT,NT> & rhs);
@@ -82,7 +82,7 @@ public:
 	}
 
 	void iota(IT size, NT first);
-	void RandPerm();	// randomly permute the vector
+	void RandPerm();	// randomly permute the std::vector
 
   IT _typ_len;
   IT _total_len;
@@ -109,31 +109,31 @@ public:
 	template <typename _UnaryOperation>
 	void Apply(_UnaryOperation __unary_op)
 	{
-		transform(arr.begin(), arr.end(), arr.begin(), __unary_op);
+		std::transform(arr.begin(), arr.end(), arr.begin(), __unary_op);
 	}
 
 	template <typename _UnaryOperation, typename NNT>
 	void Apply(_UnaryOperation __unary_op, const SpParVec<IT,NNT>& mask);
 
-	void PrintToFile(string prefix)
+	void PrintToFile(std::string prefix)
 	{
-		ofstream output;
+		std::ofstream output;
 		commGrid->OpenDebugFile(prefix, output);
-		copy(arr.begin(), arr.end(), ostream_iterator<NT> (output, " "));
-		output << endl;
+		std::copy(arr.begin(), arr.end(), std::ostream_iterator<NT> (output, " "));
+		output << std::endl;
 		output.close();
 	}
 
-	void PrintInfo(string vectorname) const;
+	void PrintInfo(std::string vectorname) const;
 	void DebugPrint();
-	shared_ptr<CommGrid> getcommgrid() { return commGrid; }
-	const shared_ptr<CommGrid> getcommgrid() const { return commGrid; }
+	std::shared_ptr<CommGrid> getcommgrid() { return commGrid; }
+	const std::shared_ptr<CommGrid> getcommgrid() const { return commGrid; }
 
 	template <typename _BinaryOperation>
 	NT Reduce(_BinaryOperation __binary_op, NT identity);	//! Reduce can be used to implement max_element, for instance
 
-  vector<NT>& data() {return arr;}
-  const vector<NT>& data() const {return arr;}
+  std::vector<NT>& data() {return arr;}
+  const std::vector<NT>& data() const {return arr;}
 
 	template <typename _BinaryOperation>
 	void EWise(const DenseParVec<IT,NT> & rhs,  _BinaryOperation __binary_op);
@@ -153,10 +153,10 @@ public:
   }
 
 private:
-	shared_ptr<CommGrid> commGrid;
-	vector< NT > arr;
+	std::shared_ptr<CommGrid> commGrid;
+	std::vector< NT > arr;
 	bool diagonal;
-	NT zero;	//!< the element for non-existings scalars (0.0 for a vector on Reals, +infinity for a vector on the tropical semiring)
+	NT zero;	//!< the element for non-existings scalars (0.0 for a std::vector on Reals, +infinity for a std::vector on the tropical semiring)
 
 	template <class IU, class NU>
 	friend class DenseParMat;

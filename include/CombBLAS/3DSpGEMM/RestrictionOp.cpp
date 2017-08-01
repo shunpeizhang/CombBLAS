@@ -1,10 +1,10 @@
 #include <mpi.h>
 #include <sys/time.h>
-#include <iostream>
+#include<iostream>
 #include <functional>
 #include <algorithm>
-#include <vector>
-#include <string>
+#include<vector>
+#include<string>
 #include <sstream>
 #include <stdint.h>
 #include <cmath>
@@ -17,7 +17,7 @@
 #include "RestrictionOp.h"
 
 
-using namespace std;
+;
 
 double comm_bcast;
 double comm_reduce;
@@ -35,21 +35,21 @@ int main(int argc, char *argv[])
 {
     int provided;
     //MPI_Init_thread(&argc, &argv, MPI_THREAD_SINGLE, &provided);
-    
-    
+
+
     MPI_Init_thread(&argc, &argv, MPI_THREAD_SERIALIZED, &provided);
     if (provided < MPI_THREAD_SERIALIZED)
     {
         printf("ERROR: The MPI library does not have MPI_THREAD_SERIALIZED support\n");
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
-    
-    
-    
+
+
+
     int nprocs, myrank;
     MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
     MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
-    
+
     if(argc < 6)
     {
         if(myrank == 0)
@@ -64,8 +64,8 @@ int main(int argc, char *argv[])
         }
         return -1;
     }
-    
-    
+
+
     unsigned GRROWS = (unsigned) atoi(argv[1]);
     unsigned GRCOLS = (unsigned) atoi(argv[2]);
     unsigned C_FACTOR = (unsigned) atoi(argv[3]);
@@ -75,15 +75,15 @@ int main(int argc, char *argv[])
     {
         nthreads = omp_get_num_threads();
     }
-    
-    
+
+
     if(GRROWS != GRCOLS)
     {
         SpParHelper::Print("This version of the Combinatorial BLAS only works on a square logical processor grid\n");
         MPI_Barrier(MPI_COMM_WORLD);
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
-    
+
     int layer_length = GRROWS*GRCOLS;
     if(layer_length * C_FACTOR != nprocs)
     {
@@ -93,35 +93,35 @@ int main(int argc, char *argv[])
     }
     {
         SpDCCols<int64_t, double> *A;
-        
-        string type;
-        shared_ptr<CommGrid> layerGrid;
+
+        std::string type;
+        std::shared_ptr<CommGrid> layerGrid;
         layerGrid.reset( new CommGrid(CMG.layerWorld, 0, 0) );
-        FullyDistVec<int64_t, int64_t> p(layerGrid); // permutation vector defined on layers
-        
-        if(string(argv[4]) == string("input")) // input option
+        FullyDistVec<int64_t, int64_t> p(layerGrid); // permutation std::vector defined on layers
+
+        if(std::string(argv[4]) == std::string("input")) // input option
         {
-            string fileA(argv[5]);
-            
+            std::string fileA(argv[5]);
+
             double t01 = MPI_Wtime();
             A = ReadMat<double>(fileA, CMG, true, p);
-            
-            
-            if(myrank == 0) cout << "Input matrix read : time " << MPI_Wtime() - t01 << endl;
+
+
+            if(myrank == 0) std::cout << "Input matrix read : time " << MPI_Wtime() - t01 << std::endl;
         }
         else
         {
             unsigned scale = (unsigned) atoi(argv[5]);
             unsigned EDGEFACTOR = (unsigned) atoi(argv[6]);
             double initiator[4];
-            if(string(argv[4]) == string("ER"))
+            if(std::string(argv[4]) == std::string("ER"))
             {
                 initiator[0] = .25;
                 initiator[1] = .25;
                 initiator[2] = .25;
                 initiator[3] = .25;
             }
-            else if(string(argv[4]) == string("G500"))
+            else if(std::string(argv[4]) == std::string("G500"))
             {
                 initiator[0] = .57;
                 initiator[1] = .19;
@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
                 initiator[3] = .05;
                 EDGEFACTOR  = 16;
             }
-            else if(string(argv[4]) == string("SSCA"))
+            else if(std::string(argv[4]) == std::string("SSCA"))
             {
                 initiator[0] = .6;
                 initiator[1] = .4/3;
@@ -142,58 +142,58 @@ int main(int argc, char *argv[])
                     printf("The initiator parameter - %s - is not recognized.\n", argv[5]);
                 MPI_Abort(MPI_COMM_WORLD, 1);
             }
-            
-            
+
+
             double t01 = MPI_Wtime();
             A = GenMat<int64_t,double>(CMG, scale, EDGEFACTOR, initiator, true);
-            
-            if(myrank == 0) cout << "RMATs Generated : time " << MPI_Wtime() - t01 << endl;
-            
+
+            if(myrank == 0) std::cout << "RMATs Generated : time " << MPI_Wtime() - t01 << std::endl;
+
         }
-        
-        
-        
+
+
+
         SpDCCols<int64_t, double>* R;
         SpDCCols<int64_t, double>* RT;
-        
-        if(myrank == 0) cout << "Computing restriction matrix \n";
+
+        if(myrank == 0) std::cout << "Computing restriction matrix \n";
         double t01 = MPI_Wtime();
         RestrictionOp( CMG, A, R, RT);
-        
-        if(myrank == 0) cout << "Restriction Op computed : time " << MPI_Wtime() - t01 << endl;
-        SpDCCols<int64_t, double> *B = new SpDCCols<int64_t, double>(*A); // just a deep copy of A
+
+        if(myrank == 0) std::cout << "Restriction Op computed : time " << MPI_Wtime() - t01 << std::endl;
+        SpDCCols<int64_t, double> *B = new SpDCCols<int64_t, double>(*A); // just a deep std::copy of A
         SpDCCols<int64_t, double> splitA, splitB, splitR, splitRT;
         SpDCCols<int64_t, double> *splitRTA;
         SpDCCols<int64_t, double> *splitRTAR;
         SpDCCols<int64_t, double> *splitC;
-        
-        
+
+
         SplitMat(CMG, A, splitA, true);
         SplitMat(CMG, B, splitB, false);
         SplitMat(CMG, R, splitR, true);
         SplitMat(CMG, RT, splitRT, false);
-        
+
         if(myrank == 0)
         {
            	printf("\n Processor Grid (row x col x layers x threads): %dx%dx%dx%d \n", CMG.GridRows, CMG.GridCols, CMG.GridLayers, nthreads);
             printf(" prow pcol layer thread comm_bcast   comm_scatter comp_summa comp_merge  comp_scatter  comp_result     other      total\n");
         }
         SpParHelper::Print("Computing A square\n");
-        
+
         splitC = multiply(splitB, splitA, CMG, false, true); // A^2
         delete splitC;
         splitC = multiply(splitB, splitA, CMG, false, true); // A^2
-        
+
         SpParHelper::Print("Computing RTA\n");
         splitRTA = multiply(splitRT, splitA, CMG, false, true);
         delete splitRTA;
         splitRTA = multiply(splitRT, splitA, CMG, false, true);
-        
+
         SpParHelper::Print("Computing RTAR\n");
         splitRTAR = multiply(*splitRTA, splitR, CMG, false, true);
         delete splitRTAR;
         splitRTAR = multiply(*splitRTA, splitR, CMG, false, true);
-        
+
         // count nnz
         int64_t nnzA=0, nnzR=0, nnzC=0, nnzRTA=0, nnzRTAR=0;
         int64_t localnnzA = splitA.getnnz();
@@ -208,29 +208,29 @@ int main(int argc, char *argv[])
         MPI_Allreduce( &localnnzRTAR, &nnzRTAR, 1, MPIType<int64_t>(), MPI_SUM, MPI_COMM_WORLD);
         if(myrank == 0)
         {
-            cout << "----------------------------\n";
-            cout << " nnz(A)= " << nnzA << endl;
-            cout << " nnz(R)= " << nnzR << endl;
-            cout << " nnz(A^2)= " << nnzC << endl;
-            cout << " nnz(RTA)= " << nnzRTA << endl;
-            cout << " nnz(RTAR)= " << nnzRTAR << endl;
-            cout << "----------------------------\n";
+            std::cout << "----------------------------\n";
+            std::cout << " nnz(A)= " << nnzA << std::endl;
+            std::cout << " nnz(R)= " << nnzR << std::endl;
+            std::cout << " nnz(A^2)= " << nnzC << std::endl;
+            std::cout << " nnz(RTA)= " << nnzRTA << std::endl;
+            std::cout << " nnz(RTAR)= " << nnzRTAR << std::endl;
+            std::cout << "----------------------------\n";
         }
 
-        
-        
+
+
         delete splitC;
         delete splitRTA;
         delete splitRTAR;
-        
+
     }
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
     MPI_Finalize();
     return 0;
 }

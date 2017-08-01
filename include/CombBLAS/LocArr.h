@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -49,8 +49,8 @@ struct Arr
 		numarrs.resize(numsize);
 	}
 
-	vector< LocArr<IT,IT> > indarrs;
-	vector< LocArr<NT,IT> > numarrs;
+	std::vector< LocArr<IT,IT> > indarrs;
+	std::vector< LocArr<NT,IT> > numarrs;
 
 	IT totalsize() { return indarrs.size() + numarrs.size(); }
 };

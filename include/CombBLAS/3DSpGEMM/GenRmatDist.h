@@ -3,12 +3,12 @@
 
 #include <mpi.h>
 #include <sys/time.h> 
-#include <iostream>
+#include<iostream>
 #include <iomanip>
 #include <functional>
 #include <algorithm>
-#include <vector>
-#include <string>
+#include<vector>
+#include<string>
 #include <sstream>
 
 // These macros should be defined before stdint.h is included
@@ -32,19 +32,19 @@ SpDCCols<IT,NT> * GenRMat(unsigned scale, unsigned EDGEFACTOR, double initiator[
 	
 	DistEdgeList<int64_t> * DEL = new DistEdgeList<int64_t>(layerworld);
 
-	ostringstream minfo;
+	std::ostringstream minfo;
 	int nprocs = DEL->commGrid->GetSize();
-	minfo << "Started Generation of scale "<< scale << endl;
-	minfo << "Using " << nprocs << " MPI processes" << endl;
+	minfo << "Started Generation of scale "<< scale << std::endl;
+	minfo << "Using " << nprocs << " MPI processes" << std::endl;
 	SpParHelper::Print(minfo.str());
 
 	DEL->GenGraph500Data(initiator, scale, EDGEFACTOR, scramble, false );
 	// don't generate packed edges, that function uses MPI_COMM_WORLD which can not be used in a single layer!
 	
 	SpParHelper::Print("Generated renamed edge lists\n");
-	ostringstream tinfo;
+	std::ostringstream tinfo;
    	t02 = MPI_Wtime();
-	tinfo << "Generation took " << t02-t01 << " seconds" << endl;
+	tinfo << "Generation took " << t02-t01 << " seconds" << std::endl;
 	SpParHelper::Print(tinfo.str());
 
     SpParMat < IT, NT, SpDCCols<IT,NT> > *A = new SpParMat < IT, NT, SpDCCols<IT,NT> >(*DEL, false);
@@ -53,8 +53,8 @@ SpDCCols<IT,NT> * GenRMat(unsigned scale, unsigned EDGEFACTOR, double initiator[
 	SpParHelper::Print("Created Sparse Matrix\n");
 
     float balance = A->LoadImbalance();
-    ostringstream outs;
-    outs << "Load balance: " << balance << endl;
+    std::ostringstream outs;
+    outs << "Load balance: " << balance << std::endl;
     SpParHelper::Print(outs.str());
     
 	return A->seqptr();
@@ -66,8 +66,8 @@ SpDCCols<IT,NT> * GenRMat(unsigned scale, unsigned EDGEFACTOR, double initiator[
 template <typename IT, typename NT>
 void Generator(unsigned scale, unsigned EDGEFACTOR, double initiator[4], CCGrid & CMG, SpDCCols<IT,NT> & splitmat, bool trans, bool scramble)
 {
-    vector<IT> vecEss; // at layer_grid=0, this will have [CMG.GridLayers * SpDCCols<IT,NT>::esscount] entries
-    vector< SpDCCols<IT, NT> > partsmat;    // only valid at layer_grid=0
+    std::vector<IT> vecEss; // at layer_grid=0, this will have [CMG.GridLayers * SpDCCols<IT,NT>::esscount] entries
+    std::vector< SpDCCols<IT, NT> > partsmat;    // only valid at layer_grid=0
     int nparts = CMG.GridLayers;
 	if(CMG.layer_grid == 0)
 	{
@@ -78,11 +78,11 @@ void Generator(unsigned scale, unsigned EDGEFACTOR, double initiator[4], CCGrid 
         comp_trans += (MPI_Wtime() - trans_beg);
 
         double split_beg = MPI_Wtime();
-        localmat->ColSplit(nparts, partsmat);     // split matrices are emplaced-back into partsmat vector, localmat destroyed
+        localmat->ColSplit(nparts, partsmat);     // split matrices are emplaced-back into partsmat std::vector, localmat destroyed
 
         for(int i=0; i< nparts; ++i)
         {
-            vector<IT> ess = partsmat[i].GetEssentials();
+            std::vector<IT> ess = partsmat[i].GetEssentials();
             for(auto itr = ess.begin(); itr != ess.end(); ++itr)
             {
                 vecEss.push_back(*itr);
@@ -94,22 +94,22 @@ void Generator(unsigned scale, unsigned EDGEFACTOR, double initiator[4], CCGrid 
     double scatter_beg = MPI_Wtime();   // timer on
     int esscnt = SpDCCols<IT,NT>::esscount; // necessary cast for MPI
 
-    vector<IT> myess(esscnt);
+    std::vector<IT> myess(esscnt);
     MPI_Scatter(vecEss.data(), esscnt, MPIType<IT>(), myess.data(), esscnt, MPIType<IT>(), 0, CMG.fiberWorld);
     
     if(CMG.layer_grid == 0) // senders
     {
-        splitmat = partsmat[0]; // just copy the local split
+        splitmat = partsmat[0]; // just std::copy the local split
         for(int recipient=1; recipient< nparts; ++recipient)    // scatter the others
         {
             int tag = 0;
             Arr<IT,NT> arrinfo = partsmat[recipient].GetArrays();
-            for(unsigned int i=0; i< arrinfo.indarrs.size(); ++i)	// get index arrays
+            for(unsigned int i=0; i< arrinfo.indarrs.size(); ++i)	// std::get index arrays
             {
                 // MPI_Send(const void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm)
                 MPI_Send(arrinfo.indarrs[i].addr, arrinfo.indarrs[i].count, MPIType<IT>(), recipient, tag++, CMG.fiberWorld);
             }
-            for(unsigned int i=0; i< arrinfo.numarrs.size(); ++i)	// get numerical arrays
+            for(unsigned int i=0; i< arrinfo.numarrs.size(); ++i)	// std::get numerical arrays
             {
                 MPI_Send(arrinfo.numarrs[i].addr, arrinfo.numarrs[i].count, MPIType<NT>(), recipient, tag++, CMG.fiberWorld);
             }
@@ -121,11 +121,11 @@ void Generator(unsigned scale, unsigned EDGEFACTOR, double initiator[4], CCGrid 
         Arr<IT,NT> arrinfo = splitmat.GetArrays();
 
         int tag = 0;
-        for(unsigned int i=0; i< arrinfo.indarrs.size(); ++i)	// get index arrays
+        for(unsigned int i=0; i< arrinfo.indarrs.size(); ++i)	// std::get index arrays
         {
             MPI_Recv(arrinfo.indarrs[i].addr, arrinfo.indarrs[i].count, MPIType<IT>(), 0, tag++, CMG.fiberWorld, MPI_STATUS_IGNORE);
         }
-        for(unsigned int i=0; i< arrinfo.numarrs.size(); ++i)	// get numerical arrays
+        for(unsigned int i=0; i< arrinfo.numarrs.size(); ++i)	// std::get numerical arrays
         {
             MPI_Recv(arrinfo.numarrs[i].addr, arrinfo.numarrs[i].count, MPIType<NT>(), 0, tag++, CMG.fiberWorld, MPI_STATUS_IGNORE);
         }

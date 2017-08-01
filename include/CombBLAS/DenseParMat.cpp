@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -31,7 +31,7 @@
 #include "MPIType.h"
 #include "Operations.h"
 
-using namespace std;
+namespace combblas {
 
 template <class IT, class NT>
 template <typename _BinaryOperation>
@@ -41,7 +41,7 @@ DenseParVec< IT,NT > DenseParMat<IT,NT>::Reduce(Dim dim, _BinaryOperation __bina
 
 	switch(dim)
 	{
-		case Column:	// pack along the columns, result is a vector of size n
+		case Column:	// pack along the columns, result is a std::vector of size n
 		{
 			NT * sendbuf = new NT[n];
 			for(int j=0; j < n; ++j)
@@ -63,7 +63,7 @@ DenseParVec< IT,NT > DenseParMat<IT,NT>::Reduce(Dim dim, _BinaryOperation __bina
 			delete[] sendbuf;
 			break;
 		}
-		case Row:	// pack along the rows, result is a vector of size m
+		case Row:	// pack along the rows, result is a std::vector of size m
 		{
 			NT * sendbuf = new NT[m];
 			for(int i=0; i < m; ++i)
@@ -83,7 +83,7 @@ DenseParVec< IT,NT > DenseParMat<IT,NT>::Reduce(Dim dim, _BinaryOperation __bina
 		}
 		default:
 		{
-			cout << "Unknown reduction dimension, returning empty vector" << endl;
+			std::cout << "Unknown reduction dimension, returning empty std::vector" << std::endl;
 			break;
 		}
 	}
@@ -96,11 +96,11 @@ DenseParMat< IT,NT > & DenseParMat<IT,NT>::operator+=(const SpParMat< IT,NT,DER 
 {
 	if(*commGrid == *rhs.commGrid)
 	{
-		(rhs.spSeq)->UpdateDense(array, plus<double>());
+		(rhs.spSeq)->UpdateDense(array, std::plus<double>());
 	}
 	else
 	{
-		cout << "Grids are not comparable elementwise addition" << endl;
+		std::cout << "Grids are not comparable elementwise addition" << std::endl;
 		MPI_Abort(MPI_COMM_WORLD,GRIDMISMATCH);
 	}
 	return *this;
@@ -121,11 +121,11 @@ DenseParMat< IT,NT > &  DenseParMat<IT,NT>::operator=(const DenseParMat< IT,NT >
 		{
 			array = SpHelper::allocate2D<NT>(m, n);
 			for(int i=0; i< m; ++i)
-				copy(array[i], array[i]+n, rhs.array[i]);
+				std::copy(array[i], array[i]+n, rhs.array[i]);
 		}
 		commGrid.reset(new CommGrid(*(rhs.commGrid)));
 	}
 	return *this;
 }
 
-
+}

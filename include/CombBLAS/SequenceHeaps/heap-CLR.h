@@ -10,7 +10,7 @@ struct KNElement {Key key; Value value;};
 template <class Key, class Value>
 class Heap2 {
   //  static const Key infimum  = 4;
-  //static const Key supremum = numeric_limits<Key>.max();
+  //static const Key supremum = std::numeric_limits<Key>.max();
   typedef KNElement<Key, Value> Element;
   Element *data;
   int capacity;
@@ -41,14 +41,14 @@ public:
   //void  sortInPlace(); // in decreasing order
   void print() {
     for (int i = 1;  i <= size;  i++) {
-      cout << data[i].key << " ";
+      std::cout << data[i].key << " ";
     }
-    cout << endl;
+    std::cout << std::endl;
   }
 };
 
 
-// reset size to 0 and fill data array with sentinels
+// reset size to 0 and std::fill data array with sentinels
 template <class Key, class Value>
 inline void Heap2<Key, Value>::
 reset() {
@@ -107,7 +107,7 @@ sortTo(Element *to)
   Element * const beyond = to + sz;
   Element * const root   = data + 1;
   while (to < beyond) {
-    // copy minimun
+    // std::copy minimun
     *to = *root;
     to++;
 
@@ -141,7 +141,7 @@ inline void Heap2<Key, Value>::
 insert(Key k, Value v)
 {
   Assert2(size < capacity);
-  Debug4(cout << "insert(" << k << ", " << v << ")" << endl);
+  Debug4(std::cout << "insert(" << k << ", " << v << ")" << std::endl);
 
   size++;
   int hole = size; 

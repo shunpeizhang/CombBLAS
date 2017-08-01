@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2015, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -40,14 +40,15 @@ extern "C" {
 #include <algorithm>
 #include <fstream>
 #include <stdexcept>
-using namespace std;
+
+namespace combblas {
 
 /**
   * If every processor has a distinct triples file such as {A_0, A_1, A_2,...
   *A_p} for p processors
  **/
 template <class IT, class NT, class DER>
-SpParMat<IT, NT, DER>::SpParMat(ifstream& input, MPI_Comm& world) {
+SpParMat<IT, NT, DER>::SpParMat(std::ifstream& input, MPI_Comm& world) {
   assert((sizeof(IT) >= sizeof(typename DER::LocalIT)));
   if (!input.is_open()) {
     perror("Input file doesn't exist\n");
@@ -66,7 +67,7 @@ SpParMat<IT, NT, DER>::SpParMat(DER* myseq, MPI_Comm& world) : spSeq(myseq) {
 }
 
 template <class IT, class NT, class DER>
-SpParMat<IT, NT, DER>::SpParMat(DER* myseq, shared_ptr<CommGrid> grid)
+SpParMat<IT, NT, DER>::SpParMat(DER* myseq, std::shared_ptr<CommGrid> grid)
     : spSeq(myseq) {
   assert((sizeof(IT) >= sizeof(typename DER::LocalIT)));
   commGrid = grid;
@@ -74,7 +75,7 @@ SpParMat<IT, NT, DER>::SpParMat(DER* myseq, shared_ptr<CommGrid> grid)
 }
 
 template <class IT, class NT, class DER>
-SpParMat<IT, NT, DER>::SpParMat(shared_ptr<CommGrid> grid) {
+SpParMat<IT, NT, DER>::SpParMat(std::shared_ptr<CommGrid> grid) {
   assert((sizeof(IT) >= sizeof(typename DER::LocalIT)));
   spSeq = new DER();
   commGrid = grid;
@@ -118,7 +119,7 @@ void SpParMat<IT, NT, DER>::FreeMemory() {
 }
 
 template <class IT, class NT, class DER>
-void SpParMat<IT, NT, DER>::Dump(string filename) const {
+void SpParMat<IT, NT, DER>::Dump(std::string filename) const {
   MPI_Comm World = commGrid->GetWorld();
   int rank = commGrid->GetRank();
   int nprocs = commGrid->GetSize();
@@ -130,7 +131,7 @@ void SpParMat<IT, NT, DER>::Dump(string filename) const {
 
   int rankinrow = commGrid->GetRankInProcRow();
   int rankincol = commGrid->GetRankInProcCol();
-  int rowneighs = commGrid->GetGridCols();  // get # of processors on the row
+  int rowneighs = commGrid->GetGridCols();  // std::get # of processors on the row
   int colneighs = commGrid->GetGridRows();
 
   IT* colcnts = new IT[rowneighs];
@@ -140,18 +141,18 @@ void SpParMat<IT, NT, DER>::Dump(string filename) const {
 
   MPI_Allgather(MPI_IN_PLACE, 0, MPIType<IT>(), colcnts, 1, MPIType<IT>(),
                 commGrid->GetRowWorld());
-  IT coloffset = accumulate(colcnts, colcnts + rankinrow, static_cast<IT>(0));
+  IT coloffset = std::accumulate(colcnts, colcnts + rankinrow, static_cast<IT>(0));
 
   MPI_Allgather(MPI_IN_PLACE, 0, MPIType<IT>(), rowcnts, 1, MPIType<IT>(),
                 commGrid->GetColWorld());
-  IT rowoffset = accumulate(rowcnts, rowcnts + rankincol, static_cast<IT>(0));
+  IT rowoffset = std::accumulate(rowcnts, rowcnts + rankincol, static_cast<IT>(0));
   DeleteAll(colcnts, rowcnts);
 
   IT* prelens = new IT[nprocs];
   prelens[rank] = 2 * getlocalnnz();
   MPI_Allgather(MPI_IN_PLACE, 0, MPIType<IT>(), prelens, 1, MPIType<IT>(),
                 commGrid->GetWorld());
-  IT lengthuntil = accumulate(prelens, prelens + rank, static_cast<IT>(0));
+  IT lengthuntil = std::accumulate(prelens, prelens + rank, static_cast<IT>(0));
 
   // The disp displacement argument specifies the position
   // (absolute offset in bytes from the beginning of the file)
@@ -161,7 +162,7 @@ void SpParMat<IT, NT, DER>::Dump(string filename) const {
                     MPI_INFO_NULL);  // AL: the second-to-last argument is a
                                      // non-const char* (looks like poor MPI
                                      // standardization, the C++ bindings list
-                                     // it as const), C++ string literals MUST
+                                     // it as const), C++ std::string literals MUST
                                      // be const (especially in c++11).
   uint32_t* gen_edges = new uint32_t[prelens[rank]];
 
@@ -186,7 +187,7 @@ void SpParMat<IT, NT, DER>::Dump(string filename) const {
 template <class IT, class NT, class DER>
 SpParMat<IT, NT, DER>::SpParMat(const SpParMat<IT, NT, DER>& rhs) {
   if (rhs.spSeq != NULL)
-    spSeq = new DER(*(rhs.spSeq));  // Deep copy of local block
+    spSeq = new DER(*(rhs.spSeq));  // Deep std::copy of local block
 
   commGrid = rhs.commGrid;
   _nnz = rhs._nnz;
@@ -203,7 +204,7 @@ SpParMat<IT, NT, DER>& SpParMat<IT, NT, DER>::operator=(
     //! fails to check NULL
     if (spSeq != NULL) delete spSeq;
     if (rhs.spSeq != NULL)
-      spSeq = new DER(*(rhs.spSeq));  // Deep copy of local block
+      spSeq = new DER(*(rhs.spSeq));  // Deep std::copy of local block
 
     commGrid = rhs.commGrid;
     _nnz = rhs._nnz;
@@ -221,10 +222,10 @@ SpParMat<IT, NT, DER>& SpParMat<IT, NT, DER>::operator+=(
       (*spSeq) += (*(rhs.spSeq));
       reset_dims();
     } else {
-      cout << "Grids are not comparable for parallel addition (A+B)" << endl;
+      std::cout << "Grids are not comparable for parallel addition (A+B)" << std::endl;
     }
   } else {
-    cout << "Missing feature (A+A): Use multiply with 2 instead !" << endl;
+    std::cout << "Missing feature (A+A): Use multiply with 2 instead !" << std::endl;
   }
   return *this;
 }
@@ -273,7 +274,7 @@ template <typename _BinaryOperation>
 void SpParMat<IT, NT, DER>::DimApply(Dim dim, const FullyDistVec<IT, NT>& x,
                                      _BinaryOperation __binary_op) {
   if (!(*commGrid == *(x.commGrid))) {
-    cout << "Grids are not comparable for SpParMat::DimApply" << endl;
+    std::cout << "Grids are not comparable for SpParMat::DimApply" << std::endl;
     MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
   }
 
@@ -351,7 +352,7 @@ void SpParMat<IT, NT, DER>::DimApply(Dim dim, const FullyDistVec<IT, NT>& x,
       break;
     }
     default: {
-      cout << "Unknown scaling dimension, returning..." << endl;
+      std::cout << "Unknown scaling dimension, returning..." << std::endl;
       break;
     }
   }
@@ -405,7 +406,7 @@ template <class IT, class NT, class DER>
 template <
     typename VT, typename GIT,
     typename _BinaryOperation, typename _UnaryOperation>  // GIT: global index
-                                                          // type of vector
+                                                          // type of std::vector
                                                           void
                                                           SpParMat<IT, NT,
                                                                    DER>::
@@ -428,7 +429,7 @@ template <class IT, class NT, class DER>
 template <
     typename VT, typename GIT,
     typename _BinaryOperation, typename _UnaryOperation>  // GIT: global index
-                                                          // type of vector
+                                                          // type of std::vector
                                                           void
                                                           SpParMat<IT, NT,
                                                                    DER>::
@@ -451,7 +452,7 @@ template <
     MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
   }
   switch (dim) {
-    case Column:  // pack along the columns, result is a vector of size n
+    case Column:  // pack along the columns, result is a std::vector of size n
     {
       // We can't use rvec's distribution (rows first, columns later) here
       IT n_thiscol =
@@ -471,15 +472,15 @@ template <
 
       MPI_Allgather(MPI_IN_PLACE, 0, MPIType<GIT>(), loclens, 1, MPIType<GIT>(),
                     commGrid->GetColWorld());
-      partial_sum(loclens, loclens + colneighs,
+      std::partial_sum(loclens, loclens + colneighs,
                   lensums + 1);  // loclens and lensums are different, but both
                                  // would fit in 32-bits
 
-      vector<VT> trarr;
+      std::vector<VT> trarr;
       typename DER::SpColIter colit = spSeq->begcol();
       for (int i = 0; i < colneighs; ++i) {
         VT* sendbuf = new VT[loclens[i]];
-        fill(sendbuf, sendbuf + loclens[i], id);  // fill with identity
+        std::fill(sendbuf, sendbuf + loclens[i], id);  // std::fill with identity
 
         for (; colit != spSeq->endcol() && colit.colid() < lensums[i + 1];
              ++colit)  // iterate over a portion of columns
@@ -504,7 +505,7 @@ template <
       }
       DeleteAll(loclens, lensums);
 
-      GIT reallen;  // Now we have to transpose the vector
+      GIT reallen;  // Now we have to transpose the std::vector
       GIT trlen = trarr.size();
       int diagneigh = commGrid->GetComplementRank();
       MPI_Status status;
@@ -519,7 +520,7 @@ template <
       rvec.glen = getncol();  // ABAB: Put a sanity check here
       break;
     }
-    case Row:  // pack along the rows, result is a vector of size m
+    case Row:  // pack along the rows, result is a std::vector of size m
     {
       rvec.glen = getnrow();
       int rowneighs = commGrid->GetGridCols();
@@ -530,7 +531,7 @@ template <
       loclens[rowrank] = rvec.MyLocLength();
       MPI_Allgather(MPI_IN_PLACE, 0, MPIType<GIT>(), loclens, 1, MPIType<GIT>(),
                     commGrid->GetRowWorld());
-      partial_sum(loclens, loclens + rowneighs, lensums + 1);
+      std::partial_sum(loclens, loclens + rowneighs, lensums + 1);
       try {
         rvec.arr.resize(loclens[rowrank], id);
 
@@ -551,7 +552,7 @@ template <
                       commGrid->GetRowWorld());
 
         for (int k = 0; k < maxreducecalls; ++k) {
-          vector<typename DER::SpColIter::NzIter> nziters;
+          std::vector<typename DER::SpColIter::NzIter> nziters;
           typename DER::SpColIter curfinger = begfinger;
           for (;
                curfinger != spSeq->endcol() && nziters.size() < MAXCOLUMNBATCH;
@@ -561,7 +562,7 @@ template <
           for (int i = 0; i < rowneighs; ++i)  // step by step to save memory
           {
             VT* sendbuf = new VT[loclens[i]];
-            fill(sendbuf, sendbuf + loclens[i], id);  // fill with identity
+            std::fill(sendbuf, sendbuf + loclens[i], id);  // std::fill with identity
 
             typename DER::SpColIter colit = begfinger;
             IT colcnt = 0;  // "processed column" counter
@@ -598,27 +599,27 @@ template <
           begfinger = curfinger;  // set the next begfilter
         }
         DeleteAll(loclens, lensums);
-      } catch (length_error& le) {
-        cerr << "Length error: " << le.what() << endl;
+      } catch (std::length_error& le) {
+        std::cerr << "Length error: " << le.what() << std::endl;
       }
       break;
     }
     default: {
-      cout << "Unknown reduction dimension, returning empty vector" << endl;
+      std::cout << "Unknown reduction dimension, returning empty std::vector" << std::endl;
       break;
     }
   }
 }
 
 /**
-  * Reduce along the column/row into a vector
+  * Reduce along the column/row into a std::vector
   * @param[in] __binary_op {the operation used for reduction; examples: max,
-  *min, plus, multiply, and, or. Its parameters and return type are all VT}
+  *std::min, std::plus, multiply, and, or. Its parameters and return type are all VT}
   * @param[in] id {scalar that is used as the identity for __binary_op;
   *examples: zero, infinity}
   * @param[in] __unary_op {optional unary operation applied to nonzeros *before*
   *the __binary_op; examples: 1/x, x^2}
-  * @param[out] rvec {the return vector, specified as an output parameter to
+  * @param[out] rvec {the return std::vector, specified as an output parameter to
   *allow arbitrary return types via VT}
  **/
 template <class IT, class NT, class DER>
@@ -627,10 +628,10 @@ void SpParMat<IT, NT, DER>::Reduce(DenseParVec<IT, VT>& rvec, Dim dim,
                                    _BinaryOperation __binary_op, VT id,
                                    _UnaryOperation __unary_op) const {
   if (rvec.zero != id) {
-    ostringstream outs;
-    outs << "SpParMat::Reduce(): Return vector's zero is different than set id"
-         << endl;
-    outs << "Setting rvec.zero to id (" << id << ") instead" << endl;
+    std::ostringstream outs;
+    outs << "SpParMat::Reduce(): Return std::vector's zero is different than set id"
+         << std::endl;
+    outs << "Setting rvec.zero to id (" << id << ") instead" << std::endl;
     SpParHelper::Print(outs.str(), commGrid->GetWorld());
     rvec.zero = id;
   }
@@ -640,10 +641,10 @@ void SpParMat<IT, NT, DER>::Reduce(DenseParVec<IT, VT>& rvec, Dim dim,
     MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
   }
   switch (dim) {
-    case Column:  // pack along the columns, result is a vector of size n
+    case Column:  // pack along the columns, result is a std::vector of size n
     {
       VT* sendbuf = new VT[getlocalcols()];
-      fill(sendbuf, sendbuf + getlocalcols(), id);  // fill with identity
+      std::fill(sendbuf, sendbuf + getlocalcols(), id);  // std::fill with identity
 
       for (typename DER::SpColIter colit = spSeq->begcol();
            colit != spSeq->endcol(); ++colit)  // iterate over columns
@@ -667,10 +668,10 @@ void SpParMat<IT, NT, DER>::Reduce(DenseParVec<IT, VT>& rvec, Dim dim,
       delete[] sendbuf;
       break;
     }
-    case Row:  // pack along the rows, result is a vector of size m
+    case Row:  // pack along the rows, result is a std::vector of size m
     {
       VT* sendbuf = new VT[getlocalrows()];
-      fill(sendbuf, sendbuf + getlocalrows(), id);  // fill with identity
+      std::fill(sendbuf, sendbuf + getlocalrows(), id);  // std::fill with identity
 
       for (typename DER::SpColIter colit = spSeq->begcol();
            colit != spSeq->endcol(); ++colit)  // iterate over columns
@@ -694,7 +695,7 @@ void SpParMat<IT, NT, DER>::Reduce(DenseParVec<IT, VT>& rvec, Dim dim,
       break;
     }
     default: {
-      cout << "Unknown reduction dimension, returning empty vector" << endl;
+      std::cout << "Unknown reduction dimension, returning empty std::vector" << std::endl;
       break;
     }
   }
@@ -715,25 +716,25 @@ void SpParMat<IT, NT, DER>::MaskedReduce(FullyDistVec<GIT, VT>& rvec,
 }
 
 /**
- * Reduce along the column into a vector
- * @param[in] mask {A sparse vector indicating row indices included/excluded
+ * Reduce along the column into a std::vector
+ * @param[in] mask {A sparse std::vector indicating row indices included/excluded
  *(based on exclude argument) in the reduction }
- * @param[in] __binary_op {the operation used for reduction; examples: max, min,
- *plus, multiply, and, or. Its parameters and return type are all VT}
+ * @param[in] __binary_op {the operation used for reduction; examples: max, std::min,
+ *std::plus, multiply, and, or. Its parameters and return type are all VT}
  * @param[in] id {scalar that is used as the identity for __binary_op; examples:
  *zero, infinity}
  * @param[in] __unary_op {optional unary operation applied to nonzeros *before*
  *the __binary_op; examples: 1/x, x^2}
  * @param[in] exclude {if true, masked row indices are included in the
  *reduction}
- * @param[out] rvec {the return vector, specified as an output parameter to
+ * @param[out] rvec {the return std::vector, specified as an output parameter to
  *allow arbitrary return types via VT}
  **/
 template <class IT, class NT, class DER>
 template <
     typename VT, typename GIT,
     typename _BinaryOperation, typename _UnaryOperation>  // GIT: global index
-                                                          // type of vector
+                                                          // type of std::vector
                                                           void
                                                           SpParMat<IT, NT,
                                                                    DER>::
@@ -770,18 +771,18 @@ template <
 
   int rowneighs = commGrid->GetGridCols();
   int rowrank = commGrid->GetRankInProcRow();
-  vector<int> rownz(rowneighs);
+  std::vector<int> rownz(rowneighs);
   int locnnzMask = static_cast<int>(mask.getlocnnz());
   rownz[rowrank] = locnnzMask;
   MPI_Allgather(MPI_IN_PLACE, 1, MPI_INT, rownz.data(), 1, MPI_INT, RowWorld);
-  vector<int> dpls(rowneighs + 1, 0);
+  std::vector<int> dpls(rowneighs + 1, 0);
   std::partial_sum(rownz.begin(), rownz.end(), dpls.data() + 1);
   int accnz = std::accumulate(rownz.begin(), rownz.end(), 0);
-  vector<GIT> sendInd(locnnzMask);
-  transform(mask.ind.begin(), mask.ind.end(), sendInd.begin(),
-            bind2nd(plus<GIT>(), mask.RowLenUntil()));
+  std::vector<GIT> sendInd(locnnzMask);
+  std::transform(mask.ind.begin(), mask.ind.end(), sendInd.begin(),
+            bind2nd(std::plus<GIT>(), mask.RowLenUntil()));
 
-  vector<GIT> indMask(accnz);
+  std::vector<GIT> indMask(accnz);
   MPI_Allgatherv(sendInd.data(), rownz[rowrank], MPIType<GIT>(), indMask.data(),
                  rownz.data(), dpls.data(), MPIType<GIT>(), RowWorld);
 
@@ -801,15 +802,15 @@ template <
 
   MPI_Allgather(MPI_IN_PLACE, 0, MPIType<GIT>(), loclens, 1, MPIType<GIT>(),
                 commGrid->GetColWorld());
-  partial_sum(loclens, loclens + colneighs,
+  std::partial_sum(loclens, loclens + colneighs,
               lensums + 1);  // loclens and lensums are different, but both
                              // would fit in 32-bits
 
-  vector<VT> trarr;
+  std::vector<VT> trarr;
   typename DER::SpColIter colit = spSeq->begcol();
   for (int i = 0; i < colneighs; ++i) {
     VT* sendbuf = new VT[loclens[i]];
-    fill(sendbuf, sendbuf + loclens[i], id);  // fill with identity
+    std::fill(sendbuf, sendbuf + loclens[i], id);  // std::fill with identity
 
     for (; colit != spSeq->endcol() && colit.colid() < lensums[i + 1];
          ++colit)  // iterate over a portion of columns
@@ -862,7 +863,7 @@ template <
   }
   DeleteAll(loclens, lensums);
 
-  GIT reallen;  // Now we have to transpose the vector
+  GIT reallen;  // Now we have to transpose the std::vector
   GIT trlen = trarr.size();
   int diagneigh = commGrid->GetComplementRank();
   MPI_Status status;
@@ -898,8 +899,8 @@ SpParMat<IT, NT, DER>::operator SpParMat<NIT, NNT, NDER>() const {
  */
 template <class IT, class NT, class DER>
 SpParMat<IT, NT, DER> SpParMat<IT, NT, DER>::SubsRefCol(
-    const vector<IT>& ci) const {
-  vector<IT> ri;
+    const std::vector<IT>& ci) const {
+  std::vector<IT> ri;
   DER* tempseq = new DER((*spSeq)(ri, ci));
   return SpParMat<IT, NT, DER>(tempseq, commGrid);
 }
@@ -907,7 +908,7 @@ SpParMat<IT, NT, DER> SpParMat<IT, NT, DER>::SubsRefCol(
 /**
  * Generalized sparse matrix indexing (ri/ci are 0-based indexed)
  * Both the storage and the actual values in FullyDistVec should be IT
- * The index vectors are dense and FULLY distributed on all processors
+ * The index std::vectors are dense and FULLY distributed on all processors
  * We can use this function to apply a permutation like A(p,q)
  * Sequential indexing subroutine (via multiplication) is general enough.
  */
@@ -957,7 +958,7 @@ SpParMat<IT, NT, DER> SpParMat<IT, NT, DER>::SubsRef_SR(
   IT m_perproccol = totalm / rowneighs;
   IT n_perproccol = totaln / rowneighs;
 
-  // Get the right local dimensions
+  // Get the std::right local dimensions
   IT diagneigh = commGrid->GetComplementRank();
   IT mylocalrows = getlocalrows();
   IT mylocalcols = getlocalcols();
@@ -968,12 +969,12 @@ SpParMat<IT, NT, DER> SpParMat<IT, NT, DER>::SubsRef_SR(
                &status);
   // we don't need trlocalcols because Q.Transpose() will take care of it
 
-  vector<vector<IT>> rowid(rowneighs);  // reuse for P and Q
-  vector<vector<IT>> colid(rowneighs);
+  std::vector<std::vector<IT>> rowid(rowneighs);  // reuse for P and Q
+  std::vector<std::vector<IT>> colid(rowneighs);
 
   // Step 1: Create P
-  IT locvec = ri.arr.size();  // nnz in local vector
-  for (typename vector<IT>::size_type i = 0; i < (unsigned)locvec; ++i) {
+  IT locvec = ri.arr.size();  // nnz in local std::vector
+  for (typename std::vector<IT>::size_type i = 0; i < (unsigned)locvec; ++i) {
     // numerical values (permutation indices) are 0-based
     // recipient alone progessor row
     IT rowrec = (m_perproccol != 0)
@@ -993,32 +994,32 @@ SpParMat<IT, NT, DER> SpParMat<IT, NT, DER>::SubsRef_SR(
                commGrid->GetRowWorld());  // share the counts
   int* sdispls = new int[rowneighs]();
   int* rdispls = new int[rowneighs]();
-  partial_sum(sendcnt, sendcnt + rowneighs - 1, sdispls + 1);
-  partial_sum(recvcnt, recvcnt + rowneighs - 1, rdispls + 1);
-  IT p_nnz = accumulate(recvcnt, recvcnt + rowneighs, static_cast<IT>(0));
+  std::partial_sum(sendcnt, sendcnt + rowneighs - 1, sdispls + 1);
+  std::partial_sum(recvcnt, recvcnt + rowneighs - 1, rdispls + 1);
+  IT p_nnz = std::accumulate(recvcnt, recvcnt + rowneighs, static_cast<IT>(0));
 
   // create space for incoming data ...
   IT* p_rows = new IT[p_nnz];
   IT* p_cols = new IT[p_nnz];
   IT* senddata = new IT[locvec];  // re-used for both rows and columns
   for (int i = 0; i < rowneighs; ++i) {
-    copy(rowid[i].begin(), rowid[i].end(), senddata + sdispls[i]);
-    vector<IT>().swap(rowid[i]);  // clear memory of rowid
+    std::copy(rowid[i].begin(), rowid[i].end(), senddata + sdispls[i]);
+    std::vector<IT>().swap(rowid[i]);  // clear memory of rowid
   }
   MPI_Alltoallv(senddata, sendcnt, sdispls, MPIType<IT>(), p_rows, recvcnt,
                 rdispls, MPIType<IT>(), commGrid->GetRowWorld());
 
   for (int i = 0; i < rowneighs; ++i) {
-    copy(colid[i].begin(), colid[i].end(), senddata + sdispls[i]);
-    vector<IT>().swap(colid[i]);  // clear memory of colid
+    std::copy(colid[i].begin(), colid[i].end(), senddata + sdispls[i]);
+    std::vector<IT>().swap(colid[i]);  // clear memory of colid
   }
   MPI_Alltoallv(senddata, sendcnt, sdispls, MPIType<IT>(), p_cols, recvcnt,
                 rdispls, MPIType<IT>(), commGrid->GetRowWorld());
   delete[] senddata;
 
-  tuple<IT, IT, bool>* p_tuples = new tuple<IT, IT, bool>[p_nnz];
+  std::tuple<IT, IT, bool>* p_tuples = new std::tuple<IT, IT, bool>[p_nnz];
   for (IT i = 0; i < p_nnz; ++i) {
-    p_tuples[i] = make_tuple(p_rows[i], p_cols[i], 1);
+    p_tuples[i] = std::make_tuple(p_rows[i], p_cols[i], 1);
   }
   DeleteAll(p_rows, p_cols);
 
@@ -1041,9 +1042,9 @@ SpParMat<IT, NT, DER> SpParMat<IT, NT, DER>::SubsRef_SR(
       *this = Mult_AnXBn_DoubleBuff<PTBOOLNT, NT, DER>(
           P, *this, false, true);  // clear the memory of *this
 
-      // ostringstream outb;
+      // std::ostringstream outb;
       // outb << "P_after_" << commGrid->myrank;
-      // ofstream ofb(outb.str().c_str());
+      // std::ofstream ofb(outb.str().c_str());
       // P.put(ofb);
 
       P.Transpose();
@@ -1070,8 +1071,8 @@ SpParMat<IT, NT, DER> SpParMat<IT, NT, DER>::SubsRef_SR(
   // Step 2: Create Q  (use the same row-wise communication and transpose at the
   // end)
   // This temporary to-be-transposed Q is size(ci) x n
-  locvec = ci.arr.size();  // nnz in local vector (reset variable)
-  for (typename vector<IT>::size_type i = 0; i < (unsigned)locvec; ++i) {
+  locvec = ci.arr.size();  // nnz in local std::vector (reset variable)
+  for (typename std::vector<IT>::size_type i = 0; i < (unsigned)locvec; ++i) {
     // numerical values (permutation indices) are 0-based
     IT rowrec = (n_perproccol != 0)
                     ? std::min(ci.arr[i] / n_perproccol, rowneighs - 1)
@@ -1087,34 +1088,34 @@ SpParMat<IT, NT, DER> SpParMat<IT, NT, DER>::SubsRef_SR(
 
   MPI_Alltoall(sendcnt, 1, MPI_INT, recvcnt, 1, MPI_INT,
                commGrid->GetRowWorld());  // share the counts
-  fill(sdispls, sdispls + rowneighs, 0);  // reset
-  fill(rdispls, rdispls + rowneighs, 0);
-  partial_sum(sendcnt, sendcnt + rowneighs - 1, sdispls + 1);
-  partial_sum(recvcnt, recvcnt + rowneighs - 1, rdispls + 1);
-  IT q_nnz = accumulate(recvcnt, recvcnt + rowneighs, static_cast<IT>(0));
+  std::fill(sdispls, sdispls + rowneighs, 0);  // reset
+  std::fill(rdispls, rdispls + rowneighs, 0);
+  std::partial_sum(sendcnt, sendcnt + rowneighs - 1, sdispls + 1);
+  std::partial_sum(recvcnt, recvcnt + rowneighs - 1, rdispls + 1);
+  IT q_nnz = std::accumulate(recvcnt, recvcnt + rowneighs, static_cast<IT>(0));
 
   // create space for incoming data ...
   IT* q_rows = new IT[q_nnz];
   IT* q_cols = new IT[q_nnz];
   senddata = new IT[locvec];
   for (int i = 0; i < rowneighs; ++i) {
-    copy(rowid[i].begin(), rowid[i].end(), senddata + sdispls[i]);
-    vector<IT>().swap(rowid[i]);  // clear memory of rowid
+    std::copy(rowid[i].begin(), rowid[i].end(), senddata + sdispls[i]);
+    std::vector<IT>().swap(rowid[i]);  // clear memory of rowid
   }
   MPI_Alltoallv(senddata, sendcnt, sdispls, MPIType<IT>(), q_rows, recvcnt,
                 rdispls, MPIType<IT>(), commGrid->GetRowWorld());
 
   for (int i = 0; i < rowneighs; ++i) {
-    copy(colid[i].begin(), colid[i].end(), senddata + sdispls[i]);
-    vector<IT>().swap(colid[i]);  // clear memory of colid
+    std::copy(colid[i].begin(), colid[i].end(), senddata + sdispls[i]);
+    std::vector<IT>().swap(colid[i]);  // clear memory of colid
   }
   MPI_Alltoallv(senddata, sendcnt, sdispls, MPIType<IT>(), q_cols, recvcnt,
                 rdispls, MPIType<IT>(), commGrid->GetRowWorld());
   DeleteAll(senddata, sendcnt, recvcnt, sdispls, rdispls);
 
-  tuple<IT, IT, bool>* q_tuples = new tuple<IT, IT, bool>[q_nnz];
+  std::tuple<IT, IT, bool>* q_tuples = new std::tuple<IT, IT, bool>[q_nnz];
   for (IT i = 0; i < q_nnz; ++i) {
-    q_tuples[i] = make_tuple(q_rows[i], q_cols[i], 1);
+    q_tuples[i] = std::make_tuple(q_rows[i], q_cols[i], 1);
   }
   DeleteAll(q_rows, q_cols);
   DER_IT* QSeq = new DER_IT();
@@ -1227,7 +1228,7 @@ void SpParMat<IT, NT, DER>::EWiseMult(const SpParMat<IT, NT, DER>& rhs,
                                               // function
     reset_dims();
   } else {
-    cout << "Grids are not comparable, EWiseMult() fails !" << endl;
+    std::cout << "Grids are not comparable, EWiseMult() fails !" << std::endl;
     MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
   }
 }
@@ -1240,7 +1241,7 @@ void SpParMat<IT, NT, DER>::EWiseScale(const DenseParMat<IT, NT>& rhs) {
                                                  // sequential function
     reset_dims();
   } else {
-    cout << "Grids are not comparable, EWiseScale() fails !" << endl;
+    std::cout << "Grids are not comparable, EWiseScale() fails !" << std::endl;
     MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
   }
 }
@@ -1254,12 +1255,12 @@ void SpParMat<IT, NT, DER>::UpdateDense(DenseParMat<IT, NT>& rhs,
       spSeq->UpdateDense(rhs.array, __binary_op);
       reset_dims();
     } else {
-      cout << "Matrices have different dimensions, UpdateDense() fails !"
-           << endl;
+      std::cout << "Matrices have different dimensions, UpdateDense() fails !"
+           << std::endl;
       MPI_Abort(MPI_COMM_WORLD, DIMMISMATCH);
     }
   } else {
-    cout << "Grids are not comparable, UpdateDense() fails !" << endl;
+    std::cout << "Grids are not comparable, UpdateDense() fails !" << std::endl;
     MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
   }
 }
@@ -1271,15 +1272,15 @@ void SpParMat<IT, NT, DER>::PrintInfo() const {
   IT nznz = getnnz();
 
   if (commGrid->myrank == 0)
-    cout << "As a whole: " << mm << " rows and " << nn << " columns and "
-         << nznz << " nonzeros" << endl;
+    std::cout << "As a whole: " << mm << " rows and " << nn << " columns and "
+         << nznz << " nonzeros" << std::endl;
 
 #ifdef DEBUG
   IT allprocs = commGrid->grrows * commGrid->grcols;
   for (IT i = 0; i < allprocs; ++i) {
     if (commGrid->myrank == i) {
-      cout << "Processor (" << commGrid->GetRankInProcRow() << ","
-           << commGrid->GetRankInProcCol() << ")'s data: " << endl;
+      std::cout << "Processor (" << commGrid->GetRankInProcRow() << ","
+           << commGrid->GetRankInProcCol() << ")'s data: " << std::endl;
       spSeq->PrintInfo();
     }
     MPI_Barrier(commGrid->GetWorld());
@@ -1301,7 +1302,7 @@ bool SpParMat<IT, NT, DER>::operator==(const SpParMat<IT, NT, DER>& rhs) const {
  **/
 template <class IT, class NT, class DER>
 void SpParMat<IT, NT, DER>::SparseCommon(
-    vector<vector<tuple<IT, IT, NT>>>& data, IT locsize, IT total_m, IT total_n,
+    std::vector<std::vector<std::tuple<IT, IT, NT>>>& data, IT locsize, IT total_m, IT total_n,
     bool SumDuplicates) {
   int nprocs = commGrid->GetSize();
   int* sendcnt = new int[nprocs];
@@ -1315,22 +1316,22 @@ void SpParMat<IT, NT, DER>::SparseCommon(
                commGrid->GetWorld());  // share the counts
   int* sdispls = new int[nprocs]();
   int* rdispls = new int[nprocs]();
-  partial_sum(sendcnt, sendcnt + nprocs - 1, sdispls + 1);
-  partial_sum(recvcnt, recvcnt + nprocs - 1, rdispls + 1);
+  std::partial_sum(sendcnt, sendcnt + nprocs - 1, sdispls + 1);
+  std::partial_sum(recvcnt, recvcnt + nprocs - 1, rdispls + 1);
 
-  vector<tuple<IT, IT, NT>> senddata(locsize);
+  std::vector<std::tuple<IT, IT, NT>> senddata(locsize);
   for (int i = 0; i < nprocs; ++i) {
-    copy(data[i].begin(), data[i].end(), senddata.data() + sdispls[i]);
+    std::copy(data[i].begin(), data[i].end(), senddata.data() + sdispls[i]);
     // clear memory
     data[i].clear();
     data[i].shrink_to_fit();
   }
   MPI_Datatype MPI_triple;
-  MPI_Type_contiguous(sizeof(tuple<IT, IT, NT>), MPI_CHAR, &MPI_triple);
+  MPI_Type_contiguous(sizeof(std::tuple<IT, IT, NT>), MPI_CHAR, &MPI_triple);
   MPI_Type_commit(&MPI_triple);
 
-  IT totrecv = accumulate(recvcnt, recvcnt + nprocs, static_cast<IT>(0));
-  tuple<IT, IT, NT>* recvdata = new tuple<IT, IT, NT>[totrecv];
+  IT totrecv = std::accumulate(recvcnt, recvcnt + nprocs, static_cast<IT>(0));
+  std::tuple<IT, IT, NT>* recvdata = new std::tuple<IT, IT, NT>[totrecv];
   MPI_Alltoallv(senddata.data(), sendcnt, sdispls, MPI_triple, recvdata, recvcnt,
                 rdispls, MPI_triple, commGrid->GetWorld());
 
@@ -1358,13 +1359,13 @@ void SpParMat<IT, NT, DER>::SparseCommon(
   if (SumDuplicates) {
     // the previous constructor sorts based on columns-first (but that doesn't
     // matter as long as they are sorted one way or another)
-    A.RemoveDuplicates(plus<NT>());
+    A.RemoveDuplicates(std::plus<NT>());
   }
   spSeq = new DER(A, false);  // Convert SpTuples to DER
   reset_dims();
 }
 
-//! All vectors are zero-based indexed (as usual)
+//! All std::vectors are zero-based indexed (as usual)
 template <class IT, class NT, class DER>
 SpParMat<IT, NT, DER>::SpParMat(IT total_m, IT total_n,
                                 const FullyDistVec<IT, IT>& distrows,
@@ -1386,14 +1387,14 @@ SpParMat<IT, NT, DER>::SpParMat(IT total_m, IT total_n,
 
   commGrid = distrows.commGrid;
   int nprocs = commGrid->GetSize();
-  vector<vector<tuple<IT, IT, NT>>> data(nprocs);
+  std::vector<std::vector<std::tuple<IT, IT, NT>>> data(nprocs);
 
   IT locsize = distrows.LocArrSize();
   for (IT i = 0; i < locsize; ++i) {
     IT lrow, lcol;
     int owner =
         Owner(total_m, total_n, distrows.arr[i], distcols.arr[i], lrow, lcol);
-    data[owner].push_back(make_tuple(lrow, lcol, distvals.arr[i]));
+    data[owner].push_back(std::make_tuple(lrow, lcol, distvals.arr[i]));
   }
   SparseCommon(data, locsize, total_m, total_n, SumDuplicates);
 }
@@ -1413,14 +1414,14 @@ SpParMat<IT, NT, DER>::SpParMat(IT total_m, IT total_n,
   }
   commGrid = distrows.commGrid;
   int nprocs = commGrid->GetSize();
-  vector<vector<tuple<IT, IT, NT>>> data(nprocs);
+  std::vector<std::vector<std::tuple<IT, IT, NT>>> data(nprocs);
 
   IT locsize = distrows.LocArrSize();
   for (IT i = 0; i < locsize; ++i) {
     IT lrow, lcol;
     int owner =
         Owner(total_m, total_n, distrows.arr[i], distcols.arr[i], lrow, lcol);
-    data[owner].push_back(make_tuple(lrow, lcol, val));
+    data[owner].push_back(std::make_tuple(lrow, lcol, val));
   }
   SparseCommon(data, locsize, total_m, total_n, SumDuplicates);
 }
@@ -1436,7 +1437,7 @@ SpParMat<IT, NT, DER>::SpParMat(const DistEdgeList<DELIT>& DEL,
   int nprocs = commGrid->GetSize();
   int gridrows = commGrid->GetGridRows();
   int gridcols = commGrid->GetGridCols();
-  vector<vector<LIT>> data(nprocs);  // enties are pre-converted to local
+  std::vector<std::vector<LIT>> data(nprocs);  // enties are pre-converted to local
                                      // indices before getting pushed into
                                      // "data"
 
@@ -1444,9 +1445,9 @@ SpParMat<IT, NT, DER>::SpParMat(const DistEdgeList<DELIT>& DEL,
   LIT n_perproc = DEL.getGlobalV() / gridcols;
 
   if (sizeof(LIT) < sizeof(DELIT)) {
-    ostringstream outs;
+    std::ostringstream outs;
     outs << "Warning: Using smaller indices for the matrix than DistEdgeList\n";
-    outs << "Local matrices are " << m_perproc << "-by-" << n_perproc << endl;
+    outs << "Local matrices are " << m_perproc << "-by-" << n_perproc << std::endl;
     SpParHelper::Print(outs.str(),
                        commGrid->GetWorld());  // commgrid initialized
   }
@@ -1458,7 +1459,7 @@ SpParMat<IT, NT, DER>::SpParMat(const DistEdgeList<DELIT>& DEL,
   // global info
   int64_t perstage = DEL.nedges / stages;
   LIT totrecv = 0;
-  vector<LIT> alledges;
+  std::vector<LIT> alledges;
 
   for (LIT s = 0; s < stages; ++s) {
     int64_t n_befor = s * perstage;
@@ -1515,14 +1516,14 @@ SpParMat<IT, NT, DER>::SpParMat(const DistEdgeList<DELIT>& DEL,
       rdispls[i + 1] = rdispls[i] + recvcnt[i];
     }
     for (int i = 0; i < nprocs; ++i)
-      copy(data[i].begin(), data[i].end(), sendbuf + sdispls[i]);
+      std::copy(data[i].begin(), data[i].end(), sendbuf + sdispls[i]);
 
     // clear memory
-    for (int i = 0; i < nprocs; ++i) vector<LIT>().swap(data[i]);
+    for (int i = 0; i < nprocs; ++i) std::vector<LIT>().swap(data[i]);
 
     // ABAB: Total number of edges received might not be LIT-addressible
     // However, each edge_id is LIT-addressible
-    IT thisrecv = accumulate(recvcnt, recvcnt + nprocs,
+    IT thisrecv = std::accumulate(recvcnt, recvcnt + nprocs,
                              static_cast<IT>(0));  // thisrecv = 2*locedges
     LIT* recvbuf = new LIT[thisrecv];
     totrecv += thisrecv;
@@ -1530,8 +1531,8 @@ SpParMat<IT, NT, DER>::SpParMat(const DistEdgeList<DELIT>& DEL,
     MPI_Alltoallv(sendbuf, sendcnt, sdispls, MPIType<LIT>(), recvbuf, recvcnt,
                   rdispls, MPIType<LIT>(), commGrid->GetWorld());
     DeleteAll(sendcnt, recvcnt, sdispls, rdispls, sendbuf);
-    copy(recvbuf, recvbuf + thisrecv,
-         back_inserter(alledges));  // copy to all edges
+    std::copy(recvbuf, recvbuf + thisrecv,
+         back_inserter(alledges));  // std::copy to all edges
     delete[] recvbuf;
   }
 
@@ -1572,7 +1573,7 @@ IT SpParMat<IT, NT, DER>::RemoveLoops() {
 
 //! Does two optimizations
 //! 1) Splits the local column indices to sparse & dense pieces to avoid
-//! redundant AllGather (sparse pieces get p2p)
+//! redundant AllGather (sparse pieces std::get p2p)
 //! 2) Pre-allocates buffers for row communication
 template <class IT, class NT, class DER>
 template <typename LIT, typename OT>
@@ -1604,11 +1605,11 @@ void SpParMat<IT, NT, DER>::OptimizeForGraph500(OptBuf<LIT, OT>& optbuf) {
   int* gsizes = NULL;
   IT* ents = NULL;
   IT* dpls = NULL;
-  vector<LocIT> pack2send;
+  std::vector<LocIT> pack2send;
 
   FullyDistSpVec<IT, IT> dummyRHS(
       commGrid,
-      getncol());  // dummy RHS vector to estimate index start position
+      getncol());  // dummy RHS std::vector to estimate index start position
   IT recveclen;
 
   for (int pid = 1; pid <= p_r; pid++) {
@@ -1624,7 +1625,7 @@ void SpParMat<IT, NT, DER>::OptimizeForGraph500(OptBuf<LIT, OT>& optbuf) {
                                 : static_cast<LocIT>(pid) *
                                       cwperproc;  // the last one might have a
                                                   // larger share (is this
-                                                  // fitting to the vector
+                                                  // fitting to the std::vector
                                                   // boundaries?)
     while (cci < locnzc && colinds[cci] < endind) {
       pack2send.push_back(colinds[cci++] - diagoffset);
@@ -1644,11 +1645,11 @@ void SpParMat<IT, NT, DER>::OptimizeForGraph500(OptBuf<LIT, OT>& optbuf) {
     MPI_Gatherv(SpHelper::p2a(pack2send), mysize, MPIType<LocIT>(), recvbuf,
                 gsizes, dpls, MPIType<LocIT>(), pid - 1,
                 commGrid->GetColWorld());
-    vector<LocIT>().swap(pack2send);
+    std::vector<LocIT>().swap(pack2send);
 
     if (pid - 1 == myrank) {
       recveclen = dummyRHS.MyLocLength();
-      vector<vector<LocIT>> service(recveclen);
+      std::vector<std::vector<LocIT>> service(recveclen);
       for (int i = 0; i < p_r; ++i) {
         for (int j = 0; j < gsizes[i]; ++j) {
           IT colid2update = recvbuf[dpls[i] + j];
@@ -1663,9 +1664,9 @@ void SpParMat<IT, NT, DER>::OptimizeForGraph500(OptBuf<LIT, OT>& optbuf) {
   }
 #endif
 
-  vector<bool> isthere(mA, false);  // perhaps the only appropriate use of this
+  std::vector<bool> isthere(mA, false);  // perhaps the only appropriate use of this
                                     // crippled data structure
-  vector<int> maxlens(p_c, 0);  // maximum data size to be sent to any neighbor
+  std::vector<int> maxlens(p_c, 0);  // maximum data size to be sent to any neighbor
                                 // along the processor row
 
   for (typename DER::SpColIter colit = spSeq->begcol();
@@ -1674,7 +1675,7 @@ void SpParMat<IT, NT, DER>::OptimizeForGraph500(OptBuf<LIT, OT>& optbuf) {
          nzit != spSeq->endnz(colit); ++nzit) {
       LocIT rowid = nzit.rowid();
       if (!isthere[rowid]) {
-        LocIT owner = min(nzit.rowid() / rwperproc, (LocIT)p_c - 1);
+        LocIT owner = std::min(nzit.rowid() / rwperproc, (LocIT)p_c - 1);
         maxlens[owner]++;
         isthere[rowid] = true;
       }
@@ -1699,7 +1700,7 @@ template <typename SR>
 void SpParMat<IT, NT, DER>::Square() {
   int stages, dummy;  // last two parameters of productgrid are ignored for
                       // synchronous multiplication
-  shared_ptr<CommGrid> Grid =
+  std::shared_ptr<CommGrid> Grid =
       ProductGrid(commGrid.get(), commGrid.get(), stages, dummy, dummy);
 
   IT AA_m = spSeq->getnrow();
@@ -1719,15 +1720,15 @@ void SpParMat<IT, NT, DER>::Square() {
   // Remotely fetched matrices are stored as pointers
   DER* NRecv;
   DER* TRecv;
-  vector<SpTuples<IT, NT>*> tomerge;
+  std::vector<SpTuples<IT, NT>*> tomerge;
 
   int Nself = commGrid->GetRankInProcRow();
   int Tself = commGrid->GetRankInProcCol();
 
   for (int i = 0; i < stages; ++i) {
-    vector<IT> ess;
+    std::vector<IT> ess;
     if (i == Nself) {
-      NRecv = spSeq;  // shallow-copy
+      NRecv = spSeq;  // shallow-std::copy
     } else {
       ess.resize(DER::esscount);
       for (int j = 0; j < DER::esscount; ++j) {
@@ -1741,7 +1742,7 @@ void SpParMat<IT, NT, DER>::Square() {
     ess.clear();
 
     if (i == Tself) {
-      TRecv = &seqTrn;  // shallow-copy
+      TRecv = &seqTrn;  // shallow-std::copy
     } else {
       ess.resize(DER::esscount);
       for (int j = 0; j < DER::esscount; ++j) {
@@ -1769,7 +1770,7 @@ void SpParMat<IT, NT, DER>::Square() {
   delete spSeq;
   spSeq =
       new DER(MergeAll<SR>(tomerge, AA_m, AA_n),
-              false);  // First get the result in SpTuples, then convert to UDER
+              false);  // First std::get the result in SpTuples, then convert to UDER
   for (unsigned int i = 0; i < tomerge.size(); ++i) {
     delete tomerge[i];
   }
@@ -1798,7 +1799,7 @@ void SpParMat<IT, NT, DER>::Transpose() {
     delete spSeq;
 
     LIT remotem, remoten, remotennz;
-    swap(locm, locn);
+    std::swap(locm, locn);
     int diagneigh = commGrid->GetComplementRank();
 
     MPI_Status status;
@@ -1830,9 +1831,9 @@ void SpParMat<IT, NT, DER>::Transpose() {
                  commGrid->GetWorld(), &status);
     delete[] vals;
 
-    tuple<LIT, LIT, NT>* arrtuples = new tuple<LIT, LIT, NT>[remotennz];
+    std::tuple<LIT, LIT, NT>* arrtuples = new std::tuple<LIT, LIT, NT>[remotennz];
     for (LIT i = 0; i < remotennz; ++i) {
-      arrtuples[i] = make_tuple(rowsrecv[i], colsrecv[i], valsrecv[i]);
+      arrtuples[i] = std::make_tuple(rowsrecv[i], colsrecv[i], valsrecv[i]);
     }
     DeleteAll(rowsrecv, colsrecv, valsrecv);
     ColLexiCompare<LIT, NT> collexicogcmp;
@@ -1849,7 +1850,7 @@ void SpParMat<IT, NT, DER>::Transpose() {
 
 template <class IT, class NT, class DER>
 template <class HANDLER>
-void SpParMat<IT, NT, DER>::SaveGathered(string filename, HANDLER handler,
+void SpParMat<IT, NT, DER>::SaveGathered(std::string filename, HANDLER handler,
                                          bool transpose) const {
   int proccols = commGrid->GetGridCols();
   int procrows = commGrid->GetGridRows();
@@ -1857,14 +1858,14 @@ void SpParMat<IT, NT, DER>::SaveGathered(string filename, HANDLER handler,
   IT totaln = getncol();
   IT totnnz = getnnz();
   int flinelen = 0;
-  ofstream out;
+  std::ofstream out;
   if (commGrid->GetRank() == 0) {
     std::string s;
     std::stringstream strm;
-    strm << "%%MatrixMarket matrix coordinate real general" << endl;
-    strm << totalm << " " << totaln << " " << totnnz << endl;
+    strm << "%%MatrixMarket matrix coordinate real general" << std::endl;
+    strm << totalm << " " << totaln << " " << totnnz << std::endl;
     s = strm.str();
-    out.open(filename.c_str(), ios_base::trunc);
+    out.open(filename.c_str(), std::ios_base::trunc);
     flinelen = s.length();
     out.write(s.c_str(), flinelen);
     out.close();
@@ -1876,11 +1877,11 @@ void SpParMat<IT, NT, DER>::SaveGathered(string filename, HANDLER handler,
   locnrows[colrank] = (IT)getlocalrows();
   MPI_Allgather(MPI_IN_PLACE, 0, MPIType<IT>(), locnrows, 1, MPIType<IT>(),
                 commGrid->GetColWorld());
-  IT roffset = accumulate(locnrows, locnrows + colrank, 0);
+  IT roffset = std::accumulate(locnrows, locnrows + colrank, 0);
   delete[] locnrows;
 
   MPI_Datatype datatype;
-  MPI_Type_contiguous(sizeof(pair<IT, NT>), MPI_CHAR, &datatype);
+  MPI_Type_contiguous(sizeof(std::pair<IT, NT>), MPI_CHAR, &datatype);
   MPI_Type_commit(&datatype);
 
   for (int i = 0; i < procrows; i++)  // for all processor row (in order)
@@ -1888,8 +1889,8 @@ void SpParMat<IT, NT, DER>::SaveGathered(string filename, HANDLER handler,
     if (commGrid->GetRankInProcCol() == i)  // only the ith processor row
     {
       IT localrows = spSeq->getnrow();  // same along the processor row
-      vector<vector<pair<IT, NT>>> csr(localrows);
-      if (commGrid->GetRankInProcRow() == 0)  // get the head of processor row
+      std::vector<std::vector<std::pair<IT, NT>>> csr(localrows);
+      if (commGrid->GetRankInProcRow() == 0)  // std::get the head of processor row
       {
         IT localcols = spSeq->getncol();  // might be different on the last
                                           // processor on this processor row
@@ -1900,10 +1901,10 @@ void SpParMat<IT, NT, DER>::SaveGathered(string filename, HANDLER handler,
         {
           for (typename DER::SpColIter::NzIter nzit = spSeq->begnz(colit);
                nzit != spSeq->endnz(colit); ++nzit) {
-            csr[nzit.rowid()].push_back(make_pair(colit.colid(), nzit.value()));
+            csr[nzit.rowid()].push_back(std::make_pair(colit.colid(), nzit.value()));
           }
         }
-      } else  // get the rest of the processors
+      } else  // std::get the rest of the processors
       {
         IT n_perproc;
         MPI_Bcast(&n_perproc, 1, MPIType<IT>(), 0, commGrid->GetRowWorld());
@@ -1915,11 +1916,11 @@ void SpParMat<IT, NT, DER>::SaveGathered(string filename, HANDLER handler,
           for (typename DER::SpColIter::NzIter nzit = spSeq->begnz(colit);
                nzit != spSeq->endnz(colit); ++nzit) {
             csr[nzit.rowid()].push_back(
-                make_pair(colit.colid() + noffset, nzit.value()));
+                std::make_pair(colit.colid() + noffset, nzit.value()));
           }
         }
       }
-      pair<IT, NT>* ents = NULL;
+      std::pair<IT, NT>* ents = NULL;
       int *gsizes = NULL, *dpls = NULL;
       if (commGrid->GetRankInProcRow() == 0)  // only the head of processor row
       {
@@ -1937,7 +1938,7 @@ void SpParMat<IT, NT, DER>::SaveGathered(string filename, HANDLER handler,
           rowcnt =
               std::accumulate(gsizes, gsizes + proccols, static_cast<IT>(0));
           std::partial_sum(gsizes, gsizes + proccols - 1, dpls + 1);
-          ents = new pair<IT,
+          ents = new std::pair<IT,
                           NT>[rowcnt];  // nonzero entries in the j'th local row
         }
 
@@ -1949,7 +1950,7 @@ void SpParMat<IT, NT, DER>::SaveGathered(string filename, HANDLER handler,
         if (commGrid->GetRankInProcRow() == 0) {
           for (int k = 0; k < rowcnt; ++k) {
             // out << j + roffset + 1 << "\t" << ents[k].first + 1 <<"\t" <<
-            // ents[k].second << endl;
+            // ents[k].second << std::endl;
             if (!transpose)
               // regular
               out << j + roffset + 1 << "\t" << ents[k].first + 1 << "\t";
@@ -1957,7 +1958,7 @@ void SpParMat<IT, NT, DER>::SaveGathered(string filename, HANDLER handler,
               // transpose row/column
               out << ents[k].first + 1 << "\t" << j + roffset + 1 << "\t";
             handler.save(out, ents[k].second, j + roffset, ents[k].first);
-            out << endl;
+            out << std::endl;
           }
           delete[] ents;
         }
@@ -1981,7 +1982,7 @@ void SpParMat<IT, NT, DER>::SaveGathered(string filename, HANDLER handler,
 // of the ith net
 // Treats the matrix as binary (for now)
 template <class IT, class NT, class DER>
-void SpParMat<IT, NT, DER>::PrintForPatoh(string filename) const {
+void SpParMat<IT, NT, DER>::PrintForPatoh(std::string filename) const {
   int proccols = commGrid->GetGridCols();
   int procrows = commGrid->GetGridRows();
   IT* gsizes;
@@ -1994,7 +1995,7 @@ void SpParMat<IT, NT, DER>::PrintForPatoh(string filename) const {
   if (commGrid->GetRank() == 0) {
     std::string s;
     std::stringstream strm;
-    strm << 0 << " " << totalm << " " << totaln << " " << totnnz << endl;
+    strm << 0 << " " << totalm << " " << totaln << " " << totnnz << std::endl;
     s = strm.str();
     std::ofstream out(filename.c_str(), std::ios_base::app);
     flinelen = s.length();
@@ -2007,7 +2008,7 @@ void SpParMat<IT, NT, DER>::PrintForPatoh(string filename) const {
   {
     if (commGrid->GetRankInProcRow() == i)  // only the ith processor column
     {
-      if (commGrid->GetRankInProcCol() == 0)  // get the head of column
+      if (commGrid->GetRankInProcCol() == 0)  // std::get the head of column
       {
         std::ofstream out(filename.c_str(), std::ios_base::app);
         std::ostream_iterator<IT> dest(out, " ");
@@ -2053,7 +2054,7 @@ void SpParMat<IT, NT, DER>::PrintForPatoh(string filename) const {
                         MPIType<IT>(), 0, commGrid->GetColWorld());
             if (colcnt != 0) {
               std::copy(ents, ents + colcnt, dest);
-              out << endl;
+              out << std::endl;
               ++nzc;
             }
             delete[] ents;
@@ -2077,7 +2078,7 @@ void SpParMat<IT, NT, DER>::PrintForPatoh(string filename) const {
                       MPIType<IT>(), 0, commGrid->GetColWorld());
           if (colcnt != 0) {
             std::copy(ents, ents + colcnt, dest);
-            out << endl;
+            out << std::endl;
             ++nzc;
           }
           delete[] ents;
@@ -2086,7 +2087,7 @@ void SpParMat<IT, NT, DER>::PrintForPatoh(string filename) const {
         }
         delete[] gsizes;
         out.close();
-      } else  // get the rest of the processors
+      } else  // std::get the rest of the processors
       {
         IT m_perproc;
         MPI_Bcast(&m_perproc, 1, MPIType<IT>(), 0, commGrid->GetColWorld());
@@ -2148,14 +2149,14 @@ void SpParMat<IT, NT, DER>::PrintForPatoh(string filename) const {
           0)  // I am the master, hence I'll change the first line
       {
         // Don't just open with std::ios_base::app here
-        // The std::ios::app flag causes fstream to call seekp(0, ios::end); at
+        // The std::ios::app flag causes fstream to call seekp(0, std::ios::end); at
         // the start of every operator<<() inserter
         std::ofstream out(
             filename.c_str(),
             std::ios_base::in | std::ios_base::out | std::ios_base::binary);
         out.seekp(0, std::ios_base::beg);
 
-        string s;
+        std::string s;
         std::stringstream strm;
         strm << 0 << " " << totalm << " " << totalnzc << " " << totnnz;
         s = strm.str();
@@ -2173,7 +2174,7 @@ void SpParMat<IT, NT, DER>::PrintForPatoh(string filename) const {
 //! Requires proper matrix market banner at the moment
 //! Might replace ReadDistribute in the long term
 template <class IT, class NT, class DER>
-void SpParMat<IT, NT, DER>::ParallelReadMM(const string& filename,
+void SpParMat<IT, NT, DER>::ParallelReadMM(const std::string& filename,
                                            bool verbose) {
   int32_t type = -1;
   int32_t symmetric = 0;
@@ -2199,17 +2200,17 @@ void SpParMat<IT, NT, DER>::ParallelReadMM(const string& filename,
       printf("Sorry, this application does not support complext types");
       printf("Market Market type: [%s]\n", mm_typecode_to_str(matcode));
     } else if (mm_is_real(matcode)) {
-      if (verbose) cout << "Matrix is Float" << endl;
+      if (verbose) std::cout << "Matrix is Float" << std::endl;
       type = 0;
     } else if (mm_is_integer(matcode)) {
-      if (verbose) cout << "Matrix is Integer" << endl;
+      if (verbose) std::cout << "Matrix is Integer" << std::endl;
       type = 1;
     } else if (mm_is_pattern(matcode)) {
-      if (verbose) cout << "Matrix is Boolean" << endl;
+      if (verbose) std::cout << "Matrix is Boolean" << std::endl;
       type = 2;
     }
     if (mm_is_symmetric(matcode) || mm_is_hermitian(matcode)) {
-      if (verbose) cout << "Matrix is symmetric" << endl;
+      if (verbose) std::cout << "Matrix is symmetric" << std::endl;
       symmetric = 1;
     }
     int ret_code;
@@ -2219,8 +2220,8 @@ void SpParMat<IT, NT, DER>::ParallelReadMM(const string& filename,
       exit(1);
 
     if (verbose)
-      cout << "Total number of nonzeros expected across all processors is "
-           << nonzeros << endl;
+      std::cout << "Total number of nonzeros expected across all processors is "
+           << nonzeros << std::endl;
   }
   MPI_Bcast(&type, 1, MPI_INT, 0, commGrid->commWorld);
   MPI_Bcast(&symmetric, 1, MPI_INT, 0, commGrid->commWorld);
@@ -2229,7 +2230,7 @@ void SpParMat<IT, NT, DER>::ParallelReadMM(const string& filename,
   MPI_Bcast(&nonzeros, 1, MPIType<int64_t>(), 0, commGrid->commWorld);
 
   // Use fseek again to go backwards two bytes and check that byte with fgetc
-  struct stat st;  // get file size
+  struct stat st;  // std::get file size
   if (stat(filename.c_str(), &st) == -1) {
     MPI_Abort(MPI_COMM_WORLD, NOFILE);
   }
@@ -2237,7 +2238,7 @@ void SpParMat<IT, NT, DER>::ParallelReadMM(const string& filename,
   MPI_Offset fpos, header_off, end_fpos;
   if (commGrid->GetRank() == 0)  // the offset needs to be for this rank
   {
-    if (verbose) cout << "File is " << file_size << " bytes" << endl;
+    if (verbose) std::cout << "File is " << file_size << " bytes" << std::endl;
     fpos = ftell(f);
     header_off = fpos;
     file_size -= fpos;
@@ -2261,20 +2262,20 @@ void SpParMat<IT, NT, DER>::ParallelReadMM(const string& filename,
 
   // ABAB: It is the user's job that NT is compatible with "type" and IT is
   // compatible with int64_t
-  vector<IT> rows;
-  vector<IT> cols;
-  vector<NT> vals;
+  std::vector<IT> rows;
+  std::vector<IT> cols;
+  std::vector<NT> vals;
 
   if (commGrid->GetRank() == 0)  // the offset needs to be for this rank
   {
-    if (verbose) cout << "reserving " << nonzeros / nprocs << " space" << endl;
+    if (verbose) std::cout << "reserving " << nonzeros / nprocs << " space" << std::endl;
   }
   // reserve space for better performance
   rows.reserve(4* nonzeros / nprocs);
   cols.reserve(4*nonzeros / nprocs);
   vals.reserve(4*nonzeros / nprocs);
 
-  vector<string> lines;
+  std::vector<std::string> lines;
   bool finished = SpParHelper::FetchBatch(mpi_fh, fpos, end_fpos, filesize,
                                           true, lines, myrank);
   int64_t entriesread = lines.size();
@@ -2291,17 +2292,17 @@ void SpParMat<IT, NT, DER>::ParallelReadMM(const string& filename,
              commGrid->commWorld);
   if (myrank == 0) {
     if (verbose)
-      cout << "Total number of entries read across all processors is "
-           << allentriesread << endl;
+      std::cout << "Total number of entries read across all processors is "
+           << allentriesread << std::endl;
   }
 
-  vector<vector<tuple<IT, IT, NT>>> data(nprocs);
+  std::vector<std::vector<std::tuple<IT, IT, NT>>> data(nprocs);
 
   IT locsize = rows.size();
   for (IT i = 0; i < locsize; ++i) {
     IT lrow, lcol;
     int owner = Owner(nrows, ncols, rows[i], cols[i], lrow, lcol);
-    data[owner].push_back(make_tuple(lrow, lcol, vals[i]));
+    data[owner].push_back(std::make_tuple(lrow, lcol, vals[i]));
   }
   SparseCommon(data, locsize, nrows, ncols,
                true);  // sum duplicates! (what else can we do anyway)
@@ -2309,10 +2310,10 @@ void SpParMat<IT, NT, DER>::ParallelReadMM(const string& filename,
 
 template <class IT, class NT, class DER>
 void SpParMat<IT, NT, DER>::MatrixFromIJK(size_t nrows, size_t ncols,
-                                          vector<IT> rows, vector<IT> cols,
-                                          vector<NT> vals, bool sum_dups) {
+                                          std::vector<IT> rows, std::vector<IT> cols,
+                                          std::vector<NT> vals, bool sum_dups) {
   int nprocs = commGrid->GetSize();
-  vector<vector<tuple<IT, IT, NT>>> data(nprocs);
+  std::vector<std::vector<std::tuple<IT, IT, NT>>> data(nprocs);
   IT locsize = rows.size();
   for (IT i = 0; i < locsize; ++i) {
     IT lrow, lcol;
@@ -2321,7 +2322,7 @@ void SpParMat<IT, NT, DER>::MatrixFromIJK(size_t nrows, size_t ncols,
     assert(rows[i] < nrows);
     assert(cols[i] >= 0);
     assert(cols[i] < ncols);
-    data[owner].push_back(make_tuple(lrow, lcol, vals[i]));
+    data[owner].push_back(std::make_tuple(lrow, lcol, vals[i]));
   }
 
   SparseCommon(data, locsize, nrows, ncols,
@@ -2335,18 +2336,18 @@ void SpParMat<IT, NT, DER>::MatrixFromIJK(size_t nrows, size_t ncols,
 //! all 1's
 template <class IT, class NT, class DER>
 template <class HANDLER>
-void SpParMat<IT, NT, DER>::ReadDistribute(const string& filename, int master,
+void SpParMat<IT, NT, DER>::ReadDistribute(const std::string& filename, int master,
                                            bool nonum, HANDLER handler,
                                            bool transpose, bool pario) {
 #ifdef TAU_PROFILE
   TAU_PROFILE_TIMER(rdtimer, "ReadDistribute",
-                    "void SpParMat::ReadDistribute (const string & , int, "
+                    "void SpParMat::ReadDistribute (const std::string & , int, "
                     "bool, HANDLER, bool)",
                     TAU_DEFAULT);
   TAU_PROFILE_START(rdtimer);
 #endif
 
-  ifstream infile;
+  std::ifstream infile;
   FILE* binfile = NULL;  // points to "past header" if the file is binary
   int seeklength = 0;
   HeaderInfo hfile;
@@ -2389,7 +2390,7 @@ void SpParMat<IT, NT, DER>::ReadDistribute(const string& filename, int master,
   //   the horizontal buffer will never overflow
   buffperrowneigh = std::max(buffperrowneigh, buffpercolneigh);
   if (std::max(buffpercolneigh * colneighs, buffperrowneigh * rowneighs) >
-      numeric_limits<int>::max()) {
+      std::numeric_limits<int>::max()) {
     SpParHelper::Print(
         "COMBBLAS: MPI doesn't support sending int64_t send/recv counts or "
         "displacements\n",
@@ -2410,9 +2411,9 @@ void SpParMat<IT, NT, DER>::ReadDistribute(const string& filename, int master,
   // Note: all other column heads that initiate the horizontal communication has
   // the same "rankinrow" with the master
   int rankincol = commGrid->GetRankInProcCol(
-      master);  // get master's rank in its processor column
+      master);  // std::get master's rank in its processor column
   int rankinrow = commGrid->GetRankInProcRow(master);
-  vector<tuple<IT, IT, NT>> localtuples;
+  std::vector<std::tuple<IT, IT, NT>> localtuples;
 
   if (commGrid->GetRank() == master)  // 1 processor
   {
@@ -2442,8 +2443,8 @@ void SpParMat<IT, NT, DER>::ReadDistribute(const string& filename, int master,
       while (comment[0] == '%') {
         infile.getline(comment, 256);
       }
-      stringstream ss;
-      ss << string(comment);
+      std::stringstream ss;
+      ss << std::string(comment);
       ss >> total_m >> total_n >> total_nnz;
       if (pario) {
         SpParHelper::Print(
@@ -2473,10 +2474,10 @@ void SpParMat<IT, NT, DER>::ReadDistribute(const string& filename, int master,
     {
       IT entriestoread = total_nnz / colneighs;
 #ifdef IODEBUG
-      ofstream oput;
+      std::ofstream oput;
       commGrid->OpenDebugFile("Read", oput);
       oput << "Total nnz: " << total_nnz
-           << " entries to read: " << entriestoread << endl;
+           << " entries to read: " << entriestoread << std::endl;
       oput.close();
 #endif
       ReadAllMine(binfile, rows, cols, vals, localtuples, rcurptrs, ccurptrs,
@@ -2494,7 +2495,7 @@ void SpParMat<IT, NT, DER>::ReadDistribute(const string& filename, int master,
       for (; cnz < total_nnz; ++cnz) {
         int colrec;
         size_t commonindex;
-        stringstream linestream;
+        std::stringstream linestream;
         if ((!hfile.headerexists) && (!infile.eof())) {
           // read one line at a time so that missing numerical values can be
           // detected
@@ -2503,7 +2504,7 @@ void SpParMat<IT, NT, DER>::ReadDistribute(const string& filename, int master,
           linestream >> temprow >> tempcol;
           if (!nonum) {
             // see if this line has a value
-            linestream >> skipws;
+            linestream >> std::skipws;
             nonumline = linestream.eof();
           }
           --temprow;  // file is 1-based where C-arrays are 0-based
@@ -2540,7 +2541,7 @@ void SpParMat<IT, NT, DER>::ReadDistribute(const string& filename, int master,
                       commGrid->colWorld);  // first, send the receive counts
 
           // generate space for own recv data ... (use arrays because
-          // vector<bool> is cripled, if NT=bool)
+          // std::vector<bool> is cripled, if NT=bool)
           IT* temprows = new IT[recvcount];
           IT* tempcols = new IT[recvcount];
           NT* tempvals = new NT[recvcount];
@@ -2553,7 +2554,7 @@ void SpParMat<IT, NT, DER>::ReadDistribute(const string& filename, int master,
           MPI_Scatterv(vals, ccurptrs, cdispls, MPIType<NT>(), tempvals,
                        recvcount, MPIType<NT>(), rankincol, commGrid->colWorld);
 
-          fill_n(ccurptrs, colneighs, 0);  // finally, reset current pointers !
+          std::fill_n(ccurptrs, colneighs, 0);  // finally, reset current pointers !
           DeleteAll(rows, cols, vals);
 
           HorizontalSend(rows, cols, vals, temprows, tempcols, tempvals,
@@ -2573,12 +2574,12 @@ void SpParMat<IT, NT, DER>::ReadDistribute(const string& filename, int master,
       assert(cnz == total_nnz);
 
       // Signal the end of file to other processors along the column
-      fill_n(ccurptrs, colneighs, numeric_limits<int>::max());
+      std::fill_n(ccurptrs, colneighs, std::numeric_limits<int>::max());
       MPI_Scatter(ccurptrs, 1, MPI_INT, &recvcount, 1, MPI_INT, rankincol,
                   commGrid->colWorld);
 
       // And along the row ...
-      fill_n(rcurptrs, rowneighs, numeric_limits<int>::max());
+      std::fill_n(rcurptrs, rowneighs, std::numeric_limits<int>::max());
       MPI_Scatter(rcurptrs, 1, MPI_INT, &recvcount, 1, MPI_INT, rankinrow,
                   commGrid->rowWorld);
     }  // end of "else" (only one processor reads) block
@@ -2604,10 +2605,10 @@ void SpParMat<IT, NT, DER>::ReadDistribute(const string& filename, int master,
       fseek(binfile, read_offset, SEEK_SET);
 
 #ifdef IODEBUG
-      ofstream oput;
+      std::ofstream oput;
       commGrid->OpenDebugFile("Read", oput);
       oput << "Total nnz: " << total_nnz << " OFFSET : " << read_offset
-           << " entries to read: " << entriestoread << endl;
+           << " entries to read: " << entriestoread << std::endl;
       oput.close();
 #endif
 
@@ -2636,7 +2637,7 @@ void SpParMat<IT, NT, DER>::ReadDistribute(const string& filename, int master,
         MPI_Scatter(
             ccurptrs, 1, MPI_INT, &recvcount, 1, MPI_INT, rankincol,
             commGrid->colWorld);  // first receive the receive counts ...
-        if (recvcount == numeric_limits<int>::max()) break;
+        if (recvcount == std::numeric_limits<int>::max()) break;
 
         // create space for incoming data ...
         IT* temprows = new IT[recvcount];
@@ -2654,7 +2655,7 @@ void SpParMat<IT, NT, DER>::ReadDistribute(const string& filename, int master,
 
         // now, send the data along the horizontal
         rcurptrs = new int[rowneighs];
-        fill_n(rcurptrs, rowneighs, 0);
+        std::fill_n(rcurptrs, rowneighs, 0);
 
         // HorizontalSend frees the memory of temp_xxx arrays and then creates
         // and frees memory of all the six arrays itself
@@ -2665,7 +2666,7 @@ void SpParMat<IT, NT, DER>::ReadDistribute(const string& filename, int master,
     }
 
     // Signal the end of file to other processors along the row
-    fill_n(rcurptrs, rowneighs, numeric_limits<int>::max());
+    std::fill_n(rcurptrs, rowneighs, std::numeric_limits<int>::max());
     MPI_Scatter(rcurptrs, 1, MPI_INT, &recvcount, 1, MPI_INT, rankinrow,
                 commGrid->rowWorld);
     delete[] rcurptrs;
@@ -2680,7 +2681,7 @@ void SpParMat<IT, NT, DER>::ReadDistribute(const string& filename, int master,
       // receive the receive count
       MPI_Scatter(rcurptrs, 1, MPI_INT, &recvcount, 1, MPI_INT, rankinrow,
                   commGrid->rowWorld);
-      if (recvcount == numeric_limits<int>::max()) break;
+      if (recvcount == std::numeric_limits<int>::max()) break;
 
       // create space for incoming data ...
       IT* temprows = new IT[recvcount];
@@ -2699,17 +2700,17 @@ void SpParMat<IT, NT, DER>::ReadDistribute(const string& filename, int master,
       IT noffset = commGrid->myproccol * n_perproc;
 
       for (IT i = 0; i < recvcount; ++i) {
-        localtuples.push_back(make_tuple(temprows[i] - moffset,
+        localtuples.push_back(std::make_tuple(temprows[i] - moffset,
                                          tempcols[i] - noffset, tempvals[i]));
       }
       DeleteAll(temprows, tempcols, tempvals);
     }
   }
   DeleteAll(cdispls, rdispls);
-  tuple<IT, IT, NT>* arrtuples =
-      new tuple<IT, IT, NT>[localtuples.size()];  // the vector will go out of
+  std::tuple<IT, IT, NT>* arrtuples =
+      new std::tuple<IT, IT, NT>[localtuples.size()];  // the std::vector will go out of
                                                   // scope, make it stick !
-  copy(localtuples.begin(), localtuples.end(), arrtuples);
+  std::copy(localtuples.begin(), localtuples.end(), arrtuples);
 
   IT localm = (commGrid->myprocrow != (commGrid->grrows - 1))
                   ? m_perproc
@@ -2740,8 +2741,8 @@ void SpParMat<IT, NT, DER>::AllocateSetBuffers(IT*& rows, IT*& cols, NT*& vals,
 
   ccurptrs = new int[colneighs];
   rcurptrs = new int[rowneighs];
-  fill_n(ccurptrs, colneighs, 0);  // fill with zero
-  fill_n(rcurptrs, rowneighs, 0);
+  std::fill_n(ccurptrs, colneighs, 0);  // std::fill with zero
+  std::fill_n(rcurptrs, rowneighs, 0);
 }
 
 template <class IT, class NT, class DER>
@@ -2760,7 +2761,7 @@ void SpParMat<IT, NT, DER>::BcastEssentials(MPI_Comm& world, IT& total_m,
  */
 template <class IT, class NT, class DER>
 void SpParMat<IT, NT, DER>::VerticalSend(
-    IT*& rows, IT*& cols, NT*& vals, vector<tuple<IT, IT, NT>>& localtuples,
+    IT*& rows, IT*& cols, NT*& vals, std::vector<std::tuple<IT, IT, NT>>& localtuples,
     int* rcurptrs, int* ccurptrs, int* rdispls, int* cdispls, IT m_perproc,
     IT n_perproc, int rowneighs, int colneighs, IT buffperrowneigh,
     IT buffpercolneigh, int rankinrow) {
@@ -2769,13 +2770,13 @@ void SpParMat<IT, NT, DER>::VerticalSend(
   int* colrecvcounts = new int[colneighs];
   MPI_Alltoall(ccurptrs, 1, MPI_INT, colrecvcounts, 1, MPI_INT,
                commGrid->colWorld);  // share the request counts
-  int totrecv = accumulate(colrecvcounts, colrecvcounts + colneighs, 0);
+  int totrecv = std::accumulate(colrecvcounts, colrecvcounts + colneighs, 0);
   colrecvdispls[0] = 0;  // receive displacements are exact whereas send
                          // displacements have slack
   for (int i = 0; i < colneighs - 1; ++i)
     colrecvdispls[i + 1] = colrecvdispls[i] + colrecvcounts[i];
 
-  // generate space for own recv data ... (use arrays because vector<bool> is
+  // generate space for own recv data ... (use arrays because std::vector<bool> is
   // cripled, if NT=bool)
   IT* temprows = new IT[totrecv];
   IT* tempcols = new IT[totrecv];
@@ -2790,7 +2791,7 @@ void SpParMat<IT, NT, DER>::VerticalSend(
                 colrecvdispls, MPIType<NT>(), commGrid->colWorld);
 
   // finally, reset current pointers !
-  fill_n(ccurptrs, colneighs, 0);
+  std::fill_n(ccurptrs, colneighs, 0);
   DeleteAll(colrecvdispls, colrecvcounts);
   DeleteAll(rows, cols, vals);
 
@@ -2816,7 +2817,7 @@ template <class IT, class NT, class DER>
 template <class HANDLER>
 void SpParMat<IT, NT, DER>::ReadAllMine(
     FILE* binfile, IT*& rows, IT*& cols, NT*& vals,
-    vector<tuple<IT, IT, NT>>& localtuples, int* rcurptrs, int* ccurptrs,
+    std::vector<std::tuple<IT, IT, NT>>& localtuples, int* rcurptrs, int* ccurptrs,
     int* rdispls, int* cdispls, IT m_perproc, IT n_perproc, int rowneighs,
     int colneighs, IT buffperrowneigh, IT buffpercolneigh, IT entriestoread,
     HANDLER handler, int rankinrow, bool transpose) {
@@ -2848,11 +2849,11 @@ void SpParMat<IT, NT, DER>::ReadAllMine(
           1)))  // one buffer is full, or this processor's share is done !
     {
 #ifdef IODEBUG
-      ofstream oput;
+      std::ofstream oput;
       commGrid->OpenDebugFile("Read", oput);
       oput << "To column neighbors: ";
-      copy(ccurptrs, ccurptrs + colneighs, ostream_iterator<int>(oput, " "));
-      oput << endl;
+      std::copy(ccurptrs, ccurptrs + colneighs, std::ostream_iterator<int>(oput, " "));
+      oput << std::endl;
       oput.close();
 #endif
 
@@ -2867,12 +2868,12 @@ void SpParMat<IT, NT, DER>::ReadAllMine(
                       commGrid->colWorld);
         while (!finishedglobal) {
 #ifdef DEBUG
-          ofstream oput;
+          std::ofstream oput;
           commGrid->OpenDebugFile("Read", oput);
           oput << "To column neighbors: ";
-          copy(ccurptrs, ccurptrs + colneighs,
-               ostream_iterator<int>(oput, " "));
-          oput << endl;
+          std::copy(ccurptrs, ccurptrs + colneighs,
+               std::ostream_iterator<int>(oput, " "));
+          oput << std::endl;
           oput.close();
 #endif
 
@@ -2897,7 +2898,7 @@ void SpParMat<IT, NT, DER>::ReadAllMine(
   }
 
   // signal the end to row neighbors
-  fill_n(rcurptrs, rowneighs, numeric_limits<int>::max());
+  std::fill_n(rcurptrs, rowneighs, std::numeric_limits<int>::max());
   int recvcount;
   MPI_Scatter(rcurptrs, 1, MPI_INT, &recvcount, 1, MPI_INT, rankinrow,
               commGrid->rowWorld);
@@ -2914,7 +2915,7 @@ void SpParMat<IT, NT, DER>::ReadAllMine(
 template <class IT, class NT, class DER>
 void SpParMat<IT, NT, DER>::HorizontalSend(
     IT*& rows, IT*& cols, NT*& vals, IT*& temprows, IT*& tempcols,
-    NT*& tempvals, vector<tuple<IT, IT, NT>>& localtuples, int* rcurptrs,
+    NT*& tempvals, std::vector<std::tuple<IT, IT, NT>>& localtuples, int* rcurptrs,
     int* rdispls, IT buffperrowneigh, int rowneighs, int recvcount,
     IT m_perproc, IT n_perproc, int rankinrow) {
   rows = new IT[buffperrowneigh * rowneighs];
@@ -2932,14 +2933,14 @@ void SpParMat<IT, NT, DER>::HorizontalSend(
   }
 
 #ifdef IODEBUG
-  ofstream oput;
+  std::ofstream oput;
   commGrid->OpenDebugFile("Read", oput);
   oput << "To row neighbors: ";
-  copy(rcurptrs, rcurptrs + rowneighs, ostream_iterator<int>(oput, " "));
-  oput << endl;
+  std::copy(rcurptrs, rcurptrs + rowneighs, std::ostream_iterator<int>(oput, " "));
+  oput << std::endl;
   oput << "Row displacements were: ";
-  copy(rdispls, rdispls + rowneighs, ostream_iterator<int>(oput, " "));
-  oput << endl;
+  std::copy(rdispls, rdispls + rowneighs, std::ostream_iterator<int>(oput, " "));
+  oput << std::endl;
   oput.close();
 #endif
 
@@ -2969,10 +2970,10 @@ void SpParMat<IT, NT, DER>::HorizontalSend(
 
   for (int i = 0; i < recvcount; ++i) {
     localtuples.push_back(
-        make_tuple(temprows[i] - moffset, tempcols[i] - noffset, tempvals[i]));
+        std::make_tuple(temprows[i] - moffset, tempcols[i] - noffset, tempvals[i]));
   }
 
-  fill_n(rcurptrs, rowneighs, 0);
+  std::fill_n(rcurptrs, rowneighs, 0);
   DeleteAll(rows, cols, vals, temprows, tempcols, tempvals);
 }
 
@@ -3004,7 +3005,7 @@ void SpParMat<IT, NT, DER>::Find(FullyDistVec<IT, IT>& distrows,
   prelens[rank] = prelen;
   MPI_Allgather(MPI_IN_PLACE, 0, MPIType<IT>(), prelens, 1, MPIType<IT>(),
                 commGrid->GetWorld());
-  IT prelenuntil = accumulate(prelens, prelens + rank, static_cast<IT>(0));
+  IT prelenuntil = std::accumulate(prelens, prelens + rank, static_cast<IT>(0));
 
   int* sendcnt = new int[nprocs]();  // zero initialize
   IT* rows = new IT[prelen];
@@ -3026,8 +3027,8 @@ void SpParMat<IT, NT, DER>::Find(FullyDistVec<IT, IT>& distrows,
   MPI_Allgather(MPI_IN_PLACE, 0, MPIType<IT>(), locncols, 1, MPIType<IT>(),
                 commGrid->GetRowWorld());
 
-  IT roffset = accumulate(locnrows, locnrows + colrank, static_cast<IT>(0));
-  IT coffset = accumulate(locncols, locncols + rowrank, static_cast<IT>(0));
+  IT roffset = std::accumulate(locnrows, locnrows + colrank, static_cast<IT>(0));
+  IT coffset = std::accumulate(locncols, locncols + rowrank, static_cast<IT>(0));
 
   DeleteAll(locnrows, locncols);
   for (int i = 0; i < prelen; ++i) {
@@ -3042,12 +3043,12 @@ void SpParMat<IT, NT, DER>::Find(FullyDistVec<IT, IT>& distrows,
 
   int* recvcnt = new int[nprocs];
   MPI_Alltoall(sendcnt, 1, MPI_INT, recvcnt, 1, MPI_INT,
-               commGrid->GetWorld());  // get the recv counts
+               commGrid->GetWorld());  // std::get the recv counts
 
   int* sdpls = new int[nprocs]();  // displacements (zero initialized pid)
   int* rdpls = new int[nprocs]();
-  partial_sum(sendcnt, sendcnt + nprocs - 1, sdpls + 1);
-  partial_sum(recvcnt, recvcnt + nprocs - 1, rdpls + 1);
+  std::partial_sum(sendcnt, sendcnt + nprocs - 1, sdpls + 1);
+  std::partial_sum(recvcnt, recvcnt + nprocs - 1, rdpls + 1);
 
   MPI_Alltoallv(rows, sendcnt, sdpls, MPIType<IT>(), SpHelper::p2a(nrows.arr),
                 recvcnt, rdpls, MPIType<IT>(), commGrid->GetWorld());
@@ -3087,7 +3088,7 @@ void SpParMat<IT, NT, DER>::Find(FullyDistVec<IT, IT>& distrows,
   prelens[rank] = prelen;
   MPI_Allgather(MPI_IN_PLACE, 0, MPIType<IT>(), prelens, 1, MPIType<IT>(),
                 commGrid->GetWorld());
-  IT prelenuntil = accumulate(prelens, prelens + rank, static_cast<IT>(0));
+  IT prelenuntil = std::accumulate(prelens, prelens + rank, static_cast<IT>(0));
 
   int* sendcnt = new int[nprocs]();  // zero initialize
   IT* rows = new IT[prelen];
@@ -3108,8 +3109,8 @@ void SpParMat<IT, NT, DER>::Find(FullyDistVec<IT, IT>& distrows,
                 commGrid->GetColWorld());
   MPI_Allgather(MPI_IN_PLACE, 0, MPIType<IT>(), locncols, 1, MPIType<IT>(),
                 commGrid->GetColWorld());
-  IT roffset = accumulate(locnrows, locnrows + colrank, static_cast<IT>(0));
-  IT coffset = accumulate(locncols, locncols + rowrank, static_cast<IT>(0));
+  IT roffset = std::accumulate(locnrows, locnrows + colrank, static_cast<IT>(0));
+  IT coffset = std::accumulate(locncols, locncols + rowrank, static_cast<IT>(0));
 
   DeleteAll(locnrows, locncols);
   for (int i = 0; i < prelen; ++i) {
@@ -3123,12 +3124,12 @@ void SpParMat<IT, NT, DER>::Find(FullyDistVec<IT, IT>& distrows,
 
   int* recvcnt = new int[nprocs];
   MPI_Alltoall(sendcnt, 1, MPI_INT, recvcnt, 1, MPI_INT,
-               commGrid->GetWorld());  // get the recv counts
+               commGrid->GetWorld());  // std::get the recv counts
 
   int* sdpls = new int[nprocs]();  // displacements (zero initialized pid)
   int* rdpls = new int[nprocs]();
-  partial_sum(sendcnt, sendcnt + nprocs - 1, sdpls + 1);
-  partial_sum(recvcnt, recvcnt + nprocs - 1, rdpls + 1);
+  std::partial_sum(sendcnt, sendcnt + nprocs - 1, sdpls + 1);
+  std::partial_sum(recvcnt, recvcnt + nprocs - 1, rdpls + 1);
 
   MPI_Alltoallv(rows, sendcnt, sdpls, MPIType<IT>(), SpHelper::p2a(nrows.arr),
                 recvcnt, rdpls, MPIType<IT>(), commGrid->GetWorld());
@@ -3142,14 +3143,14 @@ void SpParMat<IT, NT, DER>::Find(FullyDistVec<IT, IT>& distrows,
 }
 
 template <class IT, class NT, class DER>
-ofstream& SpParMat<IT, NT, DER>::put(ofstream& outfile) const {
-  outfile << (*spSeq) << endl;
+std::ofstream& SpParMat<IT, NT, DER>::put(std::ofstream& outfile) const {
+  outfile << (*spSeq) << std::endl;
   return outfile;
 }
 
 template <class IU, class NU, class UDER>
-ofstream& operator<<(ofstream& outfile, const SpParMat<IU, NU, UDER>& s) {
-  return s.put(outfile);  // use the right put() function
+std::ofstream& operator<<(std::ofstream& outfile, const SpParMat<IU, NU, UDER>& s) {
+  return s.put(outfile);  // use the std::right put() function
 }
 
 /**
@@ -3205,4 +3206,5 @@ void SpParMat<IT, NT, DER>::GetPlaceInGlobalGrid(IT& rowOffset,
 
   rowOffset = commGrid->GetRankInProcCol() * rows_perproc;
   colOffset = commGrid->GetRankInProcRow() * cols_perproc;
+}
 }

@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -29,8 +29,8 @@
 #ifndef _FULLY_DIST_SP_VEC_H_
 #define _FULLY_DIST_SP_VEC_H_
 
-#include <iostream>
-#include <vector>
+#include<iostream>
+#include<vector>
 #include <utility>
 #include "CommGrid.h"
 #include "promote.h"
@@ -55,7 +55,7 @@ template <class IU, class NU>
 class SparseVectorLocalIterator;
 
 /**
-  * A sparse vector of length n (with nnz <= n of them being nonzeros) is distributed to
+  * A sparse std::vector of length n (with nnz <= n of them being nonzeros) is distributed to
   * "all the processors" in a way that "respects ordering" of the nonzero indices
   * Example: x = [5,1,6,2,9] for nnz(x)=5 and length(x)=12
   *	we use 4 processors P_00, P_01, P_10, P_11
@@ -64,22 +64,22 @@ class SparseVectorLocalIterator;
   * 	After all, A(v,w) will have dimensions length(v) x length (w)
   * 	v and w will be of numerical type (NT) "int" and their indices (IT) will be consecutive integers
   * It is possibly that nonzero counts are distributed unevenly
-  * Example: x=[1,2,3,4,5] and length(x) = 20, then P_00 would own all the nonzeros and the rest will hold empry vectors
+  * Example: x=[1,2,3,4,5] and length(x) = 20, then P_00 would own all the nonzeros and the rest will hold empry std::vectors
   * Just like in SpParMat case, indices are local to processors (they belong to range [0,...,length-1] on each processor)
-  * \warning Always create vectors with the right length, setting elements won't increase its length (similar to operator[] on std::vector)
+  * \warning Always create std::vectors with the std::right length, setting elements won't increase its length (similar to operator[] on std::vector)
  **/
 template <class IT, class NT>
-class FullyDistSpVec: public FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>
+class FullyDistSpVec: public FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type>
 {
 public:
 	FullyDistSpVec ( );
 	explicit FullyDistSpVec ( IT glen );
-	FullyDistSpVec ( shared_ptr<CommGrid> grid);
-	FullyDistSpVec ( shared_ptr<CommGrid> grid, IT glen);
+	FullyDistSpVec ( std::shared_ptr<CommGrid> grid);
+	FullyDistSpVec ( std::shared_ptr<CommGrid> grid, IT glen);
 
     template <typename _UnaryOperation>
     FullyDistSpVec (const FullyDistVec<IT,NT> & rhs, _UnaryOperation unop);
-	FullyDistSpVec (const FullyDistVec<IT,NT> & rhs);					// Conversion copy-constructor
+	FullyDistSpVec (const FullyDistVec<IT,NT> & rhs);					// Conversion std::copy-constructor
     FullyDistSpVec (IT globalsize, const FullyDistVec<IT,IT> & inds,  const FullyDistVec<IT,NT> & vals, bool SumDuplicates = false);
 
     FullyDistSpVec<IT,NT> Invert (IT globallen);
@@ -107,7 +107,7 @@ public:
     FullyDistSpVec<IT,NT> SelectApplyNew (const FullyDistVec<IT,NT1> & denseVec, _UnaryOperation __unop, _BinaryOperation __binop);
 
 
-	//! like operator=, but instead of making a deep copy it just steals the contents.
+	//! like operator=, but instead of making a deep std::copy it just steals the contents.
 	//! Useful for places where the "victim" will be distroyed immediately after the call.
 	void stealFrom(FullyDistSpVec<IT,NT> & victim);
 	FullyDistSpVec<IT,NT> &  operator=(const FullyDistSpVec< IT,NT > & rhs);
@@ -146,25 +146,25 @@ public:
 
     //! New (2014) version that can handle parallel IO and binary files
     template <class HANDLER>
-    void ReadDistribute (const string & filename, int master, HANDLER handler, bool pario);
-    void ReadDistribute (const string & filename, int master, bool pario) { ReadDistribute(filename, master, ScalarReadSaveHandler(), pario); }
+    void ReadDistribute (const std::string & filename, int master, HANDLER handler, bool pario);
+    void ReadDistribute (const std::string & filename, int master, bool pario) { ReadDistribute(filename, master, ScalarReadSaveHandler(), pario); }
 
 
-    //! Obsolete version that only accepts an ifstream object and ascii files
+    //! Obsolete version that only accepts an std::ifstream object and ascii files
 	template <class HANDLER>
-	ifstream& ReadDistribute (ifstream& infile, int master, HANDLER handler);
-	ifstream& ReadDistribute (ifstream& infile, int master) { return ReadDistribute(infile, master, ScalarReadSaveHandler()); }
+	std::ifstream& ReadDistribute (std::ifstream& infile, int master, HANDLER handler);
+	std::ifstream& ReadDistribute (std::ifstream& infile, int master) { return ReadDistribute(infile, master, ScalarReadSaveHandler()); }
 
 	template <class HANDLER>
-	void SaveGathered(ofstream& outfile, int master, HANDLER handler, bool printProcSplits = false);
-	void SaveGathered(ofstream& outfile, int master) { SaveGathered(outfile, master, ScalarReadSaveHandler()); }
+	void SaveGathered(std::ofstream& outfile, int master, HANDLER handler, bool printProcSplits = false);
+	void SaveGathered(std::ofstream& outfile, int master) { SaveGathered(outfile, master, ScalarReadSaveHandler()); }
 
 
 	template <typename NNT> operator FullyDistSpVec< IT,NNT > () const	//!< Type conversion operator
 	{
 		FullyDistSpVec<IT,NNT> CVT(commGrid);
-		CVT.ind = vector<IT>(ind.begin(), ind.end());
-		CVT.num = vector<NNT>(num.begin(), num.end());
+		CVT.ind = std::vector<IT>(ind.begin(), ind.end());
+		CVT.num = std::vector<NNT>(num.begin(), num.end());
 		CVT.glen = glen;
 		return CVT;
 	}
@@ -176,7 +176,7 @@ public:
 		return (v == w);
 	}
 
-	void PrintInfo(string vecname) const;
+	void PrintInfo(std::string vecname) const;
 	void iota(IT globalsize, NT first);
 	FullyDistVec<IT,NT> operator() (const FullyDistVec<IT,IT> & ri) const;	//!< SpRef (expects ri to be 0-based)
 	void SetElement (IT indx, NT numx);	// element-wise assignment
@@ -184,7 +184,7 @@ public:
 	NT operator[](IT indx);
 	bool WasFound() const { return wasFound; }
 
-	//! sort the vector itself, return the permutation vector (0-based)
+	//! sort the std::vector itself, return the permutation std::vector (0-based)
 	FullyDistSpVec<IT, IT> sort();
 
 #if __cplusplus > 199711L
@@ -207,12 +207,12 @@ public:
 		MPI_Allreduce( &locnnz, &totnnz, 1, MPIType<IT>(), MPI_SUM, commGrid->GetWorld());
 		return totnnz;
 	}
-	using FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>::LengthUntil;
-	using FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>::MyLocLength;
-	using FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>::MyRowLength;
-	using FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>::TotalLength;
-	using FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>::Owner;
-	using FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>::RowLenUntil;
+	using FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type>::LengthUntil;
+	using FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type>::MyLocLength;
+	using FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type>::MyRowLength;
+	using FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type>::TotalLength;
+	using FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type>::Owner;
+	using FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type>::RowLenUntil;
 
 	void setNumToInd()
 	{
@@ -231,7 +231,7 @@ public:
 	template <typename _UnaryOperation>
 	void Apply(_UnaryOperation __unary_op)
 	{
-		//transform(num.begin(), num.end(), num.begin(), __unary_op);
+		//std::transform(num.begin(), num.end(), num.begin(), __unary_op);
         IT spsize = num.size();
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -261,13 +261,13 @@ public:
 	OUT Reduce(_BinaryOperation __binary_op, OUT default_val, _UnaryOperation __unary_op) const;
 
 	void DebugPrint();
-	shared_ptr<CommGrid> getcommgrid() const { return commGrid; }
+	std::shared_ptr<CommGrid> getcommgrid() const { return commGrid; }
 
 	void Reset();
 	NT GetLocalElement(IT indx);
 	void BulkSet(IT inds[], int count);
-    vector<IT> GetLocalInd (){vector<IT> rind = ind; return rind;};
-    vector<NT> GetLocalNum (){vector<NT> rnum = num; return rnum;};
+    std::vector<IT> GetLocalInd (){std::vector<IT> rind = ind; return rind;};
+    std::vector<NT> GetLocalNum (){std::vector<NT> rnum = num; return rnum;};
 
     template <typename _Predicate>
     FullyDistVec<IT,IT> FindInds(_Predicate pred) const;
@@ -276,12 +276,12 @@ public:
 
 
 protected:
-	using FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>::glen;
-	using FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>::commGrid;
+	using FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type>::glen;
+	using FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type>::commGrid;
 
 private:
-	vector< IT > ind;	// ind.size() give the number of nonzeros
-	vector< NT > num;
+	std::vector< IT > ind;	// ind.size() give the number of nonzeros
+	std::vector< NT > num;
 	bool wasFound; // true if the last GetElement operation returned an actual value
 
 #if __cplusplus > 199711L
@@ -300,13 +300,13 @@ private:
 
 
     template <class HANDLER>
-    void ReadAllMine(FILE * binfile, IT * & inds, NT * & vals, vector< pair<IT,NT> > & localpairs, int * rcurptrs, int * ccurptrs, int * rdispls, int * cdispls,
+    void ReadAllMine(FILE * binfile, IT * & inds, NT * & vals, std::vector< std::pair<IT,NT> > & localpairs, int * rcurptrs, int * ccurptrs, int * rdispls, int * cdispls,
                      IT buffperrowneigh, IT buffpercolneigh, IT entriestoread, HANDLER handler, int rankinrow);
 
-    void HorizontalSend(IT * & inds, NT * & vals, IT * & tempinds, NT * & tempvals, vector < pair <IT,NT> > & localpairs,
+    void HorizontalSend(IT * & inds, NT * & vals, IT * & tempinds, NT * & tempvals, std::vector < std::pair <IT,NT> > & localpairs,
                         int * rcurptrs, int * rdispls, IT buffperrowneigh, int recvcount, int rankinrow);
 
-    void VerticalSend(IT * & inds, NT * & vals, vector< pair<IT,NT> > & localpairs, int * rcurptrs, int * ccurptrs, int * rdispls, int * cdispls,
+    void VerticalSend(IT * & inds, NT * & vals, std::vector< std::pair<IT,NT> > & localpairs, int * rcurptrs, int * ccurptrs, int * rdispls, int * cdispls,
                       IT buffperrowneigh, IT buffpercolneigh, int rankinrow);
 
     void BcastEssentials(MPI_Comm & world, IT & total_m, IT & total_n, IT & total_nnz, int master);
@@ -362,7 +362,7 @@ private:
 	template <typename IU>
 	friend void RenameVertices(DistEdgeList<IU> & DEL);
 
-	//! Helper functions for sparse matrix X sparse vector
+	//! Helper functions for sparse matrix X sparse std::vector
 	template <typename SR, typename IU, typename OVT>
 	friend void MergeContributions(FullyDistSpVec<IU,OVT> & y, int * & recvcnt, int * & rdispls, int32_t * & recvindbuf, OVT * & recvnumbuf, int rowneighs);
 

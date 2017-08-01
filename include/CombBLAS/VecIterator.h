@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -156,7 +156,7 @@ class SparseVectorLocalIterator: public VectorLocalIterator<IT, NT>
 
 	bool NextTo(IT loc_idx)
 	{
-		typename vector<IT>::iterator iter = lower_bound(v.ind.begin()+iter_idx, v.ind.end(), loc_idx);
+		typename std::vector<IT>::iterator iter = std::lower_bound(v.ind.begin()+iter_idx, v.ind.end(), loc_idx);
 		if(iter == v.ind.end())	// beyond limits, insert from back
 		{
 			iter_idx = -1;
@@ -211,7 +211,7 @@ class SparseVectorLocalIterator: public VectorLocalIterator<IT, NT>
 
 		// inserted elsewhere
 		// This is from FullyDistSpVec::SetElement():
-		typename vector<IT>::iterator iter = lower_bound(v.ind.begin(), v.ind.end(), loc_idx);
+		typename std::vector<IT>::iterator iter = std::lower_bound(v.ind.begin(), v.ind.end(), loc_idx);
 		if(iter == v.ind.end())	// beyond limits, insert from back
 		{
 			v.ind.push_back(loc_idx);

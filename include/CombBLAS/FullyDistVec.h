@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2015, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -29,12 +29,12 @@
 #ifndef _FULLY_DIST_VEC_H_
 #define _FULLY_DIST_VEC_H_
 
-#include <iostream>
+#include<iostream>
 #include <fstream>
-#include <vector>
+#include<vector>
 #include <utility>
 #include <iterator>
-#include "CombBLAS.h"
+#include "combblas.h"
 #include "CommGrid.h"
 #include "FullyDist.h"
 #include "Exception.h"
@@ -53,19 +53,23 @@ class DistEdgeList;
 template <class IU, class NU>
 class DenseVectorLocalIterator;
 
+
+template <typename RETT, typename NU1, typename NU2, typename BINOP>
+class EWiseExtToPlainAdapter;
+
 // ABAB: As opposed to SpParMat, IT here is used to encode global size and global indices;
 // therefore it can not be 32-bits, in general.
 template <class IT, class NT>
-class FullyDistVec: public FullyDist<IT,NT, typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type >
+class FullyDistVec: public FullyDist<IT,NT, typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type >
 {
 public:
 	FullyDistVec ( );
 	FullyDistVec ( IT globallen, NT initval);
-	FullyDistVec ( shared_ptr<CommGrid> grid);
-	FullyDistVec ( shared_ptr<CommGrid> grid, IT globallen, NT initval);
+	FullyDistVec ( std::shared_ptr<CommGrid> grid);
+	FullyDistVec ( std::shared_ptr<CommGrid> grid, IT globallen, NT initval);
 	FullyDistVec ( const FullyDistSpVec<IT, NT> & rhs ); // Sparse -> Dense conversion constructor
   FullyDistVec ( const DenseParVec<IT,NT> & rhs);		//!< DenseParVec->FullyDistVec conversion operator
-	FullyDistVec ( const vector<NT> & fillarr, shared_ptr<CommGrid> grid ); // initialize a FullyDistVec with a vector from each processor
+	FullyDistVec ( const std::vector<NT> & fillarr, std::shared_ptr<CommGrid> grid ); // initialize a FullyDistVec with a std::vector from each processor
 
 
 	template <class ITRHS, class NTRHS>
@@ -92,12 +96,12 @@ public:
 	};
 
 	template <class HANDLER>
-	ifstream& ReadDistribute (ifstream& infile, int master, HANDLER handler);
-	ifstream& ReadDistribute (ifstream& infile, int master) { return ReadDistribute(infile, master, ScalarReadSaveHandler()); }
+	std::ifstream& ReadDistribute (std::ifstream& infile, int master, HANDLER handler);
+	std::ifstream& ReadDistribute (std::ifstream& infile, int master) { return ReadDistribute(infile, master, ScalarReadSaveHandler()); }
 
 	template <class HANDLER>
-	void SaveGathered(ofstream& outfile, int master, HANDLER handler, bool printProcSplits = false);
-	void SaveGathered(ofstream& outfile, int master) { SaveGathered(outfile, master, ScalarReadSaveHandler(), false); }
+	void SaveGathered(std::ofstream& outfile, int master, HANDLER handler, bool printProcSplits = false);
+	void SaveGathered(std::ofstream& outfile, int master) { SaveGathered(outfile, master, ScalarReadSaveHandler(), false); }
 
 
 	template <class ITRHS, class NTRHS>
@@ -117,7 +121,7 @@ public:
     }
 	FullyDistVec<IT,NT> operator() (const FullyDistVec<IT,IT> & ri) const;	//<! subsref
 
-	//! like operator=, but instead of making a deep copy it just steals the contents.
+	//! like operator=, but instead of making a deep std::copy it just steals the contents.
 	//! Useful for places where the "victim" will be distroyed immediately after the call.
 	FullyDistVec<IT,NT> & stealFrom(FullyDistVec<IT,NT> & victim);
 	FullyDistVec<IT,NT> & operator+=(const FullyDistSpVec<IT,NT> & rhs);
@@ -141,13 +145,13 @@ public:
     FullyDistSpVec<IT,NT> GGet (const FullyDistSpVec<IT,NT1> & spVec, _BinaryOperationIdx __binopIdx, NT nullValue);
 
 	void iota(IT globalsize, NT first);
-	void RandPerm();	// randomly permute the vector
+	void RandPerm();	// randomly permute the std::vector
 	FullyDistVec<IT,IT> sort();	// sort and return the permutation
 
-	using FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>::LengthUntil;
-	using FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>::TotalLength;
-	using FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>::Owner;
-	using FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>::MyLocLength;
+	using FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type>::LengthUntil;
+	using FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type>::TotalLength;
+	using FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type>::Owner;
+	using FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type>::MyLocLength;
 	IT LocArrSize() const { return arr.size(); }	// = MyLocLength() once arr is resized
 
 	template <typename _Predicate>
@@ -164,7 +168,7 @@ public:
 	template <typename _UnaryOperation>
 	void Apply(_UnaryOperation __unary_op)
 	{
-		transform(arr.begin(), arr.end(), arr.begin(), __unary_op);
+		std::transform(arr.begin(), arr.end(), arr.begin(), __unary_op);
 	}
 
 	template <typename _BinaryOperation>
@@ -226,20 +230,20 @@ public:
 		this->EWiseApply(other, __binary_op, retTrue<NT, NT2>(), applyNulls, nullValue);
 	}
 
-	void PrintToFile(string prefix)
+	void PrintToFile(std::string prefix)
 	{
-		ofstream output;
+		std::ofstream output;
 		commGrid->OpenDebugFile(prefix, output);
-		copy(arr.begin(), arr.end(), ostream_iterator<NT> (output, " "));
-		output << endl;
+		std::copy(arr.begin(), arr.end(), std::ostream_iterator<NT> (output, " "));
+		output << std::endl;
 		output.close();
 	}
 
-	void PrintInfo(string vectorname) const;
+	void PrintInfo(std::string vectorname) const;
 	void DebugPrint();
-	shared_ptr<CommGrid> getcommgrid() const { return commGrid; }
+	std::shared_ptr<CommGrid> getcommgrid() const { return commGrid; }
 
-    pair<IT, NT> MinElement() const; // returns <index, value> pair of global minimum
+    std::pair<IT, NT> MinElement() const; // returns <index, value> std::pair of global minimum
 
 
 	template <typename _BinaryOperation>
@@ -250,11 +254,11 @@ public:
 
 	void SelectCandidates(double nver);
 
-	using FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>::glen;
-	using FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>::commGrid;
+	using FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type>::glen;
+	using FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type>::commGrid;
 
-  vector<NT> data() { return arr; }
-  const vector<NT> data() const { return arr; }
+  std::vector<NT> data() { return arr; }
+  const std::vector<NT> data() const { return arr; }
 
   // TODO: cache
   IT getTotalLength() {
@@ -268,7 +272,7 @@ public:
 	void EWise(const FullyDistVec<IT,NT> & rhs,  _BinaryOperation __binary_op);
 
 private:
-	vector< NT > arr;
+	std::vector< NT > arr;
 
 	template <class IU, class NU>
 	friend class DenseParMat;
@@ -310,7 +314,7 @@ private:
 	friend void RenameVertices(DistEdgeList<IU> & DEL);
 
 	template <typename IU, typename NU>
-	friend FullyDistVec<IU,NU> Concatenate ( vector< FullyDistVec<IU,NU> > & vecs);
+	friend FullyDistVec<IU,NU> Concatenate ( std::vector< FullyDistVec<IU,NU> > & vecs);
 
     template <typename IU, typename NU>
     friend void Augment (FullyDistVec<int64_t, int64_t>& mateRow2Col, FullyDistVec<int64_t, int64_t>& mateCol2Row,

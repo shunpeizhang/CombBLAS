@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -29,11 +29,11 @@
 #ifndef _DENSE_PAR_MAT_H_
 #define _DENSE_PAR_MAT_H_
 
-#include <iostream>
+#include<iostream>
 #include <fstream>
 #include <cmath>
 #include <mpi.h>
-#include <vector>
+#include<vector>
 #include "SpParMat.h"
 #include "DenseParVec.h"
 #include "CombBLAS.h"
@@ -53,28 +53,28 @@ public:
 	{
 		commGrid.reset(new CommGrid(MPI_COMM_WORLD, 0, 0));
 	}
-	DenseParMat (NT value, shared_ptr<CommGrid> grid, IT rows, IT cols): m(rows), n(cols)
+	DenseParMat (NT value, std::shared_ptr<CommGrid> grid, IT rows, IT cols): m(rows), n(cols)
 	{
 		array = SpHelper::allocate2D<double>(rows, cols);
 		for(int i=0; i< rows; ++i)
 		{
-			fill_n(array[i], cols, value);		// fill array[i][0] ... array[i][cols] with "value"
+			std::fill_n(array[i], cols, value);		// std::fill array[i][0] ... array[i][cols] with "value"
 		}
 		commGrid.reset(new CommGrid(*grid));
 	}
-	DenseParMat (NT ** seqarr, shared_ptr<CommGrid> grid, IT rows, IT cols): array(seqarr), m(rows), n(cols)
+	DenseParMat (NT ** seqarr, std::shared_ptr<CommGrid> grid, IT rows, IT cols): array(seqarr), m(rows), n(cols)
 	{
 		commGrid.reset(new CommGrid(*grid));
 	}
 
-	DenseParMat (const DenseParMat< IT,NT > & rhs): m(rhs.m), n(rhs.n)		// copy constructor
+	DenseParMat (const DenseParMat< IT,NT > & rhs): m(rhs.m), n(rhs.n)		// std::copy constructor
 	{
 		if(rhs.array != NULL)
 		{
 			array = SpHelper::allocate2D<NT>(m, n);
 			for(int i=0; i< m; ++i)
 			{
-				copy(array[i], array[i]+n, rhs.array[i]);
+				std::copy(array[i], array[i]+n, rhs.array[i]);
 			}
 		}
 		commGrid.reset(new CommGrid(*(rhs.commGrid)));
@@ -94,10 +94,10 @@ public:
 			SpHelper::deallocate2D(array, m);
 	}
 
-	shared_ptr<CommGrid> getcommgrid () { return commGrid; }
+	std::shared_ptr<CommGrid> getcommgrid () { return commGrid; }
 
 private:
-	shared_ptr<CommGrid> commGrid;
+	std::shared_ptr<CommGrid> commGrid;
 	NT ** array;
 	IT m, n;	// Local columns and rows
 

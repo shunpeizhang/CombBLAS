@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2015, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -29,7 +29,7 @@
 #ifndef _FULLY_DIST_H
 #define _FULLY_DIST_H
 
-#include <iostream>
+#include<iostream>
 #include <algorithm>
 #include "myenableif.h"
 namespace combblas {
@@ -45,26 +45,26 @@ class FullyDist
   * The last processor row gets the remaining (n-floor(n/sqrt(p))*(sqrt(p)-1)) elements
   * Within the processor row, each processor (except the last) is responsible for loc = floor(t/sqrt(p)) elements.
   * Example: n=103 and p=16
-  * All processors P_ij for i=0,1,2 and j=0,1,2 get floor(floor(102/4)/4) = 6 elements
-  * All processors P_i3 for i=0,1,2 get 25-6*3 = 7 elements
-  * All processors P_3j for j=0,1,2 get (102-25*3)/4 = 6 elements
+  * All processors P_ij for i=0,1,2 and j=0,1,2 std::get floor(floor(102/4)/4) = 6 elements
+  * All processors P_i3 for i=0,1,2 std::get 25-6*3 = 7 elements
+  * All processors P_3j for j=0,1,2 std::get (102-25*3)/4 = 6 elements
   * Processor P_33 gets 27-6*3 = 9 elements
   * Both derived classes, whether sparse or dense, are distributed
   * to processors based on their "length", so that a conversion does not
   * need any communication between sparse and dense formats
  **/
 template <class IT, class NT>
-class FullyDist<IT, NT, typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type >
+class FullyDist<IT, NT, typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type >
 {
 public:
 	explicit FullyDist():glen(0)
 	{
-        SpParHelper::Print("COMBBLAS Warning: It is dangerous to create (vector) objects without specifying the communicator, are you sure you want to create this object in MPI_COMM_WORLD?\n");
+        SpParHelper::Print("COMBBLAS Warning: It is dangerous to create (std::vector) objects without specifying the communicator, are you sure you want to create this object in MPI_COMM_WORLD?\n");
 		commGrid.reset(new CommGrid(MPI_COMM_WORLD, 0, 0));
 	}
 	explicit FullyDist(IT globallen): glen(globallen)
 	{
-        SpParHelper::Print("COMBBLAS Warning: It is dangerous to create (vector) objects without specifying the communicator, are you sure you want to create this object in MPI_COMM_WORLD?\n");
+        SpParHelper::Print("COMBBLAS Warning: It is dangerous to create (std::vector) objects without specifying the communicator, are you sure you want to create this object in MPI_COMM_WORLD?\n");
 		commGrid.reset(new CommGrid(MPI_COMM_WORLD, 0, 0));
 	}
     	/* ABAB: This clashes with FullyDist(IT globallen) signature on MPICH based systems that #define MPI_Comm to be an INT
@@ -72,11 +72,11 @@ public:
     	{
         	commGrid.reset(new CommGrid(world, 0, 0));
     	}*/
-	FullyDist( shared_ptr<CommGrid> grid):glen(0)
+	FullyDist( std::shared_ptr<CommGrid> grid):glen(0)
 	{
 		commGrid = grid;
 	}
-	FullyDist( shared_ptr<CommGrid> grid, IT globallen): glen(globallen)
+	FullyDist( std::shared_ptr<CommGrid> grid, IT globallen): glen(globallen)
 	{
 		commGrid = grid;
 	}
@@ -97,7 +97,7 @@ public:
 	int OwnerWithinRow(IT n_thisrow, IT ind_withinrow, IT & lind) const;
 
 protected:
-	shared_ptr<CommGrid> commGrid;
+	std::shared_ptr<CommGrid> commGrid;
 	IT glen;		// global length (actual "length" including zeros)
 };
 
@@ -106,7 +106,7 @@ protected:
 //! Return the owner processor id, and
 //! Assign the local index to lind
 template <class IT, class NT>
-int FullyDist<IT,NT, typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>
+int FullyDist<IT,NT, typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type>
 ::Owner(IT gind, IT & lind) const
 {
 	// C++ implicitly upcasts both operands to 64-bit if one is 64-bit and other is 32-bit
@@ -154,7 +154,7 @@ int FullyDist<IT,NT, typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::va
  * Return the owner processor id (within processor row)
  **/
 template <class IT, class NT>
-int FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type >
+int FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type >
 ::OwnerWithinRow(IT n_thisrow, IT ind_withinrow, IT & lind) const
 {
 	int proccols = commGrid->GetGridCols();
@@ -175,7 +175,7 @@ int FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::val
 }
 
 template <class IT, class NT>
-IT FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type >
+IT FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type >
 ::LengthUntil() const
 {
 	int procrows = commGrid->GetGridRows();
@@ -195,7 +195,7 @@ IT FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::valu
 
 // Return the length until this processor, within this processor row only
 template <class IT, class NT>
-IT FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type >
+IT FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type >
 ::RowLenUntil() const
 {
 	int procrows = commGrid->GetGridRows();
@@ -215,7 +215,7 @@ IT FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::valu
 
 // Return the length until the kth processor, within this processor row only
 template <class IT, class NT>
-IT FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type >
+IT FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type >
 ::RowLenUntil(int k) const
 {
 	int procrows = commGrid->GetGridRows();
@@ -234,7 +234,7 @@ IT FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::valu
 }
 
 template <class IT, class NT>
-IT FullyDist<IT,NT, typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>
+IT FullyDist<IT,NT, typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type>
 ::MyLocLength() const
 {
 	int procrows = commGrid->GetGridRows();
@@ -257,7 +257,7 @@ IT FullyDist<IT,NT, typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::val
 
 
 template <class IT, class NT>
-IT FullyDist<IT,NT,typename CombBLAS::disable_if< CombBLAS::is_boolean<NT>::value, NT >::type>
+IT FullyDist<IT,NT,typename combblas::disable_if< combblas::is_boolean<NT>::value, NT >::type>
 ::MyRowLength() const
 {
 	int procrows = commGrid->GetGridRows();

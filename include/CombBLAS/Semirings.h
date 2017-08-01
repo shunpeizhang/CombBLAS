@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -55,7 +55,7 @@ struct BoolCopy2ndSRing
 	static bool returnedSAID() { return false; }
 	static OUT add(const OUT & arg1, const OUT & arg2)
 	{
-		cout << "Add should not happen (BoolCopy2ndSRing)!" << endl;
+		std::cout << "Add should not happen (BoolCopy2ndSRing)!" << std::endl;
 		throw std::string("Add should not happen!");
 		std::exit(1);
 		return arg2;
@@ -87,7 +87,7 @@ struct BoolCopy2ndSRing
 	{
 		if (*len > 0)
 		{
-			cout << "MPI Add should not happen (BoolCopy2ndSRing)!" << endl;
+			std::cout << "MPI Add should not happen (BoolCopy2ndSRing)!" << std::endl;
 			std::exit(1);
 		}
 	}
@@ -101,7 +101,7 @@ struct BoolCopy1stSRing
 	static bool returnedSAID() { return false; }
 	static OUT add(const OUT & arg1, const OUT & arg2)
 	{
-		cout << "Add should not happen (BoolCopy1stSRing)!" << endl;
+		std::cout << "Add should not happen (BoolCopy1stSRing)!" << std::endl;
 		throw std::string("Add should not happen!");
 		std::exit(1);
 		return arg2;
@@ -133,7 +133,7 @@ struct BoolCopy1stSRing
 	{
 		if (*len > 0)
 		{
-			cout << "MPI Add should not happen (BoolCopy1stSRing)!" << endl;
+			std::cout << "MPI Add should not happen (BoolCopy1stSRing)!" << std::endl;
 			std::exit(1);
 		}
 	}

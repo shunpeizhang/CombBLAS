@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -55,13 +55,13 @@
 #elif defined(_MSC_VER) && (_MSC_VER < 1600)
 	#include <memory>
 	#include <unordered_map>
-	#include <tuple>
+	#include<tuple>
 	#include <type_traits>
 	#define joker std::tr1
 #else // C++11
 	#include <memory>
 	#include <unordered_map>
-	#include <tuple>
+	#include<tuple>
 	#include <type_traits>
 	#define joker std
 #endif

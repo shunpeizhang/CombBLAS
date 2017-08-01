@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -30,7 +30,7 @@
 #define _PAR_FRIENDS_EXT_H_
 
 #include "mpi.h"
-#include <iostream>
+#include<iostream>
 #include "SpParMat.h"
 #include "SpParHelper.h"
 #include "MPIType.h"
@@ -62,12 +62,12 @@ SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UD
 
 	if(A.getncol() != B.getnrow())
 	{
-		cout<<"Can not multiply, dimensions does not match"<<endl;
+		std::cout<<"Can not multiply, dimensions does not match"<<std::endl;
 		MPI_Abort(MPI_COMM_WORLD, DIMMISMATCH);
 		return SpParMat< IU,N_promote,DER_promote >();
 	}
 	int stages, Aoffset, Boffset; 	// stages = inner dimension of matrix blocks
-	shared_ptr<CommGrid> GridC = ProductGrid((A.commGrid).get(), (B.commGrid).get(), stages, Aoffset, Boffset);
+	std::shared_ptr<CommGrid> GridC = ProductGrid((A.commGrid).get(), (B.commGrid).get(), stages, Aoffset, Boffset);
 
 	IU C_m = A.spSeq->getnrow();
 	IU C_n = B.spSeq->getncol();
@@ -82,7 +82,7 @@ SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UD
 	(B.spSeq)->Split( B1seq, B2seq);
 
 	// Create row and column windows (collective operation, i.e. everybody exposes its window to others)
-	vector<MPI_Win> rowwins1, rowwins2, colwins1, colwins2;
+	std::vector<MPI_Win> rowwins1, rowwins2, colwins1, colwins2;
 	SpParHelper::SetWindows((A.commGrid)->GetRowWorld(), A1seq, rowwins1);
 	SpParHelper::SetWindows((A.commGrid)->GetRowWorld(), A2seq, rowwins2);
 	SpParHelper::SetWindows((B.commGrid)->GetColWorld(), B1seq, colwins1);
@@ -108,7 +108,7 @@ SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UD
 	// Remotely fetched matrices are stored as pointers
 	UDERA * ARecv1, * ARecv2;
 	UDERB * BRecv1, * BRecv2;
-	vector< SpTuples<IU,N_promote>  *> tomerge;
+	std::vector< SpTuples<IU,N_promote>  *> tomerge;
 
 	MPI_Group row_group, col_group;
 	MPI_Comm_group((A.commGrid)->GetRowWorld(), &row_group);
@@ -120,12 +120,12 @@ SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UD
 #ifdef SPGEMMDEBUG
 	MPI_Barrier(GridC->GetWorld());
 	SpParHelper::Print("Writing to file\n");
-	ofstream oput;
+	std::ofstream oput;
 	GridC->OpenDebugFile("deb", oput);
-	oput << "A1seq: " << A1seq.getnrow() << " " << A1seq.getncol() << " " << A1seq.getnnz() << endl;
-	oput << "A2seq: " << A2seq.getnrow() << " " << A2seq.getncol() << " " << A2seq.getnnz() << endl;
-	oput << "B1seq: " << B1seq.getnrow() << " " << B1seq.getncol() << " " << B1seq.getnnz() << endl;
-	oput << "B2seq: " << B2seq.getnrow() << " " << B2seq.getncol() << " " << B2seq.getnnz() << endl;
+	oput << "A1seq: " << A1seq.getnrow() << " " << A1seq.getncol() << " " << A1seq.getnnz() << std::endl;
+	oput << "A2seq: " << A2seq.getnrow() << " " << A2seq.getncol() << " " << A2seq.getnnz() << std::endl;
+	oput << "B1seq: " << B1seq.getnrow() << " " << B1seq.getncol() << " " << B1seq.getnnz() << std::endl;
+	oput << "B2seq: " << B2seq.getnrow() << " " << B2seq.getncol() << " " << B2seq.getnnz() << std::endl;
 	SpParHelper::Print("Wrote to file\n");
 	MPI_Barrier(GridC->GetWorld());
 #endif
@@ -253,7 +253,7 @@ SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UD
 	SpHelper::deallocate2D(BRecvSizes1, UDERB::esscount);
 	SpHelper::deallocate2D(BRecvSizes2, UDERB::esscount);
 
-	DER_promote * C = new DER_promote(MergeAll<SR>(tomerge, C_m, C_n), false, NULL);	// First get the result in SpTuples, then convert to UDER
+	DER_promote * C = new DER_promote(MergeAll<SR>(tomerge, C_m, C_n), false, NULL);	// First std::get the result in SpTuples, then convert to UDER
 	for(int i=0; i<tomerge.size(); ++i)
 	{
 		delete tomerge[i];
@@ -295,12 +295,12 @@ SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UD
 
 	if(A.getncol() != B.getnrow())
 	{
-		cout<<"Can not multiply, dimensions does not match"<<endl;
+		std::cout<<"Can not multiply, dimensions does not match"<<std::endl;
 		MPI_Abort(MPI_COMM_WORLD, DIMMISMATCH);
 		return SpParMat< IU,N_promote,DER_promote >();
 	}
 	int stages, Aoffset, Boffset; 	// stages = inner dimension of matrix blocks
-	shared_ptr<CommGrid> GridC = ProductGrid((A.commGrid).get(), (B.commGrid).get(), stages, Aoffset, Boffset);
+	std::shared_ptr<CommGrid> GridC = ProductGrid((A.commGrid).get(), (B.commGrid).get(), stages, Aoffset, Boffset);
 
 	IU C_m = A.spSeq->getnrow();
 	IU C_n = B.spSeq->getncol();
@@ -315,7 +315,7 @@ SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UD
 	(B.spSeq)->Split( B1seq, B2seq);
 
 	// Create row and column windows (collective operation, i.e. everybody exposes its window to others)
-	vector<MPI_Win> rowwins1, rowwins2, colwins1, colwins2;
+	std::vector<MPI_Win> rowwins1, rowwins2, colwins1, colwins2;
 	SpParHelper::SetWindows((A.commGrid)->GetRowWorld(), A1seq, rowwins1);
 	SpParHelper::SetWindows((A.commGrid)->GetRowWorld(), A2seq, rowwins2);
 	SpParHelper::SetWindows((B.commGrid)->GetColWorld(), B1seq, colwins1);
@@ -334,7 +334,7 @@ SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UD
 	// Remotely fetched matrices are stored as pointers
 	UDERA * ARecv1, * ARecv2;
 	UDERB * BRecv1, * BRecv2;
-	vector< SpTuples<IU,N_promote> *> tomerge;	// sorted triples to be merged
+	std::vector< SpTuples<IU,N_promote> *> tomerge;	// sorted triples to be merged
 
 	MPI_Group row_group, col_group;
 	MPI_Comm_group((A.commGrid)->GetRowWorld(), &row_group);
@@ -417,7 +417,7 @@ SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UD
 	SpHelper::deallocate2D(BRecvSizes1, UDERB::esscount);
 	SpHelper::deallocate2D(BRecvSizes2, UDERB::esscount);
 
-	DER_promote * C = new DER_promote(MergeAll<SR>(tomerge, C_m, C_n), false, NULL);	// First get the result in SpTuples, then convert to UDER
+	DER_promote * C = new DER_promote(MergeAll<SR>(tomerge, C_m, C_n), false, NULL);	// First std::get the result in SpTuples, then convert to UDER
 	for(int i=0; i<tomerge.size(); ++i)
 	{
 		delete tomerge[i];
@@ -451,21 +451,21 @@ SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UD
 
 	if(A.getncol() != B.getnrow())
 	{
-		cout<<"Can not multiply, dimensions does not match"<<endl;
+		std::cout<<"Can not multiply, dimensions does not match"<<std::endl;
 		MPI_Abort(MPI_COMM_WORLD, DIMMISMATCH);
 		return SpParMat< IU,N_promote,DER_promote >();
 	}
 
 	int stages, Aoffset, Boffset; 	// stages = inner dimension of matrix blocks
-	shared_ptr<CommGrid> GridC = ProductGrid((A.commGrid).get(), (B.commGrid).get(), stages, Aoffset, Boffset);
+	std::shared_ptr<CommGrid> GridC = ProductGrid((A.commGrid).get(), (B.commGrid).get(), stages, Aoffset, Boffset);
 
-	ofstream oput;
+	std::ofstream oput;
 	GridC->OpenDebugFile("deb", oput);
 	const_cast< UDERB* >(B.spSeq)->Transpose();
 
 	// set row & col window handles
-	vector<MPI_Win> rowwindows, colwindows;
-	vector<MPI_Win> rowwinnext, colwinnext;
+	std::vector<MPI_Win> rowwindows, colwindows;
+	std::vector<MPI_Win> rowwinnext, colwinnext;
 	SpParHelper::SetWindows((A.commGrid)->GetRowWorld(), *(A.spSeq), rowwindows);
 	SpParHelper::SetWindows((B.commGrid)->GetColWorld(), *(B.spSeq), colwindows);
 	SpParHelper::SetWindows((A.commGrid)->GetRowWorld(), *(A.spSeq), rowwinnext);
@@ -479,7 +479,7 @@ SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UD
 
 	UDERA * ARecv, * ARecvNext;
 	UDERB * BRecv, * BRecvNext;
-	vector< SpTuples<IU,N_promote>  *> tomerge;
+	std::vector< SpTuples<IU,N_promote>  *> tomerge;
 
 	// Prefetch first
 	for(int j=0; j< rowwindows.size(); ++j)
@@ -497,35 +497,35 @@ SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UD
 	int Bownind = (0+Boffset) % stages;
 	if(Aownind == (A.commGrid)->GetRankInProcRow())
 	{
-		ARecv = A.spSeq;	// shallow-copy
+		ARecv = A.spSeq;	// shallow-std::copy
 	}
 	else
 	{
-		vector<IU> ess1(UDERA::esscount);		// pack essentials to a vector
+		std::vector<IU> ess1(UDERA::esscount);		// pack essentials to a std::vector
 		for(int j=0; j< UDERA::esscount; ++j)
 		{
 			ess1[j] = ARecvSizes[j][Aownind];
 		}
 		ARecv = new UDERA();	// create the object first
 
-		oput << "For A (out), Fetching " << (void*)rowwindows[0] << endl;
+		oput << "For A (out), Fetching " << (void*)rowwindows[0] << std::endl;
 		SpParHelper::FetchMatrix(*ARecv, ess1, rowwindows, Aownind);	// fetch its elements later
 	}
 	if(Bownind == (B.commGrid)->GetRankInProcCol())
 	{
-		BRecv = B.spSeq;	// shallow-copy
+		BRecv = B.spSeq;	// shallow-std::copy
 	}
 	else
 	{
-		vector<IU> ess2(UDERB::esscount);		// pack essentials to a vector
+		std::vector<IU> ess2(UDERB::esscount);		// pack essentials to a std::vector
 		for(int j=0; j< UDERB::esscount; ++j)
 		{
 			ess2[j] = BRecvSizes[j][Bownind];
 		}
 		BRecv = new UDERB();
 
-		oput << "For B (out), Fetching " << (void*)colwindows[0] << endl;
-		SpParHelper::FetchMatrix(*BRecv, ess2, colwindows, Bownind);	// No lock version, only get !
+		oput << "For B (out), Fetching " << (void*)colwindows[0] << std::endl;
+		SpParHelper::FetchMatrix(*BRecv, ess2, colwindows, Bownind);	// No lock version, only std::get !
 	}
 
 	int Aownprev = Aownind;
@@ -540,40 +540,40 @@ SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UD
 		{
 			if(Aownind == (A.commGrid)->GetRankInProcRow())
 			{
-				ARecvNext = A.spSeq;	// shallow-copy
+				ARecvNext = A.spSeq;	// shallow-std::copy
 			}
 			else
 			{
-				vector<IU> ess1(UDERA::esscount);		// pack essentials to a vector
+				std::vector<IU> ess1(UDERA::esscount);		// pack essentials to a std::vector
 				for(int j=0; j< UDERA::esscount; ++j)
 				{
 					ess1[j] = ARecvSizes[j][Aownind];
 				}
 				ARecvNext = new UDERA();	// create the object first
 
-				oput << "For A, Fetching " << (void*) rowwinnext[0] << endl;
+				oput << "For A, Fetching " << (void*) rowwinnext[0] << std::endl;
 				SpParHelper::FetchMatrix(*ARecvNext, ess1, rowwinnext, Aownind);
 			}
 
 			if(Bownind == (B.commGrid)->GetRankInProcCol())
 			{
-				BRecvNext = B.spSeq;	// shallow-copy
+				BRecvNext = B.spSeq;	// shallow-std::copy
 			}
 			else
 			{
-				vector<IU> ess2(UDERB::esscount);		// pack essentials to a vector
+				std::vector<IU> ess2(UDERB::esscount);		// pack essentials to a std::vector
 				for(int j=0; j< UDERB::esscount; ++j)
 				{
 					ess2[j] = BRecvSizes[j][Bownind];
 				}
 				BRecvNext = new UDERB();
 
-				oput << "For B, Fetching " << (void*)colwinnext[0] << endl;
-				SpParHelper::FetchMatrix(*BRecvNext, ess2, colwinnext, Bownind);	// No lock version, only get !
+				oput << "For B, Fetching " << (void*)colwinnext[0] << std::endl;
+				SpParHelper::FetchMatrix(*BRecvNext, ess2, colwinnext, Bownind);	// No lock version, only std::get !
 			}
 
-			oput << "Fencing " << (void*) rowwindows[0] << endl;
-			oput << "Fencing " << (void*) colwindows[0] << endl;
+			oput << "Fencing " << (void*) rowwindows[0] << std::endl;
+			oput << "Fencing " << (void*) colwindows[0] << std::endl;
 
 			for(int j=0; j< rowwindows.size(); ++j)
 				MPI_Win_fence(MPI_MODE_NOSTORE, rowwindows[j]);		// Synch using "other" windows
@@ -595,40 +595,40 @@ SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UD
 
 			if(Aownind == (A.commGrid)->GetRankInProcRow())
 			{
-				ARecv = A.spSeq;	// shallow-copy
+				ARecv = A.spSeq;	// shallow-std::copy
 			}
 			else
 			{
-				vector<IU> ess1(UDERA::esscount);		// pack essentials to a vector
+				std::vector<IU> ess1(UDERA::esscount);		// pack essentials to a std::vector
 				for(int j=0; j< UDERA::esscount; ++j)
 				{
 					ess1[j] = ARecvSizes[j][Aownind];
 				}
 				ARecv = new UDERA();	// create the object first
 
-				oput << "For A, Fetching " << (void*) rowwindows[0] << endl;
+				oput << "For A, Fetching " << (void*) rowwindows[0] << std::endl;
 				SpParHelper::FetchMatrix(*ARecv, ess1, rowwindows, Aownind);
 			}
 
 			if(Bownind == (B.commGrid)->GetRankInProcCol())
 			{
-				BRecv = B.spSeq;	// shallow-copy
+				BRecv = B.spSeq;	// shallow-std::copy
 			}
 			else
 			{
-				vector<IU> ess2(UDERB::esscount);		// pack essentials to a vector
+				std::vector<IU> ess2(UDERB::esscount);		// pack essentials to a std::vector
 				for(int j=0; j< UDERB::esscount; ++j)
 				{
 					ess2[j] = BRecvSizes[j][Bownind];
 				}
 				BRecv = new UDERB();
 
-				oput << "For B, Fetching " << (void*)colwindows[0] << endl;
-				SpParHelper::FetchMatrix(*BRecv, ess2, colwindows, Bownind);	// No lock version, only get !
+				oput << "For B, Fetching " << (void*)colwindows[0] << std::endl;
+				SpParHelper::FetchMatrix(*BRecv, ess2, colwindows, Bownind);	// No lock version, only std::get !
 			}
 
-			oput << "Fencing " << (void*) rowwinnext[0] << endl;
-			oput << "Fencing " << (void*) rowwinnext[0] << endl;
+			oput << "Fencing " << (void*) rowwinnext[0] << std::endl;
+			oput << "Fencing " << (void*) rowwinnext[0] << std::endl;
 
 			for(int j=0; j< rowwinnext.size(); ++j)
 				MPI_Win_fence(MPI_MODE_NOSTORE, rowwinnext[j]);		// Synch using "other" windows
@@ -651,8 +651,8 @@ SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UD
 
 	if(stages % 2 == 1)	// fence on Recv via windows
 	{
-		oput << "Fencing " << (void*) rowwindows[0] << endl;
-		oput << "Fencing " << (void*) colwindows[0] << endl;
+		oput << "Fencing " << (void*) rowwindows[0] << std::endl;
+		oput << "Fencing " << (void*) colwindows[0] << std::endl;
 
 		for(int j=0; j< rowwindows.size(); ++j)
 			MPI_Win_fence(MPI_MODE_NOSUCCEED, rowwindows[j]);		// Synch using "prev" windows
@@ -668,8 +668,8 @@ SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UD
 	}
 	else		// fence on RecvNext via winnext
 	{
-		oput << "Fencing " << (void*) rowwinnext[0] << endl;
-		oput << "Fencing " << (void*) colwinnext[0] << endl;
+		oput << "Fencing " << (void*) rowwinnext[0] << std::endl;
+		oput << "Fencing " << (void*) colwinnext[0] << std::endl;
 
 		for(int j=0; j< rowwinnext.size(); ++j)
 			MPI_Win_fence(MPI_MODE_NOSUCCEED, rowwinnext[j]);		// Synch using "prev" windows
@@ -697,7 +697,7 @@ SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UD
 
 	IU C_m = A.spSeq->getnrow();
 	IU C_n = B.spSeq->getncol();
-	DER_promote * C = new DER_promote(MergeAll<SR>(tomerge, C_m, C_n), false, NULL);	// First get the result in SpTuples, then convert to UDER
+	DER_promote * C = new DER_promote(MergeAll<SR>(tomerge, C_m, C_n), false, NULL);	// First std::get the result in SpTuples, then convert to UDER
 	for(int i=0; i<tomerge.size(); ++i)
 	{
 		delete tomerge[i];
@@ -712,7 +712,7 @@ SpParMat<IU,typename promote_trait<NU1,NU2>::T_promote,typename promote_trait<UD
 
 
 
-// Randomly permutes an already existing vector
+// Randomly permutes an already existing std::vector
 // Preserves the data distribution (doesn't rebalance)
 template <typename IU>
 void RandPerm(SpParVec<IU,IU> & V)
@@ -722,7 +722,7 @@ void RandPerm(SpParVec<IU,IU> & V)
 
 	if(DiagWorld != MPI_COMM_NULL) // Diagonal processors only
 	{
-		pair<double,IU> * vecpair = new pair<double,IU>[V.getlocnnz()];
+		std::pair<double,IU> * vecpair = new std::pair<double,IU>[V.getlocnnz()];
 
 		int nproc, diagrank;
 		MPI_Comm_size(DiagWorld, &nproc);
@@ -739,11 +739,11 @@ void RandPerm(SpParVec<IU,IU> & V)
 			vecpair[i].second = V.num[i];
 		}
 
-		// less< pair<T1,T2> > works correctly (sorts wrt first elements)
+		// std::less< std::pair<T1,T2> > works correctly (sorts wrt first elements)
 		vpsort::parallel_sort (vecpair, vecpair + V.getlocnnz(),  dist, DiagWorld);
 
-		vector< IU > nind(V.getlocnnz());
-		vector< IU > nnum(V.getlocnnz());
+		std::vector< IU > nind(V.getlocnnz());
+		std::vector< IU > nnum(V.getlocnnz());
 		for(int i=0; i<V.getlocnnz(); ++i)
 		{
 			nind[i] = i;
@@ -766,15 +766,15 @@ DenseParVec<IU,typename promote_trait<NUM,NUV>::T_promote>  SpMV
 	IU ncolA = A.getncol();
 	if(ncolA != x.getTotalLength())
 	{
-		ostringstream outs;
-		outs << "Can not multiply, dimensions does not match"<< endl;
-		outs << ncolA << " != " << x.getTotalLength() << endl;
+		std::ostringstream outs;
+		outs << "Can not multiply, dimensions does not match"<< std::endl;
+		outs << ncolA << " != " << x.getTotalLength() << std::endl;
 		SpParHelper::Print(outs.str());
 		MPI_Abort(MPI_COMM_WORLD, DIMMISMATCH);
 	}
 	if(!(*A.commGrid == *x.commGrid))
 	{
-		cout << "Grids are not comparable for SpMV" << endl;
+		std::cout << "Grids are not comparable for SpMV" << std::endl;
 		MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
 	}
 	MPI_Comm DiagWorld = x.commGrid->GetDiagWorld();
@@ -793,12 +793,12 @@ DenseParVec<IU,typename promote_trait<NUM,NUV>::T_promote>  SpMV
 		MPI_Bcast(const_cast<NUV*>(SpHelper::p2a(x.arr)), size, MPIType<NUV>(), diagincol, ColWorld);
 
 		T_promote * localy = new T_promote[ysize];
-		fill_n(localy, ysize, id);
+		std::fill_n(localy, ysize, id);
 		dcsc_gespmv<SR>(*(A.spSeq), SpHelper::p2a(x.arr), localy);
 
 		MPI_Reduce(MPI_IN_PLACE, localy, ysize, MPIType<T_promote>(), SR::mpi_op(), diaginrow, RowWorld);
 		y.arr.resize(ysize);
-		copy(localy, localy+ysize, y.arr.begin());
+		std::copy(localy, localy+ysize, y.arr.begin());
 		delete [] localy;
 	}
 	else
@@ -810,7 +810,7 @@ DenseParVec<IU,typename promote_trait<NUM,NUV>::T_promote>  SpMV
 		MPI_Bcast(localx, size, MPIType<NUV>(), diagincol, ColWorld);
 
 		T_promote * localy = new T_promote[ysize];
-		fill_n(localy, ysize, id);
+		std::fill_n(localy, ysize, id);
 
 		dcsc_gespmv<SR>(*(A.spSeq), localx, localy);
 		delete [] localx;
@@ -822,8 +822,8 @@ DenseParVec<IU,typename promote_trait<NUM,NUV>::T_promote>  SpMV
 }
 
 template<class IN, class OUT>
-vector<OUT> convert(vector<IN> x) {
-  vector<OUT> out(x.size());
+std::vector<OUT> convert(std::vector<IN> x) {
+  std::vector<OUT> out(x.size());
   for(int i = 0; i < x.size(); i++) {
     out[i] = x[i];
   }
@@ -839,15 +839,15 @@ SpParVec<IU,typename promote_trait<NUM,NUV>::T_promote>  SpMV
 	IU ncolA = A.getncol();
 	if(ncolA != x.getTotalLength())
 	{
-		ostringstream outs;
-		outs << "Can not multiply, dimensions does not match"<< endl;
-		outs << ncolA << " != " << x.getTotalLength() << endl;
+		std::ostringstream outs;
+		outs << "Can not multiply, dimensions does not match"<< std::endl;
+		outs << ncolA << " != " << x.getTotalLength() << std::endl;
 		SpParHelper::Print(outs.str());
 		MPI_Abort(MPI_COMM_WORLD, DIMMISMATCH);
 	}
 	if(!(*A.commGrid == *x.commGrid))
 	{
-		cout << "Grids are not comparable for SpMV" << endl;
+		std::cout << "Grids are not comparable for SpMV" << std::endl;
 		MPI_Abort(MPI_COMM_WORLD, GRIDMISMATCH);
 	}
 
@@ -857,7 +857,7 @@ SpParVec<IU,typename promote_trait<NUM,NUV>::T_promote>  SpMV
 	int diaginrow = x.commGrid->GetDiagOfProcRow();
 	int diagincol = x.commGrid->GetDiagOfProcCol();
 
-	SpParVec<IU, T_promote> y ( x.commGrid);	// identity doesn't matter for sparse vectors
+	SpParVec<IU, T_promote> y ( x.commGrid);	// identity doesn't matter for sparse std::vectors
 	IU ysize = A.getlocalrows();
 	if(x.diagonal)
 	{
@@ -869,14 +869,14 @@ SpParVec<IU,typename promote_trait<NUM,NUV>::T_promote>  SpMV
 		// define a SPA-like data structure
 		T_promote * localy = new T_promote[ysize];
 		bool * isthere = new bool[ysize];
-		vector<IU> nzinds;	// nonzero indices
-		fill_n(isthere, ysize, false);
+		std::vector<IU> nzinds;	// nonzero indices
+		std::fill_n(isthere, ysize, false);
 
-		// serial SpMV with sparse vector
-		vector<IU> indy;
-		vector< T_promote >  numy;
-    vector<int32_t> inds = convert<IU, int32_t>(x.ind);
-    vector<int32_t> indys;
+		// serial SpMV with sparse std::vector
+		std::vector<IU> indy;
+		std::vector< T_promote >  numy;
+    std::vector<int32_t> inds = convert<IU, int32_t>(x.ind);
+    std::vector<int32_t> indys;
 		dcsc_gespmv<SR, IU, int32_t, NUM>(*(A.spSeq), SpHelper::p2a(inds), SpHelper::p2a(x.num), nnzx, indys, numy);
     indy = convert<int32_t, IU>(indys);
 		// dcsc_gespmv<SR>(*(A.spSeq), SpHelper::p2a(x.ind), SpHelper::p2a(x.num), nnzx, indy, numy);
@@ -928,16 +928,16 @@ SpParVec<IU,typename promote_trait<NUM,NUV>::T_promote>  SpMV
 		IU nnzx;
 		MPI_Bcast(&nnzx, 1, MPIType<IU>(), diagincol, ColWorld);
 
-		vector<IU> xinds(nnzx);
-		vector<NUV> xnums(nnzx);
+		std::vector<IU> xinds(nnzx);
+		std::vector<NUV> xnums(nnzx);
 		MPI_Bcast(xinds.data(), nnzx, MPIType<IU>(), diagincol, ColWorld);
 		MPI_Bcast(xnums.data(), nnzx, MPIType<NUV>(), diagincol, ColWorld);
 
-		// serial SpMV with sparse vector
-		vector< IU > indy;
-		vector< T_promote >  numy;
-    vector<int32_t> xinds2 = convert<IU, int32_t>(xinds);
-    vector<int32_t> indys;
+		// serial SpMV with sparse std::vector
+		std::vector< IU > indy;
+		std::vector< T_promote >  numy;
+    std::vector<int32_t> xinds2 = convert<IU, int32_t>(xinds);
+    std::vector<int32_t> indys;
 		dcsc_gespmv<SR, IU, int32_t, NUM>(*(A.spSeq), SpHelper::p2a(xinds2), SpHelper::p2a(xnums), nnzx, indys, numy);
     indy = convert<int32_t, IU>(indys);
 		// dcsc_gespmv<SR>(*(A.spSeq), SpHelper::p2a(xinds), SpHelper::p2a(xnums), nnzx, indy, numy);

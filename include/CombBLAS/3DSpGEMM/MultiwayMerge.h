@@ -2,9 +2,9 @@
 
 
 /***************************************************************************
- * Find indices of column splitters in a list of tuple in parallel.
+ * Find indices of column splitters in a list of std::tuple in parallel.
  * Inputs:
- *      tuples: an array of SpTuples each tuple is (rowid, colid, val)
+ *      tuples: an array of SpTuples each std::tuple is (rowid, colid, val)
  *      nsplits: number of splits requested
  *  Output:
  *      splitters: An array of size (nsplits+1) storing the starts and ends of split tuples.
@@ -12,17 +12,17 @@
  ***************************************************************************/
 
 template <typename RT, typename IT, typename NT>
-vector<RT> findColSplitters(SpTuples<IT,NT> * & spTuples, int nsplits)
+std::vector<RT> findColSplitters(SpTuples<IT,NT> * & spTuples, int nsplits)
 {
-    vector<RT> splitters(nsplits+1);
+    std::vector<RT> splitters(nsplits+1);
     splitters[0] = static_cast<RT>(0);
     ColLexiCompare<IT,NT> comp;
 #pragma omp parallel for
     for(int i=1; i< nsplits; i++)
     {
         IT cur_col = i * (spTuples->getncol()/nsplits);
-        tuple<IT,IT,NT> search_tuple(0, cur_col, 0);
-        tuple<IT,IT,NT>* it = lower_bound (spTuples->tuples, spTuples->tuples + spTuples->getnnz(), search_tuple, comp);
+        std::tuple<IT,IT,NT> search_tuple(0, cur_col, 0);
+        std::tuple<IT,IT,NT>* it = std::lower_bound (spTuples->tuples, spTuples->tuples + spTuples->getnnz(), search_tuple, comp);
         splitters[i] = (RT) (it - spTuples->tuples);
     }
     splitters[nsplits] = spTuples->getnnz();
@@ -42,12 +42,12 @@ vector<RT> findColSplitters(SpTuples<IT,NT> * & spTuples, int nsplits)
  */
 
 template<class SR, class IT, class NT>
-SpTuples<IT,NT>* SerialMerge( const vector<SpTuples<IT,NT> *> & ArrSpTups, tuple<IT, IT, NT> * ntuples)
+SpTuples<IT,NT>* SerialMerge( const std::vector<SpTuples<IT,NT> *> & ArrSpTups, std::tuple<IT, IT, NT> * ntuples)
 {
     int nlists =  ArrSpTups.size();
     ColLexiCompare<IT,int> heapcomp;
-    vector<tuple<IT, IT, int>> heap(nlists); // if performance issue, create this outside of threaded region
-    vector<IT> curptr(nlists, static_cast<IT>(0));
+    std::vector<std::tuple<IT, IT, int>> heap(nlists); // if performance issue, create this outside of threaded region
+    std::vector<IT> curptr(nlists, static_cast<IT>(0));
     IT estnnz = 0;
     IT hsize = 0;
     for(int i=0; i< nlists; ++i)
@@ -55,22 +55,22 @@ SpTuples<IT,NT>* SerialMerge( const vector<SpTuples<IT,NT> *> & ArrSpTups, tuple
         if(ArrSpTups[i]->getnnz()>0)
         {
             estnnz += ArrSpTups[i]->getnnz();
-            heap[hsize++] = make_tuple(get<0>(ArrSpTups[i]->tuples[0]), get<1>(ArrSpTups[i]->tuples[0]), i);
+            heap[hsize++] = std::make_tuple(std::get<0>(ArrSpTups[i]->tuples[0]), std::get<1>(ArrSpTups[i]->tuples[0]), i);
         }
         
     }
-    make_heap(heap.data(), heap.data()+hsize, not2(heapcomp));
+    std::make_heap(heap.data(), heap.data()+hsize, not2(heapcomp));
     IT cnz = 0;
     
     while(hsize > 0)
     {
-        pop_heap(heap.data(), heap.data() + hsize, not2(heapcomp));   // result is stored in heap[hsize-1]
-        int source = get<2>(heap[hsize-1]);
+        std::pop_heap(heap.data(), heap.data() + hsize, not2(heapcomp));   // result is stored in heap[hsize-1]
+        int source = std::get<2>(heap[hsize-1]);
         
         if( (cnz != 0) &&
-           ((get<0>(ntuples[cnz-1]) == get<0>(heap[hsize-1])) && (get<1>(ntuples[cnz-1]) == get<1>(heap[hsize-1]))) )
+           ((std::get<0>(ntuples[cnz-1]) == std::get<0>(heap[hsize-1])) && (std::get<1>(ntuples[cnz-1]) == std::get<1>(heap[hsize-1]))) )
         {
-            get<2>(ntuples[cnz-1])  = SR::add(get<2>(ntuples[cnz-1]), ArrSpTups[source]->numvalue(curptr[source]++));
+            std::get<2>(ntuples[cnz-1])  = SR::add(std::get<2>(ntuples[cnz-1]), ArrSpTups[source]->numvalue(curptr[source]++));
         }
         else
         {
@@ -79,9 +79,9 @@ SpTuples<IT,NT>* SerialMerge( const vector<SpTuples<IT,NT> *> & ArrSpTups, tuple
         
         if(curptr[source] != ArrSpTups[source]->getnnz())	// That array has not been depleted
         {
-            heap[hsize-1] = make_tuple(get<0>(ArrSpTups[source]->tuples[curptr[source]]),
-                                       get<1>(ArrSpTups[source]->tuples[curptr[source]]), source);
-            push_heap(heap.data(), heap.data()+hsize, not2(heapcomp));
+            heap[hsize-1] = std::make_tuple(std::get<0>(ArrSpTups[source]->tuples[curptr[source]]),
+                                       std::get<1>(ArrSpTups[source]->tuples[curptr[source]]), source);
+            std::push_heap(heap.data(), heap.data()+hsize, not2(heapcomp));
         }
         else
         {
@@ -97,7 +97,7 @@ SpTuples<IT,NT>* SerialMerge( const vector<SpTuples<IT,NT> *> & ArrSpTups, tuple
 // Performs a balanced merge of the array of SpTuples
 // Assumes the input parameters are already column sorted
 template<class SR, class IT, class NT>
-SpTuples<IT, NT>* MultiwayMerge( vector<SpTuples<IT,NT> *> & ArrSpTups, IT mdim = 0, IT ndim = 0, bool delarrs = false )
+SpTuples<IT, NT>* MultiwayMerge( std::vector<SpTuples<IT,NT> *> & ArrSpTups, IT mdim = 0, IT ndim = 0, bool delarrs = false )
 {
     
     int nlists =  ArrSpTups.size();
@@ -111,10 +111,10 @@ SpTuples<IT, NT>* MultiwayMerge( vector<SpTuples<IT,NT> *> & ArrSpTups, IT mdim 
         {
             return ArrSpTups[0];
         }
-        else // copy input to output
+        else // std::copy input to output
         {
-            tuple<IT, IT, NT>* mergeTups = static_cast<tuple<IT, IT, NT>*>
-                    (::operator new (sizeof(tuple<IT, IT, NT>[ArrSpTups[0]->getnnz()])));
+            std::tuple<IT, IT, NT>* mergeTups = static_cast<std::tuple<IT, IT, NT>*>
+                    (::operator new (sizeof(std::tuple<IT, IT, NT>[ArrSpTups[0]->getnnz()])));
             #pragma omp parallel for
             for(int i=0; i<ArrSpTups[0]->getnnz(); i++)
                 mergeTups[i] = ArrSpTups[0]->tuples[i];
@@ -128,7 +128,7 @@ SpTuples<IT, NT>* MultiwayMerge( vector<SpTuples<IT,NT> *> & ArrSpTups, IT mdim 
     {
         if((mdim != ArrSpTups[i]->getnrow()) || ndim != ArrSpTups[i]->getncol())
         {
-            cerr << "Dimensions of SpTuples do not match on multiwayMerge()" << endl;
+            std::cerr << "Dimensions of SpTuples do not match on multiwayMerge()" << std::endl;
             return new SpTuples<IT,NT>(0,0,0);
         }
     }
@@ -139,15 +139,15 @@ SpTuples<IT, NT>* MultiwayMerge( vector<SpTuples<IT,NT> *> & ArrSpTups, IT mdim 
         nthreads = omp_get_num_threads();
     }
     int nsplits = 4*nthreads; // oversplit for load balance
-    nsplits = min(nsplits, (int)ndim); // we cannot split a column
-    vector< vector<IT> > colPtrs;
+    nsplits = std::min(nsplits, (int)ndim); // we cannot split a column
+    std::vector< std::vector<IT> > colPtrs;
     for(int i=0; i< nlists; i++)
     {
         colPtrs.push_back(findColSplitters<IT>(ArrSpTups[i], nsplits)); // in parallel
     }
     
     // ------ estimate memory requirement after merge in each split ------
-    vector<IT> nnzPerSplit(nsplits);
+    std::vector<IT> nnzPerSplit(nsplits);
     IT nnzAll = static_cast<IT>(0);
     //#pragma omp parallel for
     for(int i=0; i< nsplits; i++)
@@ -162,19 +162,19 @@ SpTuples<IT, NT>* MultiwayMerge( vector<SpTuples<IT,NT> *> & ArrSpTups, IT mdim 
     
     
     // ------ allocate memory in a serial region ------
-    vector<tuple<IT, IT, NT> *> mergeBuf(nsplits);
+    std::vector<std::tuple<IT, IT, NT> *> mergeBuf(nsplits);
     for(int i=0; i< nsplits; i++)
     {
-        mergeBuf[i] = static_cast<tuple<IT, IT, NT>*> (::operator new (sizeof(tuple<IT, IT, NT>[nnzPerSplit[i]])));
+        mergeBuf[i] = static_cast<std::tuple<IT, IT, NT>*> (::operator new (sizeof(std::tuple<IT, IT, NT>[nnzPerSplit[i]])));
     }
 
 
      // ------ perform merge in parallel ------
-    vector<SpTuples<IT,NT> *> listMergeTups(nsplits); // use the memory allocated in mergeBuf
+    std::vector<SpTuples<IT,NT> *> listMergeTups(nsplits); // use the memory allocated in mergeBuf
 #pragma omp parallel for schedule(dynamic)
     for(int i=0; i< nsplits; i++) // serially merge part by part
     {
-        vector<SpTuples<IT,NT> *> listSplitTups(nlists);
+        std::vector<SpTuples<IT,NT> *> listSplitTups(nlists);
         for(int j=0; j< nlists; ++j)
         {
             IT curnnz= colPtrs[j][i+1] - colPtrs[j][i];
@@ -185,7 +185,7 @@ SpTuples<IT, NT>* MultiwayMerge( vector<SpTuples<IT,NT> *> & ArrSpTups, IT mdim 
     
     
     // ------ concatenate merged tuples processed by threads ------
-    vector<IT> tdisp(nsplits+1);
+    std::vector<IT> tdisp(nsplits+1);
     tdisp[0] = 0;
     for(int i=0; i<nsplits; ++i)
     {
@@ -193,7 +193,7 @@ SpTuples<IT, NT>* MultiwayMerge( vector<SpTuples<IT,NT> *> & ArrSpTups, IT mdim 
     }
 
     IT mergedListSize = tdisp[nsplits];
-    tuple<IT, IT, NT>* shrunkTuples = static_cast<tuple<IT, IT, NT>*> (::operator new (sizeof(tuple<IT, IT, NT>[mergedListSize])));
+    std::tuple<IT, IT, NT>* shrunkTuples = static_cast<std::tuple<IT, IT, NT>*> (::operator new (sizeof(std::tuple<IT, IT, NT>[mergedListSize])));
     
 #pragma omp parallel for schedule(dynamic)
     for(int i=0; i< nsplits; i++)

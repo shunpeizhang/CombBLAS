@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2015, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -29,11 +29,11 @@
 #ifndef _SP_PAR_MAT_H_
 #define _SP_PAR_MAT_H_
 
-#include <iostream>
+#include<iostream>
 #include <fstream>
 #include <cmath>
 #include <mpi.h>
-#include <vector>
+#include<vector>
 #include <iterator>
 
 #include "SpMat.h"
@@ -74,16 +74,16 @@ public:
 	// Constructors
 	SpParMat ();
   SpParMat (MPI_Comm world); 	// ABAB: there is risk that any integer would call this constructor due to MPICH representation
-	SpParMat (shared_ptr<CommGrid> grid);
-	SpParMat (DER * myseq, shared_ptr<CommGrid> grid);
+	SpParMat (std::shared_ptr<CommGrid> grid);
+	SpParMat (DER * myseq, std::shared_ptr<CommGrid> grid);
 
-	SpParMat (ifstream & input, MPI_Comm & world);
+	SpParMat (std::ifstream & input, MPI_Comm & world);
 	SpParMat (DER * myseq, MPI_Comm & world);
 
 	template <class DELIT>
 	SpParMat (const DistEdgeList< DELIT > & rhs, bool removeloops = true);	// conversion from distributed edge list
 
-	SpParMat (const SpParMat< IT,NT,DER > & rhs);				// copy constructor
+	SpParMat (const SpParMat< IT,NT,DER > & rhs);				// std::copy constructor
 	SpParMat (IT total_m, IT total_n, const FullyDistVec<IT,IT> & , const FullyDistVec<IT,IT> & , const FullyDistVec<IT,NT> & , bool SumDuplicates = false);	// matlab sparse
 	SpParMat (IT total_m, IT total_n, const FullyDistVec<IT,IT> & , const FullyDistVec<IT,IT> & , const NT & , bool SumDuplicates = false);	// matlab sparse
 	SpParMat< IT,NT,DER > & operator=(const SpParMat< IT,NT,DER > & rhs);	// assignment operator
@@ -187,7 +187,7 @@ public:
 	template <typename _BinaryOperation>
 	void UpdateDense(DenseParMat<IT, NT> & rhs, _BinaryOperation __binary_op) const;
 
-	void Dump(string filename) const;
+	void Dump(std::string filename) const;
 	void PrintInfo() const;
 
 	template <typename NNT, typename NDER> operator SpParMat< IT,NNT,NDER > () const;	//!< Type conversion operator
@@ -217,7 +217,7 @@ public:
     return _nnz;
   }
 
-	SpParMat<IT,NT,DER> SubsRefCol (const vector<IT> & ci) const;				//!< Column indexing with special parallel semantics
+	SpParMat<IT,NT,DER> SubsRefCol (const std::vector<IT> & ci) const;				//!< Column indexing with special parallel semantics
 
 	//! General indexing with serial semantics
 	template <typename SelectFirstSR, typename SelectSecondSR>
@@ -241,11 +241,11 @@ public:
 		void binaryfill(FILE * rFile, IT & row, IT & col, NT & val)
 		{
 			if (fread(&row, sizeof(IT), 1,rFile) != 1)
-				cout << "binaryfill(): error reading row index" << endl;
+				std::cout << "binaryfill(): error reading row index" << std::endl;
 			if (fread(&col, sizeof(IT), 1,rFile) != 1)
-				cout << "binaryfill(): error reading col index" << endl;
+				std::cout << "binaryfill(): error reading col index" << std::endl;
 			if (fread(&val, sizeof(NT), 1,rFile) != 1)
-				cout << "binaryfill(): error reading value" << endl;
+				std::cout << "binaryfill(): error reading value" << std::endl;
 			return;
 		}
 		size_t entrylength() { return 2*sizeof(IT)+sizeof(NT); }
@@ -265,32 +265,32 @@ public:
 		}
 	};
 
-    void ParallelReadMM (const string & filename, bool verbose = false);
+    void ParallelReadMM (const std::string & filename, bool verbose = false);
 	template <class HANDLER>
-	void ReadDistribute (const string & filename, int master, bool nonum, HANDLER handler, bool transpose = false, bool pario = false);
-	void ReadDistribute (const string & filename, int master, bool nonum=false, bool pario = false)
+	void ReadDistribute (const std::string & filename, int master, bool nonum, HANDLER handler, bool transpose = false, bool pario = false);
+	void ReadDistribute (const std::string & filename, int master, bool nonum=false, bool pario = false)
 	{
 		ReadDistribute(filename, master, nonum, ScalarReadSaveHandler(), false, pario);
 	}
 
 	template <class HANDLER>
-	void SaveGathered(string filename, HANDLER handler, bool transpose = false) const;
-	void SaveGathered(string filename) const { SaveGathered(filename, ScalarReadSaveHandler(), false); }
+	void SaveGathered(std::string filename, HANDLER handler, bool transpose = false) const;
+	void SaveGathered(std::string filename) const { SaveGathered(filename, ScalarReadSaveHandler(), false); }
 
-	ofstream& put(ofstream& outfile) const;
-	void PrintForPatoh(string filename) const;
+	std::ofstream& put(std::ofstream& outfile) const;
+	void PrintForPatoh(std::string filename) const;
 	void GetPlaceInGlobalGrid(IT& rowOffset, IT& colOffset) const;
 
 
-  void MatrixFromIJK(size_t nrows, size_t ncols, vector<IT> rows, vector<IT> cols, vector<NT> vals, bool sum_dups = true);
-	shared_ptr<CommGrid> getcommgrid() const { return commGrid; }
+  void MatrixFromIJK(size_t nrows, size_t ncols, std::vector<IT> rows, std::vector<IT> cols, std::vector<NT> vals, bool sum_dups = true);
+	std::shared_ptr<CommGrid> getcommgrid() const { return commGrid; }
 	typename DER::LocalIT getlocalrows() const { return spSeq->getnrow(); }
 	typename DER::LocalIT getlocalcols() const { return spSeq->getncol();}
 	typename DER::LocalIT getlocalnnz() const { return spSeq->getnnz(); }
 	DER & seq() { return (*spSeq); }
 	const DER & seq() const { return (*spSeq); }
 	DER * seqptr() { return spSeq; }
-	shared_ptr<CommGrid> commGrid;
+	std::shared_ptr<CommGrid> commGrid;
 
 	//! Friend declarations
 	template <typename SR, typename NUO, typename UDERO, typename IU, typename NU1, typename NU2, typename UDER1, typename UDER2>
@@ -360,17 +360,17 @@ public:
 	friend void LocalSpMV(const SpParMat<IU,bool,UDER> & A, int rowneighs, OptBuf<int32_t, VT > & optbuf, int32_t * & indacc, VT * & numacc, int * sendcnt, int accnz);
 
 private:
-	void SparseCommon(vector< vector < tuple<IT,IT,NT> > > & data, IT locsize, IT total_m, IT total_n, bool SumDuplicates = false);
+	void SparseCommon(std::vector< std::vector < std::tuple<IT,IT,NT> > > & data, IT locsize, IT total_m, IT total_n, bool SumDuplicates = false);
 	int Owner(IT total_m, IT total_n, IT grow, IT gcol, IT & lrow, IT & lcol) const;
 
-	void HorizontalSend(IT * & rows, IT * & cols, NT * & vals, IT * & temprows, IT * & tempcols, NT * & tempvals, vector < tuple <IT,IT,NT> > & localtuples,
+	void HorizontalSend(IT * & rows, IT * & cols, NT * & vals, IT * & temprows, IT * & tempcols, NT * & tempvals, std::vector < std::tuple <IT,IT,NT> > & localtuples,
 						int * rcurptrs, int * rdispls, IT buffperrowneigh, int rowneighs, int recvcount, IT m_perproc, IT n_perproc, int rankinrow);
 
         template <class HANDLER>
-	void ReadAllMine(FILE * binfile, IT * & rows, IT * & cols, NT * & vals, vector< tuple<IT,IT,NT> > & localtuples, int * rcurptrs, int * ccurptrs, int * rdispls, int * cdispls,
+	void ReadAllMine(FILE * binfile, IT * & rows, IT * & cols, NT * & vals, std::vector< std::tuple<IT,IT,NT> > & localtuples, int * rcurptrs, int * ccurptrs, int * rdispls, int * cdispls,
 			IT m_perproc, IT n_perproc, int rowneighs, int colneighs, IT buffperrowneigh, IT buffpercolneigh, IT entriestoread, HANDLER handler, int rankinrow, bool transpose);
 
-	void VerticalSend(IT * & rows, IT * & cols, NT * & vals, vector< tuple<IT,IT,NT> > & localtuples, int * rcurptrs, int * ccurptrs, int * rdispls, int * cdispls,
+	void VerticalSend(IT * & rows, IT * & cols, NT * & vals, std::vector< std::tuple<IT,IT,NT> > & localtuples, int * rcurptrs, int * ccurptrs, int * rdispls, int * cdispls,
 				IT m_perproc, IT n_perproc, int rowneighs, int colneighs, IT buffperrowneigh, IT buffpercolneigh, int rankinrow);
 
 	void AllocateSetBuffers(IT * & rows, IT * & cols, NT * & vals,  int * & rcurptrs, int * & ccurptrs, int rowneighs, int colneighs, IT buffpercolneigh);
@@ -382,7 +382,7 @@ private:
 	friend class DenseParMat;
 
 	template <typename IU, typename NU, typename UDER>
-	friend ofstream& operator<< (ofstream& outfile, const SpParMat<IU,NU,UDER> & s);
+	friend std::ofstream& operator<< (std::ofstream& outfile, const SpParMat<IU,NU,UDER> & s);
 };
 
 template <typename SR, typename NUO, typename UDERO, typename IU, typename NU1, typename NU2, typename UDER1, typename UDER2>

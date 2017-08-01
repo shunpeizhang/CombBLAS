@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -29,11 +29,11 @@
 #ifndef _DIST_EDGE_LIST_H_
 #define _DIST_EDGE_LIST_H_
 
-#include <iostream>
+#include<iostream>
 #include <fstream>
 #include <cmath>
 #include <mpi.h>
-#include <vector>
+#include<vector>
 #include <iterator>
 #include "CombBLAS.h"
 #include "SpMat.h"
@@ -87,8 +87,8 @@ public:
 	DistEdgeList (const char * filename, IT globaln, IT globalm);	// read from binary in parallel
 	~DistEdgeList ();
 
-	void Dump64bit(string filename);
-	void Dump32bit(string filename);
+	void Dump64bit(std::string filename);
+	void Dump32bit(std::string filename);
 	void GenGraph500Data(double initiator[4], int log_numverts, int edgefactor, bool scramble =false, bool packed=false);
 	void CleanupEmpties();
 
@@ -96,11 +96,11 @@ public:
 	IT getNumLocalEdges() const { return nedges; }
     IT* getEdges() const {return edges;}
     packed_edge * getPackedEdges() const { return pedges; }
-    shared_ptr<CommGrid> commGrid;
+    std::shared_ptr<CommGrid> commGrid;
 
 private:
 
-	IT* edges; // edge list composed of pairs of edge endpoints.
+	IT* edges; // edge list composed of std::pairs of edge endpoints.
 	           // Edge i goes from edges[2*i+0] to edges[2*i+1]
 	packed_edge * pedges;
 

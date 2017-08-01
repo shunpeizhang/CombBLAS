@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -33,7 +33,7 @@
 #ifndef _OPERATIONS_H_
 #define _OPERATIONS_H_
 
-#include <iostream>
+#include<iostream>
 #include <functional>
 #include <cmath>
 #include <limits>
@@ -130,8 +130,8 @@ struct bintotality : public std::binary_function<T1, T2, bool>
 
 
 /**
- * binary_function<Arg1, Arg2, Result>
- * This is left untemplated because pow() only makes sense for
+ * std::binary_function<Arg1, Arg2, Result>
+ * This is std::left untemplated because pow() only makes sense for
  * <double, int, double> , <double, double, double> , <float, float, float>
  * and C++ can automatically upcast each case to <double, double, double>
  */

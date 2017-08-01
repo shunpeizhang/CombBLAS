@@ -26,9 +26,12 @@
  THE SOFTWARE.
  */
 
-#include <memory>
 #include "CombBLAS/CommGrid.h"
 #include "CombBLAS/SpDefs.h"
+#include <iostream>
+#include <memory>
+
+using namespace std;
 
 namespace combblas {
 
@@ -46,8 +49,10 @@ CommGrid::CommGrid(MPI_Comm world, int nrowproc, int ncolproc): grrows(nrowproc)
 
 		if(grcols * grrows != nproc)
 		{
-			cerr << "This version of the Combinatorial BLAS only works on a square logical processor grid" << endl;
-			MPI_Abort(MPI_COMM_WORLD,NOTSQUARE);
+                  std::cerr << "This version of the Combinatorial BLAS only "
+                               "works on a square logical processor grid"
+                            << endl;
+                  MPI_Abort(MPI_COMM_WORLD, NOTSQUARE);
 		}
 	}
 	assert((nproc == (grrows*grcols)));

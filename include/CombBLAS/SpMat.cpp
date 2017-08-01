@@ -7,10 +7,10 @@
 /*
  Copyright (c) 2010-2014, The Regents of the University of California
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
+ Permission is hereby granted, free of charge, to any person obtaining a std::copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ to use, std::copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
 
@@ -29,19 +29,20 @@
 #include <cstdlib>
 #include "SpMat.h"
 #include "Friends.h"
-using namespace std;
+
+namespace combblas {
 
 template <class IT, class NT, class DER>
-SpMat<IT, NT, DER> SpMat<IT, NT, DER>::operator() (const vector<IT> & ri, const vector<IT> & ci) const
+SpMat<IT, NT, DER> SpMat<IT, NT, DER>::operator() (const std::vector<IT> & ri, const std::vector<IT> & ci) const
 {
 	if( (!ci.empty()) && (ci.back() > getncol()))
 	{
-		cerr << "Col indices out of bounds" << endl;
+		std::cerr << "Col indices out of bounds" << std::endl;
 		abort();
 	}
 	if( (!ri.empty()) && (ri.back() > getnrow()))
 	{
-		cerr << "Row indices out of bounds" << endl;
+		std::cerr << "Row indices out of bounds" << std::endl;
 		abort();
 	}
 
@@ -118,12 +119,12 @@ void SpMat<IT, NT, DER>::SpGEMM(SpMat<IT, NT, DER> & A,
 		}
                 else
                 {
-                       	cerr <<"Not multipliable: " << A_n << "!=" << B_m << endl;
+                       	std::cerr <<"Not multipliable: " << A_n << "!=" << B_m << std::endl;
                 }
         }
         else
         {
-		cerr<< "Not addable: "<< getnrow() << "!=" << A_m << " or " << getncol() << "!=" << B_n << endl;
+		std::cerr<< "Not addable: "<< getnrow() << "!=" << A_m << " or " << getncol() << "!=" << B_n << std::endl;
         }
 };
 
@@ -180,34 +181,35 @@ SpTuples<IU, NUO> * MultiplyReturnTuples
 	}
 	else
 	{
-		cerr <<"Not multipliable: " << A_n << "!=" << B_m << endl;
+		std::cerr <<"Not multipliable: " << A_n << "!=" << B_m << std::endl;
 		return new SpTuples<IU, NUO> (0, 0, 0);
 	}
 }
 
 template <class IT, class NT, class DER>
-inline ofstream& SpMat<IT, NT, DER>::put(ofstream& outfile) const
+inline std::ofstream& SpMat<IT, NT, DER>::put(std::ofstream& outfile) const
 {
 	return static_cast<const DER*>(this)->put(outfile);
 }
 
 template <class IT, class NT, class DER>
-inline ifstream& SpMat<IT, NT, DER>::get(ifstream& infile)
+inline std::ifstream& SpMat<IT, NT, DER>::get(std::ifstream& infile)
 {
-	cout << "Getting... SpMat" << endl;
+	std::cout << "Getting... SpMat" << std::endl;
 	return static_cast<DER*>(this)->get(infile);
 }
 
 
 template < typename UIT, typename UNT, typename UDER >
-ofstream& operator<<(ofstream& outfile, const SpMat< UIT,UNT,UDER > & s)
+std::ofstream& operator<<(std::ofstream& outfile, const SpMat< UIT,UNT,UDER > & s)
 {
 	return s.put(outfile);
 }
 
 template < typename UIT, typename UNT, typename UDER >
-ifstream& operator>> (ifstream& infile, SpMat< UIT,UNT,UDER > & s)
+std::ifstream& operator>> (std::ifstream& infile, SpMat< UIT,UNT,UDER > & s)
 {
 	return s.get(infile);
 }
 
+}
