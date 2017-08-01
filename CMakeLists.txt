@@ -11,10 +11,6 @@ set(CMAKE_CXX_STANDARD 11)
 
 # MPI
 find_package(MPI REQUIRED)
-if (MPI_FOUND)
-else (MPI_FOUND)
-  message(SEND_ERROR "MPI is required")
-endif (MPI_FOUND)
 
 # OpenMP
 find_package(OpenMP REQUIRED)
@@ -31,6 +27,7 @@ set_property(TARGET CombBLAS APPEND PROPERTY
 )
 target_link_libraries(CombBLAS ${MPI_CXX_LIBRARIES})
 target_include_directories(CombBLAS PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>)
+target_include_directories(CombBLAS PRIVATE ${MPI_CXX_INCLUDE_PATH})
 target_compile_options(CombBLAS PUBLIC "${OpenMP_CXX_FLAGS}")
 
 # installation
