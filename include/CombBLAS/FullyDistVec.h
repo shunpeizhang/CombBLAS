@@ -34,7 +34,7 @@
 #include<vector>
 #include <utility>
 #include <iterator>
-#include "combblas.h"
+#include "CombBLAS.h"
 #include "CommGrid.h"
 #include "FullyDist.h"
 #include "Exception.h"
