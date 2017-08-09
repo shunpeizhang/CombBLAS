@@ -29,6 +29,7 @@
 #include "FullyDistVec.h"
 #include "FullyDistSpVec.h"
 #include "Operations.h"
+#include <random>
 
 namespace combblas {
 
@@ -811,9 +812,12 @@ void FullyDistVec<IT, NT>::RandPerm() {
   arr.swap(nnum);
 #else
   std::vector<std::vector<NT> > data_send(nprocs);
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_int_distribution<uint32_t> dist(0, nprocs - 1);
   for (int i = 0; i < size; ++i) {
     // send each entry to a random process
-    uint32_t dest = M.randInt(nprocs - 1);
+    uint32_t dest = dist(gen);
     data_send[dest].push_back(arr[i]);
   }
   int* sendcnt = new int[nprocs];
