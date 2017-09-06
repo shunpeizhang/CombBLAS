@@ -30,9 +30,7 @@
 #include "FileHeader.h"
 #include "Operations.h"
 #include "ParFriends.h"
-extern "C" {
 #include "mmio.h"
-}
 #include <sys/stat.h>
 #include <sys/types.h>
 
