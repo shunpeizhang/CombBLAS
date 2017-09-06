@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 
-project(CombBLAS C CXX)
+project(CombBLAS CXX)
 
 set(CombBLAS_VERSION 1.5.0)
 
@@ -16,7 +16,7 @@ find_package(MPI REQUIRED)
 find_package(OpenMP REQUIRED)
 
 # include_directories(third-party)
-add_library(CombBLAS src/CommGrid.cpp src/mmio.c src/MPIType.cpp src/MPIOp.cpp src/MemoryPool.cpp src/hash.cpp)
+add_library(CombBLAS src/CommGrid.cpp src/mmio.cpp src/MPIType.cpp src/MPIOp.cpp src/MemoryPool.cpp src/hash.cpp)
 generate_export_header(CombBLAS)
 set_property(TARGET CombBLAS PROPERTY VERSION ${CombBLAS_VERSION})
 set_property(TARGET CombBLAS PROPERTY SOVERSION 3)
