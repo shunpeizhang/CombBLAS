@@ -8,18 +8,10 @@ include(GenerateExportHeader)
 
 # require c++11
 set(CMAKE_CXX_STANDARD 11)
-
-set(is_cray "FALSE")
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Cray")
-    # Cray can actually do shared libraries
-    SET_PROPERTY(GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS TRUE)
-    set(is_cray "TRUE")
-endif()
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # MPI
-if(NOT is_cray)
-  find_package(MPI REQUIRED)
-endif()
+find_package(MPI REQUIRED)
 
 # OpenMP
 find_package(OpenMP REQUIRED)
@@ -35,10 +27,8 @@ set_property(TARGET CombBLAS APPEND PROPERTY
   COMPATIBLE_INTERFACE_STRING CombBLAS_MAJOR_VERSION
 )
 target_include_directories(CombBLAS PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>)
-if(NOT is_cray)
-  target_link_libraries(CombBLAS ${MPI_CXX_LIBRARIES})
-  target_include_directories(CombBLAS PRIVATE ${MPI_CXX_INCLUDE_PATH})
-endif()
+target_link_libraries(CombBLAS ${MPI_CXX_LIBRARIES})
+target_include_directories(CombBLAS PRIVATE ${MPI_CXX_INCLUDE_PATH})
 target_compile_options(CombBLAS PUBLIC "${OpenMP_CXX_FLAGS}")
 
 # installation
