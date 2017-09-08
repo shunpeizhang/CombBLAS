@@ -9,8 +9,15 @@ include(GenerateExportHeader)
 # require c++11
 set(CMAKE_CXX_STANDARD 11)
 
+set(is_cray "FALSE")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Cray")
+    set(is_cray "TRUE")
+endif()
+
 # MPI
-find_package(MPI REQUIRED)
+if(NOT is_cray)
+  find_package(MPI REQUIRED)
+endif()
 
 # OpenMP
 find_package(OpenMP REQUIRED)
@@ -25,9 +32,11 @@ set_property(TARGET CombBLAS PROPERTY
 set_property(TARGET CombBLAS APPEND PROPERTY
   COMPATIBLE_INTERFACE_STRING CombBLAS_MAJOR_VERSION
 )
-target_link_libraries(CombBLAS ${MPI_CXX_LIBRARIES})
 target_include_directories(CombBLAS PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>)
-target_include_directories(CombBLAS PRIVATE ${MPI_CXX_INCLUDE_PATH})
+if(NOT is_cray)
+  target_link_libraries(CombBLAS ${MPI_CXX_LIBRARIES})
+  target_include_directories(CombBLAS PRIVATE ${MPI_CXX_INCLUDE_PATH})
+endif()
 target_compile_options(CombBLAS PUBLIC "${OpenMP_CXX_FLAGS}")
 
 # installation
