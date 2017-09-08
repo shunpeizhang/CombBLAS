@@ -11,6 +11,8 @@ set(CMAKE_CXX_STANDARD 11)
 
 set(is_cray "FALSE")
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Cray")
+    # Cray can actually do shared libraries
+    SET_PROPERTY(GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS TRUE)
     set(is_cray "TRUE")
 endif()
 
