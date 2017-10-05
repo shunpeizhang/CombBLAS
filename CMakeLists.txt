@@ -6,18 +6,20 @@ set(CombBLAS_VERSION 1.5.0)
 
 include(GenerateExportHeader)
 
-# require c++11
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 # MPI
 find_package(MPI REQUIRED)
 
 # OpenMP
-find_package(OpenMP REQUIRED)
+find_package(OpenMP)
 
 # include_directories(third-party)
 add_library(CombBLAS src/CommGrid.cpp src/mmio.cpp src/MPIType.cpp src/MPIOp.cpp src/MemoryPool.cpp src/hash.cpp)
+target_compile_features(CombBLAS INTERFACE cxx_std_11)
+target_link_libraries(CombBLAS MPI::MPI_CXX)
+if(OpenMP_CXX_FOUND)
+  add_definitions(-DTHREADED)
+  target_link_libraries(CombBLAS OpenMP:OpenMP_CXX)
+endif()
 generate_export_header(CombBLAS)
 set_property(TARGET CombBLAS PROPERTY VERSION ${CombBLAS_VERSION})
 set_property(TARGET CombBLAS PROPERTY SOVERSION 3)
@@ -27,9 +29,6 @@ set_property(TARGET CombBLAS APPEND PROPERTY
   COMPATIBLE_INTERFACE_STRING CombBLAS_MAJOR_VERSION
 )
 target_include_directories(CombBLAS PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>)
-target_link_libraries(CombBLAS ${MPI_CXX_LIBRARIES})
-target_include_directories(CombBLAS PRIVATE ${MPI_CXX_INCLUDE_PATH})
-target_compile_options(CombBLAS PUBLIC "${OpenMP_CXX_FLAGS}")
 
 # installation
 install(DIRECTORY include/ DESTINATION include)

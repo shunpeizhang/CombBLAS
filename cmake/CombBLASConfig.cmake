@@ -1,4 +1,4 @@
-include("${CMAKE_CURRENT_LIST_DIR}/CombBLASTargets.cmake")
+find_package(MPI REQUIRED QUIET)
+find_package(OpenMP QUIET)
 
-find_package(MPI REQUIRED)
-find_package(OpenMP REQUIRED)
+include("${CMAKE_CURRENT_LIST_DIR}/CombBLASTargets.cmake")
