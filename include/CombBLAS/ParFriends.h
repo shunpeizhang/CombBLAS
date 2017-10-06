@@ -1311,9 +1311,11 @@ FullyDistSpVec<IU, RET> EWiseApply_threaded(const FullyDistSpVec<IU, NU1>& V,
       SpParHelper::Print(outs.str());
       MPI_Abort(MPI_COMM_WORLD, DIMMISMATCH);
     } else {
-      int nthreads;
+      int nthreads = 1;
 #pragma omp parallel
+#ifdef THREADED
       { nthreads = omp_get_num_threads(); }
+#endif
 
       Product.glen = V.glen;
       IU size = W.LocArrSize();
@@ -1331,7 +1333,11 @@ FullyDistSpVec<IU, RET> EWiseApply_threaded(const FullyDistSpVec<IU, NU1>& V,
 
 #pragma omp parallel
       {
+#ifdef THREADED
         int curthread = omp_get_thread_num();
+#else
+        int curthread = 0;
+#endif
         IU tStartIdx = perthread * curthread;
         IU tNextIdx = perthread * (curthread + 1);
 
@@ -1384,7 +1390,11 @@ FullyDistSpVec<IU, RET> EWiseApply_threaded(const FullyDistSpVec<IU, NU1>& V,
       Product.num.resize(tdisp[nthreads]);
 #pragma omp parallel
       {
+#ifdef THREADED
         int curthread = omp_get_thread_num();
+#else
+        int curthread = 0;
+#endif
         std::copy(tProductInd[curthread].begin(), tProductInd[curthread].end(),
                   Product.ind.data() + tdisp[curthread]);
         std::copy(tProductVal[curthread].begin(), tProductVal[curthread].end(),
