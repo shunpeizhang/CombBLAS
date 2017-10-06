@@ -171,7 +171,7 @@ private:
 	friend class FullyDistVec;
 
 	template <typename SR, typename IU, typename NUM, typename NUV, typename UDER>
-	friend DenseParVec<IU,typename promote_trait<NUM,NUV>::T_promote>
+	friend DenseParVec<IU,typename std::result_of<decltype(&SR::id)()>::type>
 	SpMV (const SpParMat<IU,NUM,UDER> & A, const DenseParVec<IU,NUV> & x );
 
 	template <typename IU, typename NU1, typename NU2>

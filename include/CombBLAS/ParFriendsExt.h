@@ -758,11 +758,10 @@ void RandPerm(SpParVec<IU,IU> & V)
 }
 
 template <typename SR, typename IU, typename NUM, typename NUV, typename UDER>
-DenseParVec<IU,typename promote_trait<NUM,NUV>::T_promote>  SpMV
+DenseParVec<IU,typename std::result_of<decltype(&SR::id)()>::type>  SpMV
 (const SpParMat<IU,NUM,UDER> & A, const DenseParVec<IU,NUV> & x )
 {
-	typedef typename promote_trait<NUM,NUV>::T_promote T_promote;
-
+  using RET=typename std::result_of<decltype(&SR::id)()>::type;
 	IU ncolA = A.getncol();
 	if(ncolA != x.getTotalLength())
 	{
@@ -783,8 +782,8 @@ DenseParVec<IU,typename promote_trait<NUM,NUV>::T_promote>  SpMV
 	int diaginrow = x.commGrid->GetDiagOfProcRow();
 	int diagincol = x.commGrid->GetDiagOfProcCol();
 
-	T_promote id = (T_promote) 0;	// do we need a better identity?
-	DenseParVec<IU, T_promote> y ( x.commGrid, A.getnrow() );
+	RET id = (RET) 0;	// do we need a better identity?
+	DenseParVec<IU, RET> y ( x.commGrid, A.getnrow() );
 	IU ysize = A.getlocalrows();
 	if(x.diagonal)
 	{
@@ -792,11 +791,11 @@ DenseParVec<IU,typename promote_trait<NUM,NUV>::T_promote>  SpMV
 		MPI_Bcast(&size, 1, MPIType<IU>(), diagincol, ColWorld);
 		MPI_Bcast(const_cast<NUV*>(SpHelper::p2a(x.arr)), size, MPIType<NUV>(), diagincol, ColWorld);
 
-		T_promote * localy = new T_promote[ysize];
+		RET * localy = new RET[ysize];
 		std::fill_n(localy, ysize, id);
 		dcsc_gespmv<SR>(*(A.spSeq), SpHelper::p2a(x.arr), localy);
 
-		MPI_Reduce(MPI_IN_PLACE, localy, ysize, MPIType<T_promote>(), SR::mpi_op(), diaginrow, RowWorld);
+		MPI_Reduce(MPI_IN_PLACE, localy, ysize, MPIType<RET>(), SR::mpi_op(), diaginrow, RowWorld);
 		y.arr.resize(ysize);
 		std::copy(localy, localy+ysize, y.arr.begin());
 		delete [] localy;
@@ -809,13 +808,13 @@ DenseParVec<IU,typename promote_trait<NUM,NUV>::T_promote>  SpMV
 		NUV * localx = new NUV[size];
 		MPI_Bcast(localx, size, MPIType<NUV>(), diagincol, ColWorld);
 
-		T_promote * localy = new T_promote[ysize];
+		RET * localy = new RET[ysize];
 		std::fill_n(localy, ysize, id);
 
 		dcsc_gespmv<SR>(*(A.spSeq), localx, localy);
 		delete [] localx;
 
-		MPI_Reduce(localy, NULL, ysize, MPIType<T_promote>(), SR::mpi_op(), diaginrow, RowWorld);
+		MPI_Reduce(localy, NULL, ysize, MPIType<RET>(), SR::mpi_op(), diaginrow, RowWorld);
 		delete [] localy;
 	}
 	return y;

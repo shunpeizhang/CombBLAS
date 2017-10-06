@@ -314,7 +314,7 @@ public:
 	Mult_AnXBn_Fence (const SpParMat<IU,NU1,UDER1> & A, const SpParMat<IU,NU2,UDER2> & B );
 
 	template <typename SR, typename IU, typename NUM, typename NUV, typename UDER>
-	friend DenseParVec<IU,typename promote_trait<NUM,NUV>::T_promote>
+	friend DenseParVec<IU,typename std::result_of<decltype(&SR::id)()>::type>
 	SpMV (const SpParMat<IU,NUM,UDER> & A, const DenseParVec<IU,NUV> & x );
 
   template <typename SR, typename IU, typename NUM, typename NUV, typename UDER>
