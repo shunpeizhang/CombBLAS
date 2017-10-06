@@ -1123,7 +1123,7 @@ void SpDCCols<IT,NT>::PrintInfo() const
 			{
 				for(IT j=0; j<n; ++j)
 				{
-					std::cout << setiosflags(std::ios::fixed) << std::setprecision(2) << A[i][j];
+					std::cout << std::setiosflags(std::ios::fixed) << std::setprecision(2) << A[i][j];
 					std::cout << " ";
 				}
 				std::cout << std::endl;
