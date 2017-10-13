@@ -60,6 +60,10 @@ public:
 	DenseParVec ( std::shared_ptr<CommGrid> grid, IT locallength, NT initval, NT id);
 	DenseParVec ( std::shared_ptr<CommGrid> grid, IT globallength, NT initval);
 
+  //! Create a new DenseParVec with global length by calling func on each index
+  template<class Func>
+  static DenseParVec<IT,NT> generate(std::shared_ptr<CommGrid> grid, IT globallength, Func func);
+
 	std::ifstream& ReadDistribute (std::ifstream& infile, int master);
 	DenseParVec<IT,NT> & operator=(const SpParVec<IT,NT> & rhs);		//!< SpParVec->DenseParVec conversion operator
 	DenseParVec<IT,NT> & operator=(const DenseParVec<IT,NT> & rhs);

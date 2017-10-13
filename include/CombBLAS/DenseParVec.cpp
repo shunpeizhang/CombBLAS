@@ -84,6 +84,16 @@ DenseParVec<IT, NT>::DenseParVec(IT locallength, NT initval, NT id) : zero(id) {
   reset_dim();
 }
 
+template<class IT, class NT>
+template<class Func>
+DenseParVec<IT,NT> DenseParVec<IT,NT>::generate(std::shared_ptr<CommGrid> grid, IT globallength, Func func) {
+  DenseParVec<IT,NT> res(grid, globallength);
+  IT off = res.offset();
+  for(IT i = 0; i < res.arr.size(); i++) {
+    res.arr[i] = func(i + off);
+  }
+}
+
 // template <class IT, class NT>
 // DenseParVec<IT, NT>::DenseParVec ( std::shared_ptr<CommGrid> grid, NT id):
 // zero(id)
