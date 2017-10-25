@@ -782,7 +782,7 @@ DenseParVec<IU,typename std::result_of<decltype(&SR::id)()>::type>  SpMV
 	int diaginrow = x.commGrid->GetDiagOfProcRow();
 	int diagincol = x.commGrid->GetDiagOfProcCol();
 
-	RET id = (RET) 0;	// do we need a better identity?
+	RET id = (RET) SR::id();
 	DenseParVec<IU, RET> y ( x.commGrid, A.getnrow() );
 	IU ysize = A.getlocalrows();
 	if(x.diagonal)
