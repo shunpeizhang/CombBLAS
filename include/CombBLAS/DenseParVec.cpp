@@ -92,6 +92,7 @@ DenseParVec<IT,NT> DenseParVec<IT,NT>::generate(std::shared_ptr<CommGrid> grid, 
   for(IT i = 0; i < res.arr.size(); i++) {
     res.arr[i] = func(i + off);
   }
+  return res;
 }
 
 // template <class IT, class NT>
