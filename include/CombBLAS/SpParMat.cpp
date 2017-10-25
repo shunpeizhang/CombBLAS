@@ -906,7 +906,7 @@ SpParMat<IT, NT, DER> SpParMat<IT, NT, DER>::SubsRefCol(
 /**
  * Generalized sparse matrix indexing (ri/ci are 0-based indexed)
  * Both the storage and the actual values in FullyDistVec should be IT
- * The index std::vectors are dense and FULLY distributed on all processors
+ * The index vectors are dense and FULLY distributed on all processors
  * We can use this function to apply a permutation like A(p,q)
  * Sequential indexing subroutine (via multiplication) is general enough.
  */
@@ -1063,7 +1063,7 @@ SpParMat<IT, NT, DER> SpParMat<IT, NT, DER>::SubsRef_SR(
     // Do parallel matrix-matrix multiply
     PA = Mult_AnXBn_DoubleBuff<PTBOOLNT, NT, DER>(P, *this);
   }  // P is destructed here
-#ifndef NDEBUG
+#ifdef SPREFDEBUG
   PA.PrintInfo();
 #endif
   // Step 2: Create Q  (use the same row-wise communication and transpose at the
