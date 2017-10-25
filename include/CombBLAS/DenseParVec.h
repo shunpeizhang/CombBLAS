@@ -119,7 +119,7 @@ public:
 	template <typename _UnaryOperation, typename NNT>
 	void Apply(_UnaryOperation __unary_op, const SpParVec<IT,NNT>& mask);
 
-	void PrintToFile(std::string prefix)
+	void PrintToFile(std::string prefix) const
 	{
 		std::ofstream output;
 		commGrid->OpenDebugFile(prefix, output);
