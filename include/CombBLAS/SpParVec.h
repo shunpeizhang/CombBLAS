@@ -46,7 +46,7 @@ template <class IT>
 class DistEdgeList;
 
 /**
-  * A sparse std::vector of length n (with nnz <= n of them being nonzeros) is
+  * A sparse vector of length n (with nnz <= n of them being nonzeros) is
   *distributed to
   * diagonal processors in a way that respects ordering of the nonzero indices
   * Example: x = [5,1,6,2,9] for nnz(x)=5 and length(x)=10
@@ -65,7 +65,7 @@ class DistEdgeList;
   *
   * TODO: Instead of repeated calls to "DiagWorld", this class should be
   *oblivious to the communicator
-  * 	  It should just distribute the std::vector to the MPI::IntraComm that it
+  * 	  It should just distribute the vector to the MPI::IntraComm that it
   *owns, whether diagonal or whole
  **/
 
@@ -203,10 +203,11 @@ class SpParVec {
   NT Reduce(_BinaryOperation __binary_op, NT init);
 
   void DebugPrint();
-  std::shared_ptr<CommGrid> getcommgrid() { return commGrid; }
+  std::shared_ptr<CommGrid> getcommgrid() const { return commGrid; }
   NT NOT_FOUND;
   std::vector<IT>& getind() { return ind; }
   std::vector<NT>& getnum() { return num; }
+  IT& getlength() { return length; }
   const std::vector<IT>& getind() const { return ind; }
   const std::vector<NT>& getnum() const { return num; }
 
@@ -227,7 +228,7 @@ class SpParVec {
   friend class SpParMat;
 
   template <typename SR, typename IU, typename NUM, typename NUV, typename UDER>
-  friend SpParVec<IU, typename promote_trait<NUM, NUV>::T_promote> SpMV(
+  friend SpParVec<IU, typename SR::T_promote> SpMV(
       const SpParMat<IU, NUM, UDER>& A, const SpParVec<IU, NUV>& x);
 
   template <typename IU, typename NU1, typename NU2>

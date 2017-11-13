@@ -830,10 +830,10 @@ std::vector<OUT> convert(std::vector<IN> x) {
 }
 
 template <typename SR, typename IU, typename NUM, typename NUV, typename UDER>
-SpParVec<IU,typename promote_trait<NUM,NUV>::T_promote>  SpMV
+SpParVec<IU,typename SR::T_promote>  SpMV
 (const SpParMat<IU,NUM,UDER> & A, const SpParVec<IU,NUV> & x )
 {
-	typedef typename promote_trait<NUM,NUV>::T_promote T_promote;
+	typedef typename SR::T_promote T_promote;
 
 	IU ncolA = A.getncol();
 	if(ncolA != x.getTotalLength())
@@ -876,7 +876,7 @@ SpParVec<IU,typename promote_trait<NUM,NUV>::T_promote>  SpMV
 		std::vector< T_promote >  numy;
     std::vector<int32_t> inds = convert<IU, int32_t>(x.ind);
     std::vector<int32_t> indys;
-		dcsc_gespmv<SR, IU, int32_t, NUM>(*(A.spSeq), SpHelper::p2a(inds), SpHelper::p2a(x.num), nnzx, indys, numy);
+		dcsc_gespmv<SR, IU, int32_t, NUM, NUV, T_promote>(*(A.spSeq), SpHelper::p2a(inds), SpHelper::p2a(x.num), nnzx, indys, numy);
     indy = convert<int32_t, IU>(indys);
 		// dcsc_gespmv<SR>(*(A.spSeq), SpHelper::p2a(x.ind), SpHelper::p2a(x.num), nnzx, indy, numy);
 

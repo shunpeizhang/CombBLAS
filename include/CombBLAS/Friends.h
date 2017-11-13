@@ -349,7 +349,7 @@ void dcsc_gespmv (const SpDCCols<MIND, NUM> & A, const VIND * indx, const IVT * 
 		}
 		else
 		{
-			SpMXSpV<SR>(*(A.GetDCSC()), (VIND) A.getnrow(), indx, numx, nnzx, indy, numy);
+			SpMXSpV<SR, MIND, NUM, IVT, OVT>(*(A.GetDCSC()), (VIND) A.getnrow(), indx, numx, nnzx, indy, numy);
 		}
 	}
 }
