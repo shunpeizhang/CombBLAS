@@ -1360,7 +1360,10 @@ void SpParMat<IT, NT, DER>::SparseCommon(
     A.RemoveDuplicates(std::plus<NT>());
   }
   spSeq = new DER(A, false);  // Convert SpTuples to DER
-  reset_dims();
+  _nrow = total_m;
+  _ncol = total_n;
+  IT loc_nnz = spSeq->getnnz();
+  MPI_Allreduce(&loc_nnz, &_nnz, 1, MPIType<IT>(), MPI_SUM, commGrid->GetWorld());
 }
 
 //! All std::vectors are zero-based indexed (as usual)
