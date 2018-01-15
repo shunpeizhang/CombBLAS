@@ -96,7 +96,7 @@ public:
 	{
 		ColLexiCompare<IT,NT> collexicogcmp;
 		if(!SpHelper::is_sorted(tuples, tuples+nnz, collexicogcmp))
-			sort(tuples , tuples+nnz, collexicogcmp );
+			std::sort(tuples , tuples+nnz, collexicogcmp );
 	}
 
 	/**

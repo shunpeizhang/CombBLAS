@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 
-project(CombBLAS CXX)
+project(CombBLAS C CXX)
 
 set(CombBLAS_VERSION 1.5.0)
 

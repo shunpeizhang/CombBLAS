@@ -210,11 +210,9 @@ SpDCCols<IT,NT>::SpDCCols(IT nRow, IT nCol, IT nTuples, const std::tuple<IT, IT,
     {
         int totThreads = 1;
 #pragma omp parallel
-#ifdef THREADED
         {
             totThreads = omp_get_num_threads();
         }
-#endif
 
         std::vector <IT> tstart(totThreads);
         std::vector <IT> tend(totThreads);
@@ -227,11 +225,7 @@ SpDCCols<IT,NT>::SpDCCols(IT nRow, IT nCol, IT nTuples, const std::tuple<IT, IT,
 
 #pragma omp parallel
         {
-#ifdef THREADED
             int threadID = omp_get_thread_num();
-#else
-            int threadID = 0;
-#endif
             IT start = threadID * (nTuples / totThreads);
             IT end = (threadID + 1) * (nTuples / totThreads);
             if(threadID == (totThreads-1)) end = nTuples;
