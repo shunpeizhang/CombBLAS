@@ -251,6 +251,7 @@ void SpTuples<IT,NT>::RemoveDuplicates(BINFUNC BinOp)
                 }
 		delete [] tuples;
 		tuples  = new std::tuple<IT, IT, NT>[summed.size()];
+    nnz = summed.size();
 		std::copy(summed.begin(), summed.end(), tuples);
 	}
 }
