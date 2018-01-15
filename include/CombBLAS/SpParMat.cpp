@@ -1359,7 +1359,9 @@ void SpParMat<IT, NT, DER>::SparseCommon(
     // matter as long as they are sorted one way or another)
     A.RemoveDuplicates(std::plus<NT>());
   }
+  std::cout << "SpTuples: " << A.getnrow() << " " << A.getncol() << " " << A.getnnz() << std::endl;
   spSeq = new DER(A, false);  // Convert SpTuples to DER
+  std::cout << "DER: " << spSeq->getnrow() << " " << spSeq->getncol() << " " << spSeq->getnnz() << std::endl;
   _nrow = total_m;
   _ncol = total_n;
   IT loc_nnz = spSeq->getnnz();
