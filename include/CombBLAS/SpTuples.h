@@ -70,13 +70,13 @@ public:
 
 	SpTuples<IT,NT> & operator=(const SpTuples<IT,NT> & rhs);
 
-	IT & rowindex (IT i) { return joker::get<0>(tuples[i]); }
-	IT & colindex (IT i) { return joker::get<1>(tuples[i]); }
-	NT & numvalue (IT i) { return joker::get<2>(tuples[i]); }
+	IT & rowindex (IT i) { return std::get<0>(tuples[i]); }
+	IT & colindex (IT i) { return std::get<1>(tuples[i]); }
+	NT & numvalue (IT i) { return std::get<2>(tuples[i]); }
 
-	IT rowindex (IT i) const { return joker::get<0>(tuples[i]); }
-	IT colindex (IT i) const { return joker::get<1>(tuples[i]); }
-	NT numvalue (IT i) const { return joker::get<2>(tuples[i]); }
+	IT & rowindex (IT i) const { return std::get<0>(tuples[i]); }
+	IT & colindex (IT i) const { return std::get<1>(tuples[i]); }
+	NT & numvalue (IT i) const { return std::get<2>(tuples[i]); }
 
 
 	template <typename BINFUNC>
@@ -86,7 +86,7 @@ public:
 	{
 		RowLexiCompare<IT,NT> rowlexicogcmp;
 		if(!SpHelper::is_sorted(tuples, tuples+nnz, rowlexicogcmp))
-			sort(tuples , tuples+nnz, rowlexicogcmp);
+			std::sort(tuples , tuples+nnz, rowlexicogcmp);
 
 		// Default "operator<" for tuples uses lexicographical ordering
 		// However, cray compiler complains about it, so we use rowlexicogcmp
@@ -96,7 +96,7 @@ public:
 	{
 		ColLexiCompare<IT,NT> collexicogcmp;
 		if(!SpHelper::is_sorted(tuples, tuples+nnz, collexicogcmp))
-			sort(tuples , tuples+nnz, collexicogcmp );
+			std::sort(tuples , tuples+nnz, collexicogcmp );
 	}
 
 	/**
